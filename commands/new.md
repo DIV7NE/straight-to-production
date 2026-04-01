@@ -149,7 +149,16 @@ why, and what alternatives were considered.]
    - Stack-specific patterns (from the template)
    - Universal standards index (from `_standards-index.md`)
 4. Scaffold the project (run framework's init commands from the template)
-5. Initialize git if needed, first commit: `chore: initialize project with Pilot standards`
+5. Generate `.github/workflows/ci.yml` — a stack-aware CI pipeline that runs on every push:
+   - Type check / compile check (same command as the hooks: tsc, mypy, cargo check, etc.)
+   - Lint (eslint, ruff, clippy, go vet, etc.)
+   - Tests (npm test, pytest, cargo test, etc.)
+   - Dependency security audit (npm audit, pip audit, cargo audit, etc.)
+   - Build verification
+   
+   This ensures quality is enforced REMOTELY, not just locally via hooks.
+   Teach: "This CI pipeline runs the same checks as the hooks, but on GitHub's servers. Even if you bypass the local hooks, the CI catches it before it reaches production."
+6. Initialize git if needed, first commit: `chore: initialize project with Pilot standards`
 
 ### Step 7: Handoff
 

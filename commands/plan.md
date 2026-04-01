@@ -108,6 +108,14 @@ Indexes:
 Explain key design decisions:
 "I'm using UUIDs instead of auto-incrementing numbers for IDs. This means someone can't guess invoice URLs by incrementing numbers — if invoice #5 exists, they can't just try #6 to see someone else's invoice."
 
+**Migration Strategy:**
+For each model, also specify:
+- Migration file to create (e.g., `migrations/001_create_users.sql`)
+- Rollback procedure (the reverse migration)
+- Seed data for development/testing
+
+Teach: "Migrations are version-controlled database changes. Instead of editing the database directly, we write a file that says 'create this table.' If something goes wrong, the rollback undoes it. This means your database changes are trackable, reversible, and reproducible."
+
 ### Phase 4: API/Route Design (if applicable)
 
 Design every endpoint or route with its purpose, auth requirements, and request/response shape.
@@ -190,6 +198,30 @@ Features:
     - Modify: [every list component]
 - [ ] 11. Edge cases from domain research
     - [Specific files per edge case]
+- [ ] 12. Error tracking + monitoring setup
+    - Integrate: Sentry (or equivalent) for production error tracking
+    - Add: health check endpoint (GET /api/health or equivalent)
+    - Teach: "Error tracking is how you find out something broke in production
+      BEFORE your users email you. Sentry captures every error with a stack trace
+      and notifies you instantly."
+- [ ] 13. E2E test suite for primary workflow
+    - Create: e2e/ directory with Playwright (web), Detox (mobile), or equivalent
+    - Tests: the full primary workflow end-to-end (e.g., signup → create invoice → send → payment)
+    - Teach: "E2E tests drive a real browser through your app the way a user would.
+      If the signup → invoice → payment chain breaks, this catches it."
+
+### Milestone 4: Deploy Readiness (if applicable)
+Goal: Ready to go live
+
+Features:
+- [ ] 14. Environment configuration
+    - Verify: all env vars documented, production values set in deployment platform
+    - Create: .env.example with all required vars (no real values)
+- [ ] 15. Legal/compliance basics (web-facing projects)
+    - Add: privacy policy page (if collecting user data)
+    - Add: terms of service page (if users pay)
+    - Add: cookie consent banner (if targeting EU users)
+    - Check: license audit (no GPL dependencies in proprietary code)
 ```
 
 Every feature specifies exact files to create/modify and exact test files to write.

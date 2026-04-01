@@ -38,3 +38,4 @@ the referenced files contain verified, current standards.
 |empty-states.md — Zero-data states, no-results states, first-run experience
 |edge-cases.md — Offline handling, slow connections, concurrent edits, session expiry, timezone
 |seo-basics.md — Meta tags, sitemaps, semantic HTML, structured data, social sharing
+|legal-compliance.md — Privacy policy, terms of service, GDPR, cookie consent, license auditing

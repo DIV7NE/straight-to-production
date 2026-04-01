@@ -93,7 +93,7 @@ Can users complete their primary goals? Do all interactive elements work? Are AP
 Coherent visual identity or generic AI slop? Look for: purple gradients on white cards, centered everything, excessive whitespace, stock placeholder text, inconsistent spacing/typography.
 
 **Criterion 3 — Security**
-Env vars handled properly? User input validated? API routes/endpoints protected with auth? Rate limiting present? No hardcoded secrets?
+Env vars handled properly? User input validated? API routes/endpoints protected with auth? Rate limiting present? No hardcoded secrets? Dependency audit clean (run `npm audit` / `pip audit` / `cargo audit` or equivalent)?
 
 **Criterion 4 — Accessibility**
 Heading hierarchy correct? Images have alt text? Interactive elements keyboard-accessible? Forms have labels? Color contrast sufficient? (Web projects primarily — skip for APIs/CLIs.)
@@ -102,7 +102,7 @@ Heading hierarchy correct? Images have alt text? Interactive elements keyboard-a
 Sequential queries that should be parallel? Images optimized? Heavy components lazy loaded? N+1 query patterns? Bundle size reasonable?
 
 **Criterion 6 — Production Readiness**
-Error handling exists? Loading states exist? Empty states exist? Custom error pages? Debug logging removed? Tests exist for critical paths?
+Error handling exists? Loading states exist? Empty states exist? Custom error pages? Debug logging removed? Tests exist for critical paths? CI pipeline exists (`.github/workflows/`)? Error tracking configured (Sentry or equivalent)? Database migrations exist and have rollback procedures? E2E tests exist for primary workflow? Privacy policy / terms of service exist (if user-facing web app)?
 
 ### 5. Report Format
 
