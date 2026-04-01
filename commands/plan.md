@@ -210,29 +210,66 @@ Commit: `docs: add technical plan`
 
 ### Phase 7: Self-Review (Catch Your Own Mistakes)
 
-Before showing the plan to the user, review it with fresh eyes:
+Before any external verification, review with fresh eyes:
 
 1. **Placeholder scan:** Any "TBD", "TODO", "[fill in]", or incomplete sections? Fix them now.
 2. **Consistency check:** Do data models match the API design? Do API routes reference models that exist? Do test cases match the features they test?
-3. **Dependency check:** Can features be built in the specified order? Does feature 3 depend on something not yet built?
+3. **Dependency check:** Can features be built in the specified order? Does feature 3 depend on something not yet built? Are there circular dependencies?
 4. **File check:** Does every feature specify which files to create/modify? No vague "implement the feature" — specific file paths.
-5. **Test check:** Does every feature have at least one test case? No features without tests.
+5. **Test check:** Does every feature have at least one test case? No features without tests. Are there integration tests for cross-feature workflows?
 6. **Scope check:** Does the plan match the PRD? Nothing missing, nothing added that wasn't discussed?
 
 Fix issues inline. Don't re-present — just fix and move on.
 
-### Phase 8: User Reviews the Written Plan
+### Phase 8: Plan Verification (Separate Evaluator)
 
-After saving PLAN.md, ask the user to review it:
+Spawn the `pilot-critic` agent to verify the plan BEFORE any code is written. Finding an architecture mistake now saves 10x vs finding it after 5 features are built on top.
+
+Prompt the Critic:
 
 ```
-━━━ Plan ready ━━━
+Verify PLAN.md against PRD.md. You are reviewing a PLAN, not code. Check:
 
-PLAN.md saved with the full technical blueprint:
+1. **PRD coverage** — Does every feature in PRD.md have a corresponding
+   milestone/feature in PLAN.md? List any gaps.
+
+2. **Data model integrity** — Are all relationships valid? Are foreign keys
+   pointing to tables that exist? Are there missing indexes for common queries?
+
+3. **API/model consistency** — Does every API endpoint reference models that
+   exist in the data model section? Do request/response shapes match the models?
+
+4. **Dependency graph** — Can features be built in the listed order? Does any
+   feature depend on something scheduled later? Are there circular dependencies?
+
+5. **Test coverage** — Does every feature have specific test cases? Are there
+   integration tests for end-to-end workflows (not just unit tests)?
+
+6. **Security review** — Are all authenticated endpoints marked as such? Is input
+   validation specified for every endpoint accepting user data? Are there rate
+   limits on public endpoints?
+
+7. **Missing concerns** — Based on the project type, is anything obviously missing?
+   (error handling strategy, migration plan, deployment requirements, monitoring)
+
+Report: PASS / ISSUES FOUND with specific findings.
+```
+
+If the Critic finds issues, fix them in PLAN.md and re-run verification. Iterate until PASS.
+
+### Phase 9: User Reviews the Written Plan
+
+After verification passes, ask the user to review:
+
+```
+━━━ Plan ready (verified) ━━━
+
+PLAN.md saved and verified by the Critic:
 - [N] milestones, [N] features, [N] files to create
 - Milestone 1 (Foundation): [brief]
 - Milestone 2 (Core): [brief]
 - Milestone 3 (Polish): [brief]
+- Verification: PASS — [any notes]
 
 Please review PLAN.md — this is the blueprint I'll build against.
 Let me know if you want to change anything before we start.
@@ -241,9 +278,7 @@ When ready:
 /pilot:feature [FIRST FEATURE from Milestone 1]
 ```
 
-Wait for the user to approve. If they request changes, make them, re-run the self-review, and ask again. Do NOT proceed to building until the user has seen and approved the written plan.
-
-This gate matters because: the conversation version of the plan may differ from the written version. The user needs to approve what's ON DISK, not what was discussed.
+Wait for the user to approve. If they request changes, make them, re-verify, and ask again. Do NOT proceed to building until the user has approved the verified plan.
 ```
 
 ## Rules

@@ -84,22 +84,57 @@ When the user says go:
 
 5. **Refactor if needed.** Once tests pass, clean up code without changing behavior. Tests catch any regressions.
 
-### Step 5: Complete
+### Step 5: Complete Feature
 
 1. If any significant technical decisions were made during this feature (library choices, architecture patterns, tradeoffs), append them to the `## Technical Decisions Log` section in `PRD.md`. Format: what was decided, why, alternatives considered.
-2. Delete `.pilot/current-feature.md` and `.pilot/handoff.md` if they exist.
-3. Commit.
+2. Update PLAN.md — mark this feature as completed.
+3. Delete `.pilot/current-feature.md` and `.pilot/handoff.md` if they exist.
+4. Commit.
+
+### Step 6: Milestone Check (Automatic)
+
+After completing a feature, check PLAN.md: **is this the last feature in the current milestone?**
+
+If YES — this milestone is complete. Run two things automatically:
+
+**1. Integration Verification**
+Test that features within this milestone work TOGETHER, not just individually. Unit tests pass, but does the full workflow work?
+
+For example, after Milestone 2 (Core Workflow):
+- Can a user create an invoice, add line items, send it to a client, and track payment status?
+- Does the full chain work end-to-end, or do individual pieces pass tests but fail when connected?
+
+Write and run integration/E2E tests for the milestone's primary workflow. Commit them.
+
+**2. Automatic Critic Evaluation**
+Spawn the `pilot-critic` agent automatically — don't wait for the user to ask. The Critic grades the milestone against PRD.md + PLAN.md + the 6 quality criteria. Present the results.
+
+Then:
+
+```
+━━━ Milestone [N] complete ━━━
+
+[N] features built. Integration tests passing.
+
+Critic Report:
+[Summary of 6-criteria evaluation]
+
+Priority fixes (if any):
+1. [Most critical]
+2. [Second]
+
+Fix these now? Or continue to Milestone [N+1]:
+   /pilot:feature [FIRST FEATURE of next milestone]
+```
+
+If NO — more features remain in this milestone:
 
 ```
 Feature complete: [NAME]
+[N] of [M] features done in Milestone [current].
 
-━━━ Next step ━━━
-
-Evaluate what you built:
-   /pilot:evaluate
-
-Or next feature:
-   /pilot:feature [NEXT FEATURE — specific name from spec]
+━━━ Next ━━━
+/pilot:feature [NEXT FEATURE in this milestone]
 ```
 
 ALWAYS fill in specific names.
@@ -112,3 +147,4 @@ ALWAYS fill in specific names.
 - DO check if patterns already exist in the codebase. Follow established patterns.
 - DO read reference files before implementing security, accessibility, or performance-sensitive code.
 - Keep teach moments to 2-3 sentences. Explain the concept, not the implementation.
+- The milestone check is AUTOMATIC — don't ask the user if they want it. Just do it. Quality isn't optional.
