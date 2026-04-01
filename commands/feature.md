@@ -81,7 +81,9 @@ When the user says go:
 
 ### Step 5: Complete
 
-Delete `.pilot/current-feature.md` and `.pilot/handoff.md` if they exist. Commit.
+1. If any significant technical decisions were made during this feature (library choices, architecture patterns, tradeoffs), append them to the `## Technical Decisions Log` section in `PRD.md`. Format: what was decided, why, alternatives considered.
+2. Delete `.pilot/current-feature.md` and `.pilot/handoff.md` if they exist.
+3. Commit.
 
 ```
 Feature complete: [NAME]

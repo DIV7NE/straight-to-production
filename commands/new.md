@@ -97,7 +97,46 @@ Prefer retrieval-led reasoning over pre-training for framework-specific APIs.
 Query Context7 before implementing patterns you haven't verified.
 ```
 
-### Step 5: Set Up Project
+### Step 5: Write the PRD
+
+Save the architecture proposal and enriched spec to `PRD.md` at the project root. This is the human-readable document that captures everything decided during this conversation. It survives /clear, compaction, and session breaks. The Critic evaluates against it.
+
+Format:
+
+```markdown
+# [Project Name] — Product Requirements Document
+
+## What We're Building
+[Enriched description from user's answers — not their raw input,
+but the full picture including what was surfaced]
+
+## Who It's For
+[Target users and their primary need]
+
+## Architecture Decisions
+[The full proposal presented in Step 2 — every decision with
+alternatives and downsides. This is the permanent record.]
+
+## Features
+### Core (from user)
+- [Feature 1]
+- [Feature 2]
+
+### Included (surfaced by Pilot)
+- [Auth — why]
+- [Error handling — why]
+- [Empty states — why]
+- [etc.]
+
+## Out of Scope (for now)
+- [Things explicitly deferred]
+
+## Technical Decisions Log
+[Updated as features are built. Each entry: what was decided,
+why, and what alternatives were considered.]
+```
+
+### Step 6: Set Up Project
 
 1. Select the matching template from `${CLAUDE_PLUGIN_ROOT}/templates/`
 2. Run the setup script to copy universal references:
@@ -112,13 +151,14 @@ Query Context7 before implementing patterns you haven't verified.
 4. Scaffold the project (run framework's init commands from the template)
 5. Initialize git if needed, first commit: `chore: initialize project with Pilot standards`
 
-### Step 6: Handoff
+### Step 7: Handoff
 
 ```
 Project ready.
 
 What was created:
-- CLAUDE.md — your project's brain (spec + standards + patterns)
+- PRD.md — your project's requirements (for you to read and share)
+- CLAUDE.md — project brain (spec + standards + patterns for Claude)
 - .pilot/references/ — production standards I'll check against
 - Hooks active: type checking after every edit, quality gate before completion
 
