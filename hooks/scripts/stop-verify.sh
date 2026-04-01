@@ -34,6 +34,22 @@ if [ -f "tsconfig.json" ]; then
   fi
 fi
 
+# === ENFORCEMENT 1.5: Test failures ===
+# Same pattern as claude-bootstrap TDD loop: tests must pass or Claude can't stop.
+# Only runs if a test script exists in package.json.
+if [ -f "package.json" ] && grep -q '"test"' package.json 2>/dev/null; then
+  # Skip if test command is the default "no test specified"
+  if ! grep -q '"test".*"echo.*no test' package.json 2>/dev/null; then
+    TEST_OUTPUT=$(npm test --silent 2>&1)
+    TEST_EXIT=$?
+    if [ "$TEST_EXIT" -ne 0 ]; then
+      echo "BLOCKED: Tests failing. Fix before completing:" >&2
+      echo "$TEST_OUTPUT" | tail -15 >&2
+      exit 2
+    fi
+  fi
+fi
+
 # === ENFORCEMENT 2: Unchecked feature items ===
 if [ -f "$FEATURE_FILE" ]; then
   # Check context usage
