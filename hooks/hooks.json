@@ -1,0 +1,89 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/prompt-reinject.sh\"",
+            "timeout": 5
+          }
+        ],
+        "description": "Re-inject current task before every prompt so Claude never forgets what it's working on"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/post-edit-typecheck.sh\"",
+            "timeout": 30
+          }
+        ],
+        "description": "TypeScript check after editing .ts/.tsx files"
+      },
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/context-monitor.sh\"",
+            "timeout": 5
+          }
+        ],
+        "description": "Track context usage and inject progressive reminders"
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop-verify.sh\"",
+            "timeout": 30
+          }
+        ],
+        "description": "REAL enforcement: exit 2 blocks stop on TypeScript errors OR unchecked feature items. No prompt — just infrastructure."
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-compact-save.sh\"",
+            "timeout": 10
+          },
+          {
+            "type": "prompt",
+            "prompt": "Context compaction is about to fire. Commit any uncommitted work now. Your state has been saved to .pilot/state.json. After compaction, read .pilot/current-feature.md to resume."
+          }
+        ],
+        "description": "Save state to disk before compaction"
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-restore.sh\"",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/reset-counter.sh\"",
+            "timeout": 5
+          }
+        ],
+        "description": "Restore context from disk and reset counters"
+      }
+    ]
+  }
+}

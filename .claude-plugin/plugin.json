@@ -1,0 +1,19 @@
+{
+  "name": "pilot",
+  "version": "0.1.0",
+  "description": "Production-quality app builder for solo developers. Surfaces what you don't know, enforces what you'd forget, evaluates what you can't judge.",
+  "author": {
+    "name": "visionch"
+  },
+  "homepage": "https://github.com/visionch/pilot",
+  "license": "MIT",
+  "keywords": [
+    "production",
+    "standards",
+    "security",
+    "accessibility",
+    "evaluation",
+    "solo-dev",
+    "quality"
+  ]
+}

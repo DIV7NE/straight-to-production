@@ -1,0 +1,18 @@
+{
+  "name": "pilot-dev",
+  "description": "Development marketplace for Pilot plugin",
+  "owner": {
+    "name": "visionch"
+  },
+  "plugins": [
+    {
+      "name": "pilot",
+      "description": "Production-quality app builder for solo developers",
+      "version": "0.1.0",
+      "source": "./",
+      "author": {
+        "name": "visionch"
+      }
+    }
+  ]
+}
