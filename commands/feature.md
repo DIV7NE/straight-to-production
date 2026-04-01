@@ -127,6 +127,23 @@ Fix these now? Or continue to Milestone [N+1]:
    /pilot:feature [FIRST FEATURE of next milestone]
 ```
 
+If this is the **LAST milestone** (all milestones complete):
+```
+━━━ ALL MILESTONES COMPLETE ━━━
+
+[Total features] built. [Total tests] passing. Integration verified.
+
+Critic Report:
+[Summary of final 6-criteria evaluation]
+
+Priority fixes (if any):
+1. [Most critical]
+2. [Second]
+
+Your project is feature-complete per the PRD.
+Fix any remaining issues, then you're ready to deploy.
+```
+
 If NO — more features remain in this milestone:
 
 ```

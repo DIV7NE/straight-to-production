@@ -127,24 +127,26 @@ Break the PRD's features into implementation order with dependencies.
 ```
 ## Implementation Plan
 
+Status key: [ ] pending, [x] complete, [!] blocked
+
 ### Milestone 1: Foundation
 Goal: Core data models, database, and basic CRUD
 
 Features:
-1. Database setup + migrations
+- [ ] 1. Database setup + migrations
    - Create: src/db/schema.ts (or models.py, schema.rs, etc.)
    - Create: src/db/migrations/001_initial.sql
    - Tests: tests/db.test.ts — connection, schema validation
    - Dependencies: none
    
-2. User model + auth integration
+- [ ] 2. User model + auth integration
    - Create: src/models/user.ts
    - Create: src/middleware/auth.ts
    - Modify: src/app/layout.tsx (add auth provider)
    - Tests: tests/auth.test.ts — signup, login, session, protected routes
    - Dependencies: database
 
-3. [Core model] CRUD
+- [ ] 3. [Core model] CRUD
    - Create: src/models/[model].ts
    - Create: src/app/api/[model]/route.ts
    - Create: src/components/[model]-form.tsx
@@ -155,27 +157,27 @@ Features:
 Goal: The primary user workflow works end-to-end
 
 Features:
-4. [Primary workflow step 1]
+- [ ] 4. [Primary workflow step 1]
    - Create: [specific files]
    - Modify: [specific files]
    - Tests: [specific test file] — [specific test cases]
    - Dependencies: [which features must exist first]
 
-5. [Primary workflow step 2]
+- [ ] 5. [Primary workflow step 2]
    ...
 
 ### Milestone 3: Polish + Production
 Goal: Error handling, loading states, empty states, edge cases
 
 Features:
-8. Error handling across all operations
+- [ ] 8. Error handling across all operations
    - Create: src/app/error.tsx (or equivalent)
    - Modify: [every API route / server action for try/catch]
-9. Loading states for all async operations
+- [ ] 9. Loading states for all async operations
    - Create: src/app/loading.tsx + per-route loading files
-10. Empty states for all lists/views
+- [ ] 10. Empty states for all lists/views
     - Modify: [every list component]
-11. Edge cases from domain research
+- [ ] 11. Edge cases from domain research
     - [Specific files per edge case]
 ```
 

@@ -138,6 +138,7 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   OUTPUT=$(claude -p "
 You are working on: $FEATURE_TITLE
 Read CLAUDE.md for project context and standards.
+Read PLAN.md for the technical blueprint (data models, API design, test cases).
 Read .pilot/current-feature.md for the checklist.
 
 YOUR TASK:
@@ -145,11 +146,13 @@ ${NEXT_TASK:-Fix all type, compile, and test errors.}
 
 RULES:
 1. Do ONE task only.
-2. After implementing, run the type checker for this project.
-3. Fix any errors before committing.
-4. Update .pilot/current-feature.md — mark completed item [x]
-5. Commit: git add -A && git commit -m 'feat: [description]'
-6. If stuck after 3 attempts, add a note and move on.
+2. Write TESTS FIRST (TDD). Define what 'working' means before implementing.
+3. Implement to make the tests pass.
+4. Run the type checker AND tests for this project. Fix any errors.
+5. Update .pilot/current-feature.md — mark completed item [x]
+6. Commit tests: git add -A && git commit -m 'test: add tests for [description]'
+7. Commit implementation: git add -A && git commit -m 'feat: [description]'
+8. If stuck after 3 attempts, add a note and move on.
 " 2>&1)
 
   echo "$OUTPUT" | tail -15

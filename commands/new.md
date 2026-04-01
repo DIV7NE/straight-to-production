@@ -162,12 +162,16 @@ What was created:
 - .pilot/references/ — production standards I'll check against
 - Hooks active: type checking after every edit, quality gate before completion
 
-━━━ Start building ━━━
+━━━ Next step ━━━
 
-/pilot:feature [SPECIFIC FIRST FEATURE from the spec]
+Plan the architecture before writing any code:
+   /pilot:plan
+
+This will design the system architecture, data models, API,
+and create a verified implementation plan with milestones.
 ```
 
-ALWAYS fill in the specific feature name. NEVER say "your first feature" generically.
+ALWAYS direct to /pilot:plan next. Code comes AFTER planning.
 
 ## Gotchas
 

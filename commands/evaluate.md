@@ -10,15 +10,20 @@ Dispatch the `pilot-critic` agent (Sonnet 4.6) to evaluate the project. Self-eva
 
 ## Process
 
-1. Read CLAUDE.md to get project context
+1. Read PRD.md, PLAN.md, and CLAUDE.md to get project context
 2. Spawn the `pilot-critic` agent:
 
 ```
-Evaluate this project. Read CLAUDE.md for the spec.
-Grade against all 6 criteria.
+Evaluate this project against its requirements and technical plan.
+
+Read these documents FIRST:
+- PRD.md — what was supposed to be built (features, scope, architecture decisions)
+- PLAN.md — how it was supposed to be built (data models, API design, milestones)
+- CLAUDE.md — stack patterns and quality standards
+
+Grade against all 6 criteria. Every finding needs a file:line reference AND business impact.
 Project directory: [cwd]
 Focus area: $ARGUMENTS (if provided, go deeper on this but still check everything)
-Be ruthlessly strict. Every finding needs a file:line reference AND a business impact explanation.
 ```
 
 3. When the Critic returns, present the report to the user. Translate any remaining technical jargon into business terms:
