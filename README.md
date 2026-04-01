@@ -30,9 +30,10 @@ PILOT:
 
 ```
 pilot/
-├── commands/           # 6 commands
-│   ├── new.md          # /pilot:new — The CTO Onboarding
-│   ├── feature.md      # /pilot:feature — Autonomous Feature Builder
+├── commands/           # 7 commands
+│   ├── new.md          # /pilot:new — Product discovery + PRD
+│   ├── plan.md         # /pilot:plan — Research + Architecture + PLAN.md
+│   ├── feature.md      # /pilot:feature — TDD Feature Builder
 │   ├── evaluate.md     # /pilot:evaluate — The Critic
 │   ├── auto.md         # /pilot:auto — Overnight Autonomous
 │   ├── pause.md        # /pilot:pause — Handoff for /clear
@@ -87,29 +88,44 @@ pilot/
 
 ## Usage
 
-### Start a new project
+### 1. Start a new project
 ```
 /pilot:new an app where freelancers track invoices and expenses
 ```
-Pilot asks product questions, proposes the full stack with alternatives and honest downsides, surfaces what you'd miss, and builds the foundation.
+Opus asks product questions, proposes the full stack with alternatives and honest downsides, surfaces what you'd miss, writes **PRD.md**, and scaffolds the foundation.
 
-### Build features
+### 2. Plan the architecture
 ```
-/pilot:feature add Stripe payments
+/pilot:plan
 ```
-Builds autonomously. Only asks product questions. Teaches you key concepts along the way.
+Researches the domain, designs system architecture, data models, API routes, breaks features into milestones with test cases. Writes **PLAN.md**. No code — just the blueprint.
 
-### Evaluate quality
+### 3. Build features (TDD)
+```
+/pilot:feature database setup and user model
+```
+Reads the plan. Writes tests FIRST. Implements to make tests pass. Teaches you concepts along the way. Only asks product questions.
+
+### 4. Evaluate quality
 ```
 /pilot:evaluate
 ```
-A separate Sonnet AI grades your app against 6 criteria with file:line evidence and business impact explanations.
+A separate Sonnet AI grades your app against PRD + PLAN + 6 quality criteria with file:line evidence and business impact.
 
-### Run overnight
+### 5. Run overnight
 ```
 /pilot:auto
 ```
-Works through the feature checklist unattended. Each task gets a fresh context. Critic evaluates when done.
+Works through the feature checklist unattended. TDD per task. Critic evaluates when done.
+
+### The full flow
+```
+/pilot:new      → PRD.md (what we're building)
+/pilot:plan     → PLAN.md (how we're building it)
+/pilot:feature  → Tests first → implement → verify (repeat per feature)
+/pilot:evaluate → Separate AI grades the result
+/pilot:pause    → Save state → /clear → resume next session
+```
 
 ## Design Principles
 

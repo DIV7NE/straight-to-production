@@ -6,29 +6,25 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion"]
 
 # Pilot: Feature Builder
 
-You are building a feature autonomously. Make all technical decisions. Only interrupt the user for PRODUCT decisions (branding, business logic, user-facing choices). Teach key concepts at decision points so the user learns their own codebase.
+You are building a feature using test-driven development. Tests come BEFORE implementation. Make all technical decisions. Only interrupt the user for PRODUCT decisions. Teach key concepts along the way.
 
 ## Process
 
 ### Step 1: Context
 
-Read CLAUDE.md for project spec, stack, and patterns. Check existing code for established patterns to follow.
+Read PLAN.md for this feature's requirements, test cases, and dependencies. Read CLAUDE.md for stack patterns. Check existing code for established patterns.
+
+If PLAN.md exists and this feature is listed, use the plan's test cases and dependencies. If PLAN.md doesn't exist or this feature isn't in it, create the plan inline (but recommend running `/pilot:plan` first for complex projects).
 
 If `.pilot/current-feature.md` already exists, ask: "You have an in-progress feature: [title]. Finish that first, or start this new one?"
 
 ### Step 2: Enrich
 
-Based on the feature description, identify what the user DIDN'T think of. Read relevant `.pilot/references/` files.
+Based on the feature description and PLAN.md, identify what the user DIDN'T think of. Read relevant `.pilot/references/` files.
 
-Ask at most ONE product question if a real product decision is needed:
-- "The invoice PDF — should it show the freelancer's branding, or just plain data?"
-- "When a client pays, email confirmation to both parties?"
+Ask at most ONE product question if a real product decision is needed. If no product decision is needed, skip to the plan.
 
-If no product decision is needed, skip to the plan. Do NOT ask about implementation.
-
-For significant technical decisions within the feature, briefly note them with backing:
-
-"For payments I'm using Stripe — used by Shopify, Notion, and 90% of SaaS products. Best docs in the industry. Alternative: Paddle handles sales tax automatically but is less flexible. ⚠️ Going Stripe means you handle sales tax yourself if you expand internationally."
+For significant technical decisions, briefly note them with industry backing.
 
 ### Step 3: Present Feature Plan
 
@@ -46,11 +42,17 @@ For significant technical decisions within the feature, briefly note them with b
 [Brief note on any significant tech choices, with who uses it and why.
 Skip this section if no notable decisions beyond what's in CLAUDE.md.]
 
+### Tests to write FIRST
+- [ ] [Test case 1 from PLAN.md or identified during enrichment]
+- [ ] [Test case 2]
+- [ ] [Test case 3]
+
 ### Build order
-1. [Foundation — what needs to exist first]
-2. [Core functionality — the main thing]
-3. [Error/edge cases — what happens when things go wrong]
-4. [Polish — loading states, empty states, accessibility]
+1. [Write tests for this feature (TDD — tests before code)]
+2. [Foundation — what needs to exist first]
+3. [Core functionality — make the tests pass]
+4. [Error/edge cases — what happens when things go wrong]
+5. [Polish — loading states, empty states, accessibility]
 
 ### Standards I'll check
 - .pilot/references/[domain]/[file].md before: [specific step]
@@ -58,26 +60,29 @@ Skip this section if no notable decisions beyond what's in CLAUDE.md.]
 
 Keep the plan UNDER 30 lines. This is a checklist, not a document.
 
-### Step 4: Build
+### Step 4: Build (TDD — Tests First)
 
 When the user says go:
 
 1. Save the checklist to `.pilot/current-feature.md`
-2. Work through items in build order
-3. Read referenced standard files before the relevant steps
-4. After each item: mark `[x]` in `.pilot/current-feature.md`, commit atomically
-5. At KEY moments, teach:
 
-   "I'm adding an error boundary here. Quick concept: right now if
-   anything crashes inside the dashboard, users see a white screen.
-   The error boundary catches the crash and shows a 'Something went
-   wrong, try again' message instead. It's like a safety net under
-   a tightrope walker."
+2. **Write tests FIRST.** Before any implementation code:
+   - Create test files for the feature's core behavior
+   - Use the test cases from the plan (PLAN.md or the checklist's "Tests to write FIRST")
+   - Tests should be specific and behavioral: "when a user creates an invoice with no line items, it returns a validation error"
+   - Run the tests — they SHOULD FAIL (nothing is implemented yet)
+   - Commit: `test: add tests for [feature]`
+   - Teach: "I'm writing the tests before the code. Quick concept: this is called TDD — Test-Driven Development. We define what 'working' means first, then build until the tests pass. It's like writing the answer key before the exam. This way we KNOW when we're done, and we catch regressions if something breaks later."
 
-   Don't explain every line. Only explain CONCEPTS that help the user
-   understand how their app works.
+3. **Implement to make tests pass.**
+   - Work through the build order items
+   - Read referenced standard files before the relevant steps
+   - After each item: run tests, mark `[x]` in `.pilot/current-feature.md`, commit atomically
+   - At KEY moments, teach concepts (not every line — just the ideas that help the user understand their app)
 
-6. The Stop hook blocks completion until type checks pass and tests pass.
+4. **All tests green = feature works.** The Stop hook blocks completion until type checks AND tests pass.
+
+5. **Refactor if needed.** Once tests pass, clean up code without changing behavior. Tests catch any regressions.
 
 ### Step 5: Complete
 
