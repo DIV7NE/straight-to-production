@@ -1,46 +1,47 @@
 # Core Web Vitals & Performance
 
-## Target Metrics
+## Target Metrics (Web Applications)
 - **LCP** (Largest Contentful Paint): < 2.5 seconds
 - **INP** (Interaction to Next Paint): < 200 milliseconds
 - **CLS** (Cumulative Layout Shift): < 0.1
 
+For non-web applications (APIs, CLI tools, desktop apps), focus on response time and throughput instead.
+
 ## LCP Optimization
-- Use `priority` prop on above-the-fold images: `<Image priority />`
-- Preload critical fonts with `next/font`
-- Avoid client-side data fetching for initial content — use Server Components
+- Prioritize above-the-fold content loading
+- Preload critical fonts and images
+- Avoid client-side data fetching for initial page content — render on server
 - Minimize redirect chains
-- Use `loading="lazy"` only for below-the-fold images
+- Use lazy loading only for below-the-fold content
 
 ## INP Optimization
-- Use `useTransition` for non-urgent state updates
 - Debounce expensive event handlers (search, resize, scroll)
-- Use `startTransition` for state updates that trigger expensive re-renders
-- Move heavy computation to Web Workers or server actions
-- Use `passive: true` for scroll/touch event listeners
+- Move heavy computation off the main thread (web workers, background tasks)
+- Use optimistic UI updates — show the result immediately, sync later
+- Use passive event listeners for scroll/touch handlers
 
 ## CLS Prevention
-- Always set explicit width/height on images and videos
-- Use `aspect-ratio` CSS for responsive media
-- Reserve space for dynamic content (ads, embeds, lazy-loaded components)
-- Use CSS `content-visibility: auto` for long lists
-- Never inject content above existing content after load
+- Always set explicit dimensions on images and media
+- Reserve space for dynamic content (ads, embeds, lazy components)
+- Never inject content above existing content after page load
+- Use CSS aspect-ratio for responsive media containers
 
-## Bundle Size
-- NEVER import from barrel files (index.ts): `import { X } from '@/components'`
-- DO import directly: `import { X } from '@/components/X'`
-- Use `next/dynamic` for heavy components not needed on initial render
-- Analyze with: `npx @next/bundle-analyzer`
-- Lazy load third-party scripts: analytics, chat widgets, social embeds
+## API/Server Performance
+- Set response time budgets: p50 < 100ms, p99 < 500ms for most endpoints
+- Use connection pooling for database connections
+- Implement request timeouts (10-30 seconds, not infinite)
+- Profile hot paths — optimize the 20% of code that handles 80% of traffic
+- Use async/non-blocking I/O for I/O-bound operations
 
-## Data Fetching
-- Parallelize independent fetches: `const [a, b] = await Promise.all([fetchA(), fetchB()])`
-- NEVER: `const a = await fetchA(); const b = await fetchB();` (sequential waterfall)
-- Use React `cache()` for per-request deduplication
-- Use `after()` for non-blocking side effects (analytics, logging)
-- Strategic Suspense boundaries to stream parallel data
+## Bundle Size (Web Applications)
+- Never import from barrel files (index.ts/index.js) — import specific modules
+- Lazy load heavy components not needed on initial render
+- Lazy load third-party scripts (analytics, chat widgets)
+- Analyze bundle with: webpack-bundle-analyzer, @next/bundle-analyzer, rollup-plugin-visualizer
+- Tree shake unused code — use ES modules (import/export), not CommonJS (require)
 
-## Caching
-- Use appropriate cache headers for static assets
-- Leverage ISR (Incremental Static Regeneration) for semi-static pages
-- Use SWR or React Query for client-side cache with stale-while-revalidate
+## Monitoring
+- Measure Core Web Vitals in production (real user metrics, not just lab)
+- Set up alerts for p99 latency spikes
+- Track error rates per endpoint
+- Use APM tools (Datadog, New Relic, Sentry Performance) for production visibility

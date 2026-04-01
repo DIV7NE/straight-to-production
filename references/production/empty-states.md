@@ -9,17 +9,7 @@ The first thing a new user sees is an empty state. If it's a blank page, they'll
 - Explain what this area is for
 - Show a clear call-to-action to create the first item
 - Consider showing example content or a quick tutorial
-```tsx
-function EmptyProjects() {
-  return (
-    <div className="text-center py-12">
-      <h3>No projects yet</h3>
-      <p>Create your first project to get started.</p>
-      <Button>Create Project</Button>
-    </div>
-  )
-}
-```
+- Make it feel welcoming, not broken
 
 ### No Results (search/filter returned nothing)
 - Confirm what they searched for
@@ -34,10 +24,17 @@ function EmptyProjects() {
 ### Permission Denied
 - Explain they don't have access
 - Suggest who to contact or how to request access
+- Don't just show a blank page or cryptic error code
+
+## Design Guidelines
+- Empty states are features, not afterthoughts
+- Include an illustration or icon (not required, but makes it feel intentional)
+- One clear CTA button for the primary action
+- Keep copy short: one heading, one sentence, one button
 
 ## Checklist
-- [ ] Every list/table has an empty state
+- [ ] Every list/table/grid has an empty state
 - [ ] Search results have a "no results" state
-- [ ] Dashboard sections show meaningful empty states (not blank)
-- [ ] First-run experience guides the user to their first action
-- [ ] Empty states are visually designed, not afterthoughts
+- [ ] Dashboard sections show meaningful content when empty
+- [ ] First-run experience guides user to their first action
+- [ ] Empty states are visually designed, not blank pages

@@ -2,39 +2,32 @@
 
 ## Rules (non-negotiable)
 - NEVER hardcode secrets, API keys, database URLs, or tokens in source code
-- NEVER commit .env files to git — add `.env*` to .gitignore immediately
+- NEVER commit env files to git — add `.env*` to .gitignore immediately
 - NEVER log environment variables or include them in error messages
-- NEVER expose server-side env vars to the client (no NEXT_PUBLIC_ prefix for secrets)
+- NEVER expose server-side secrets to client/browser code
 
-## Next.js Environment Variable Pattern
-```
-# .env.local (gitignored, local development)
-DATABASE_URL=postgresql://...
-CLERK_SECRET_KEY=sk_...
-STRIPE_SECRET_KEY=sk_...
+## Pattern: Validate at Startup
+Create an env validation module that validates all required variables when the application starts. This catches missing/malformed variables immediately instead of at runtime when a user triggers the code path.
 
-# .env (committed, non-sensitive defaults)
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
-```
+Every stack has a validation library:
+- **TypeScript**: Zod schema parsing process.env
+- **Python**: Pydantic BaseSettings or python-dotenv + validation
+- **Rust**: envy crate or dotenvy + manual validation
+- **Go**: envconfig or viper with required tags
+- **C#**: IOptions pattern with DataAnnotations
+- **Java**: @ConfigurationProperties with @Validated
+- **Ruby**: dotenv-rails + ENV.fetch (raises on missing)
+- **PHP**: Laravel config with env() + validation
 
-## Validation Pattern
-Create `src/lib/env.ts` to validate at startup:
-```typescript
-import { z } from 'zod'
-
-const envSchema = z.object({
-  DATABASE_URL: z.string().url(),
-  CLERK_SECRET_KEY: z.string().startsWith('sk_'),
-  STRIPE_SECRET_KEY: z.string().startsWith('sk_'),
-  NEXT_PUBLIC_APP_URL: z.string().url(),
-})
-
-export const env = envSchema.parse(process.env)
-```
+## Separation by Environment
+- **Local development**: `.env.local` (gitignored, sensitive values)
+- **Committed defaults**: `.env` or `.env.example` (non-sensitive, template for others)
+- **Production**: Set via deployment platform (Vercel, Railway, AWS, Heroku, etc.)
+- **Testing**: `.env.test` (test-specific overrides)
 
 ## Deployment Checklist
-- Set all required env vars in deployment platform (Vercel/Railway/Cloudflare)
+- Set all required env vars in deployment platform
 - Use different values per environment (dev/staging/production)
-- Rotate secrets regularly
-- Use Vercel's env var encryption for sensitive values
+- Rotate secrets regularly (API keys, database passwords)
+- Use the platform's secret encryption for sensitive values
+- Verify no secrets appear in build logs or error reports

@@ -1,36 +1,32 @@
 #!/bin/bash
-# Pilot: Session start / post-clear / post-compaction state restore
-# Reads handoff note and state files, prints recovery context.
-# Output gets injected into Claude's context at session start.
+# Pilot v0.2.0: Session start / post-clear / post-compaction restore
+# Reads handoff and state files, prints recovery context.
 
 STATE_DIR=".pilot"
 HANDOFF_FILE="$STATE_DIR/handoff.md"
 STATE_FILE="$STATE_DIR/state.json"
 FEATURE_FILE="$STATE_DIR/current-feature.md"
 
-# Only run if .pilot/ exists (project was set up with Pilot)
 if [ ! -d "$STATE_DIR" ]; then
   if [ -f "CLAUDE.md" ]; then
-    echo "[Pilot] CLAUDE.md found but no .pilot/ directory. Run /pilot:setup to add standards."
+    echo "[Pilot] CLAUDE.md found but no .pilot/ directory. Run /pilot:setup to add standards." >&2
   fi
   exit 0
 fi
 
-# Priority 1: Handoff note (written intentionally by /pilot:pause)
+# Priority 1: Handoff note (intentional pause via /pilot:pause)
 if [ -f "$HANDOFF_FILE" ]; then
-  echo "[Pilot] Found handoff note from previous session. READ .pilot/handoff.md FIRST — it contains:" >&2
+  echo "[Pilot] Handoff note from previous session. READ .pilot/handoff.md FIRST:" >&2
   echo "" >&2
-  # Show just the section headers so Claude knows what's in it
   grep "^## " "$HANDOFF_FILE" | while read -r line; do
     echo "  $line" >&2
   done
   echo "" >&2
-  echo "After reading the handoff, verify current state with the commands listed in 'How to Verify'." >&2
-  echo "Then continue from 'What's Next' section." >&2
+  echo "Read the handoff, verify state, then continue from 'What's Next'." >&2
   exit 0
 fi
 
-# Priority 2: Emergency state (written by PreCompact hook)
+# Priority 2: Emergency state (compaction recovery)
 if [ -f "$STATE_FILE" ]; then
   echo "[Pilot] Restoring from auto-saved state (compaction recovery)." >&2
   echo "" >&2
@@ -41,7 +37,6 @@ if [ -f "$STATE_FILE" ]; then
 
   echo "  Branch: $BRANCH" >&2
   echo "  Last commit: $LAST_COMMIT" >&2
-
   if [ "$UNCOMMITTED" -gt 0 ] 2>/dev/null; then
     echo "  WARNING: $UNCOMMITTED uncommitted files" >&2
   fi
@@ -58,18 +53,13 @@ if [ -f "$FEATURE_FILE" ]; then
   echo "" >&2
 fi
 
-# Always show recovery steps
-echo "[Pilot] Recovery steps:" >&2
+# Recovery steps
+echo "[Pilot] Recovery:" >&2
 echo "  1. Read CLAUDE.md (project spec + standards)" >&2
-
-if [ -f "$HANDOFF_FILE" ]; then
-  echo "  2. Read .pilot/handoff.md (detailed handoff from last session)" >&2
-elif [ -f "$FEATURE_FILE" ]; then
+if [ -f "$FEATURE_FILE" ]; then
   echo "  2. Read .pilot/current-feature.md (feature checklist)" >&2
 fi
-
 echo "  3. git log --oneline -5 (recent work)" >&2
-echo "  4. git status (uncommitted changes)" >&2
-echo "  5. Continue from where you left off" >&2
+echo "  4. Continue from where you left off" >&2
 
 exit 0

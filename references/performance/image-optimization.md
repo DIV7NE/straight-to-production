@@ -1,43 +1,43 @@
 # Image Optimization
 
-## Next.js Image Component
-Always use `next/image` instead of `<img>`:
-```tsx
-import Image from 'next/image'
+## General Rules
+- Use modern formats: WebP or AVIF for photos, SVG for icons/logos
+- Compress images before adding to the project
+- Set explicit width and height to prevent layout shift (CLS)
+- Lazy load images below the fold
+- Only prioritize above-the-fold images (hero, logo) — max 1-2 per page
 
-<Image
-  src="/hero.jpg"
-  alt="Description of the image"
-  width={1200}
-  height={600}
-  priority  // Only for above-the-fold images
-/>
-```
+## Responsive Images
+Serve the right size for the user's screen:
+- Provide multiple sizes via srcset or framework image components
+- Use `sizes` attribute to tell the browser which size to pick
+- Don't serve a 2000px image for a 300px thumbnail
 
-## Rules
-- `priority` prop ONLY on above-the-fold images (hero, logo). Max 1-2 per page.
-- All other images lazy-load by default (next/image does this automatically)
-- Always provide `width` and `height` to prevent layout shift (CLS)
-- Use `sizes` prop for responsive images to serve correct size
-```tsx
-<Image
-  src="/photo.jpg"
-  alt="..."
-  width={800}
-  height={600}
-  sizes="(max-width: 768px) 100vw, 50vw"
-/>
-```
+## Framework Image Components
+Most frameworks optimize images automatically:
+- **Next.js**: `next/image` — auto format conversion, lazy loading, responsive
+- **Nuxt**: `nuxt-image` — same benefits for Vue ecosystem
+- **SvelteKit**: `@sveltejs/enhanced-img` or svelte-image
+- **Rails**: Active Storage variants with libvips
+- **Django**: django-imagekit or sorl-thumbnail
+- **Laravel**: Intervention Image
 
-## Format
-- Let Next.js handle format conversion (serves WebP/AVIF automatically)
-- For external images, configure `remotePatterns` in next.config.ts
-- Compress source images before adding to project (use squoosh.app or similar)
-- SVGs for icons and logos, raster for photos
+Use the framework's component instead of raw `<img>` tags.
+
+## Performance Impact
+- Hero image loads with `priority` / `eager` — it's the LCP element
+- All other images load lazily (most frameworks do this by default)
+- Provide width/height or aspect-ratio to reserve space (prevents CLS)
+- Use CDN for image delivery (Cloudflare Images, imgix, Cloudinary)
+
+## Icons and Logos
+- Use SVG for icons and logos (infinitely scalable, tiny file size)
+- Inline small SVGs directly in markup for fewer HTTP requests
+- Use an icon library (Lucide, Heroicons, Phosphor) instead of custom images for common icons
 
 ## Common Mistakes
-- Using `<img>` instead of `next/image` — loses optimization, lazy loading, format conversion
-- Setting `priority` on every image — defeats the purpose, slows page load
-- Missing `alt` text — accessibility violation
-- Not setting dimensions — causes layout shift (CLS penalty)
-- Loading huge source images for small display sizes
+- Using raw `<img>` when a framework image component exists
+- Setting priority/eager on every image (defeats the purpose)
+- Missing alt text (accessibility violation)
+- Not setting dimensions (causes layout shift)
+- Serving huge source images for small display areas

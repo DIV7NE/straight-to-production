@@ -1,58 +1,60 @@
 ---
-description: Run the Pilot Critic to evaluate your app against 6 quality criteria (functionality, design, security, accessibility, performance, production-readiness). Use when you think you're done or want a quality check.
+description: Run the Pilot Critic — a separate AI that evaluates your app against 6 quality criteria. Use when you think a feature is done or want a quality check.
 argument-hint: Optional focus area (e.g., "security only" or "just check accessibility")
 allowed-tools: ["Read", "Bash", "Grep", "Glob", "Agent"]
 ---
 
 # Pilot: Evaluate
 
-Dispatch the `pilot-critic` agent to evaluate the current project.
+Dispatch the `pilot-critic` agent (Sonnet 4.6) to evaluate the project. Self-evaluation is broken — agents reliably skew positive when grading their own work. The Critic is a SEPARATE model that hasn't seen the building process.
 
 ## Process
 
 1. Read CLAUDE.md to get project context
-2. Spawn the pilot-critic agent with this prompt:
+2. Spawn the `pilot-critic` agent:
 
 ```
-Evaluate this project. Read CLAUDE.md for the spec, then grade against all 6 criteria.
-
-Project directory: [current working directory]
-Focus area: $ARGUMENTS (if provided, prioritize this but still check everything)
-
-Be ruthlessly strict. Every finding must have a file:line reference.
-Return the structured evaluation report.
+Evaluate this project. Read CLAUDE.md for the spec.
+Grade against all 6 criteria.
+Project directory: [cwd]
+Focus area: $ARGUMENTS (if provided, go deeper on this but still check everything)
+Be ruthlessly strict. Every finding needs a file:line reference AND a business impact explanation.
 ```
 
-3. When the critic returns its report, present it to the user
-4. End with an explicit next step based on the results:
+3. When the Critic returns, present the report to the user. Translate any remaining technical jargon into business terms:
 
-If there are FAIL/PARTIAL issues:
+   Technical: "No rate limiting on POST /api/invoices"
+   Business: "Someone could spam your invoice endpoint and rack up your database/hosting costs"
+
+   Technical: "Missing aria-label on icon buttons"
+   Business: "Users who rely on screen readers (visual impairments) can't tell what these buttons do"
+
+4. End with explicit next step:
+
+If FAIL/PARTIAL issues exist:
 ```
 ━━━ Next step ━━━
 
 Fix the priority issues (I'll work through them in order):
    yes
 
-Or skip to your next feature:
-   /pilot:feature [NEXT FEATURE NAME from spec]
+Or skip to next feature:
+   /pilot:feature [NEXT FEATURE]
 ```
 
 If everything PASSED:
 ```
 ━━━ Next step ━━━
 
-All 6 criteria passed. Ready for next feature:
-   /pilot:milestone [MILESTONE NAME, e.g., "auth complete"]
-
-Or start the next feature directly:
-   /pilot:feature [NEXT FEATURE NAME from spec]
+All 6 criteria passed. Next feature:
+   /pilot:feature [NEXT FEATURE]
 ```
 
-5. If the user says yes to fixes, work through them one at a time, committing each atomically. After all fixes, re-run the critic to verify.
+5. If the user says yes to fixes, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.
 
-## If the user specified a focus area
+## Focus Areas
 
-Still run all 6 criteria but expand the focused area with deeper checks. For example:
-- "security only" → run additional grep patterns for common vulnerabilities
+If the user specified a focus, still run all 6 criteria but go deeper on the focused area:
+- "security" → additional grep for common vulnerabilities, check every API route
 - "accessibility" → check every page for heading hierarchy, focus management, ARIA
-- "performance" → analyze bundle size, check for waterfalls, review caching strategy
+- "performance" → analyze bundle, check for query waterfalls, review caching

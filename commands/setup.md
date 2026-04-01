@@ -1,29 +1,31 @@
 ---
-description: Copy Pilot reference files into the current project. Run this if you want Pilot standards in an existing project without running /pilot:new.
+description: Add Pilot standards to an existing project. Copies universal reference files and suggests adding the standards index to your CLAUDE.md. Use when you want Pilot quality enforcement without running /pilot:new.
 argument-hint: No arguments needed
-allowed-tools: ["Bash", "Read", "Write"]
+allowed-tools: ["Bash", "Read", "Write", "Glob"]
 ---
 
-# Pilot: Setup References
+# Pilot: Setup
 
-Copy Pilot's reference files into the current project for retrieval-led reasoning.
+Add Pilot's reference files and hook enforcement to an existing project.
 
 ## Process
 
-1. Run the setup script:
+1. Detect the stack from project files (tsconfig.json, pyproject.toml, Cargo.toml, etc.)
+
+2. Run the setup script:
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/setup-references.sh" "${CLAUDE_PLUGIN_ROOT}" "."
 ```
 
-2. Confirm what was copied:
+3. Confirm what was copied:
 ```bash
 find .pilot/references -name "*.md" | wc -l
 ```
 
-3. Tell the user:
-- Reference files are now in `.pilot/references/`
-- The standards index in CLAUDE.md will point to these files
-- Run `/pilot:standards` to see what's enforced
-- These files are gitignored by default (Pilot manages them)
+4. Check if CLAUDE.md has a standards index. If not, read `${CLAUDE_PLUGIN_ROOT}/templates/_standards-index.md` and suggest adding it to the existing CLAUDE.md.
 
-If the project doesn't have a CLAUDE.md with the standards index yet, suggest running `/pilot:new` for the full setup, or manually add the standards index from `${CLAUDE_PLUGIN_ROOT}/templates/standards-index.md` to the existing CLAUDE.md.
+5. Tell the user:
+   - Reference files in `.pilot/references/` (security, accessibility, performance, production)
+   - Hooks active: type checking after edits, quality gate before completion
+   - Run `/pilot:standards` or read CLAUDE.md to see what's enforced
+   - For the full guided setup with architecture proposal: `/pilot:new`

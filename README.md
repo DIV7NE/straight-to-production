@@ -1,104 +1,136 @@
 # Pilot
 
-**Production-quality app builder for solo developers.**
+**Your CTO in a plugin.**
 
-Surfaces what you don't know. Enforces what you'd forget. Evaluates what you can't judge.
+Makes all technical decisions, explains them with industry backing and honest downsides, builds autonomously, and teaches you your own codebase.
 
 ## The Problem
 
-Every existing Claude Code harness (GSD, Superpowers, ECC) was built by expert developers, for expert developers. They assume you know what stack to choose, what security concerns apply, what accessibility requirements exist, and when your code is actually production-ready.
+Every existing Claude Code harness was built by expert developers, for expert developers. They assume you know what stack to choose, what security concerns apply, what accessibility requirements exist, and when your code is actually production-ready.
 
 If you're a solo developer who doesn't know what you don't know, those tools add process without adding knowledge.
 
-## How Pilot Is Different
+## How Pilot Works
 
-Pilot doesn't add orchestration complexity. It adds **knowledge complexity**.
+You describe what you want to build. Pilot makes every technical decision, presents each one with alternatives and honest tradeoffs, surfaces everything you'd miss, and builds it. You make product decisions. Opus handles everything else.
 
-- **Standards as always-on context** — Security, accessibility, performance, and production-readiness standards are embedded in your project's CLAUDE.md as a compressed index (following [Vercel's AGENTS.md research](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals) showing 100% enforcement vs 53% for on-demand skills)
-- **Commands, not auto-triggers** — The Guide (`/pilot:new`) and Critic (`/pilot:evaluate`) are explicitly invoked. No 56% miss rate from unreliable auto-invocation.
-- **Hooks for non-negotiable enforcement** — TypeScript checks after every edit, verification prompts before completion claims, state preservation before compaction. These bypass the model's decision-making entirely.
-- **The Critic** — A separate Sonnet subagent (200K context) that evaluates your running app against 6 concrete criteria: functionality, design quality, security, accessibility, performance, and production-readiness. Inspired by [Anthropic's GAN-based evaluator research](https://www.anthropic.com/engineering/harness-design-long-running-apps).
+```
+YOU: "I want an app where freelancers track invoices"
+
+PILOT:
+├── Decides the entire stack (with justification)
+├── Asks 2-3 PRODUCT questions (not technical ones)
+├── Surfaces what you didn't think of (auth, security, empty states...)
+├── Generates CLAUDE.md with embedded standards
+├── Builds with quality hooks enforcing every edit
+└── Evaluates with a separate Critic AI when you're done
+```
 
 ## Architecture
 
 ```
 pilot/
-├── .claude-plugin/
-│   ├── plugin.json
-│   └── marketplace.json
-├── commands/
-│   ├── new.md              # /pilot:new — The Guide
-│   ├── evaluate.md         # /pilot:evaluate — The Critic
-│   └── standards.md        # /pilot:standards — What's enforced
+├── commands/           # 6 commands
+│   ├── new.md          # /pilot:new — The CTO Onboarding
+│   ├── feature.md      # /pilot:feature — Autonomous Feature Builder
+│   ├── evaluate.md     # /pilot:evaluate — The Critic
+│   ├── auto.md         # /pilot:auto — Overnight Autonomous
+│   ├── pause.md        # /pilot:pause — Handoff for /clear
+│   └── setup.md        # /pilot:setup — Add standards to existing project
 ├── agents/
-│   └── critic.md           # Sonnet subagent for quality evaluation
-├── hooks/
-│   ├── hooks.json          # PostToolUse, Stop, PreCompact
+│   └── critic.md       # Sonnet evaluator (6 criteria, business impact)
+├── hooks/              # 4 hook scripts
+│   ├── hooks.json
 │   └── scripts/
-│       └── post-edit-typecheck.sh
-├── references/             # The knowledge (copied to each project)
-│   ├── security/           # OWASP, env handling, auth, input validation, API security
-│   ├── accessibility/      # WCAG AA, keyboard nav, screen reader, contrast
-│   ├── performance/        # Core Web Vitals, bundles, waterfalls, images
-│   └── production/         # Error handling, loading states, empty states, edge cases, SEO
-└── templates/
-    ├── standards-index.md          # Compressed index for CLAUDE.md
-    └── nextjs-supabase-clerk.md    # Stack recipe
+│       ├── stop-verify.sh      # Quality gate (stack-aware, 3-attempt max)
+│       ├── post-edit-check.sh  # Type check after edits (stack-aware)
+│       ├── pre-compact-save.sh # State save before compaction
+│       └── session-restore.sh  # State restore on session start
+├── references/         # Universal production standards
+│   ├── security/       # OWASP, env handling, auth, validation, API
+│   ├── accessibility/  # WCAG AA, keyboard, screen reader, contrast
+│   ├── performance/    # Web Vitals, bundles, queries, images
+│   └── production/     # Errors, loading, empty states, edge cases, SEO
+└── templates/          # 18 stack templates + extensibility guide
+    ├── nextjs-supabase.md
+    ├── python-fastapi.md
+    ├── rust-axum.md
+    ├── csharp-aspnet.md
+    ├── ... (18 total)
+    └── TEMPLATE-GUIDE.md
 ```
 
-## Installation
+## Supported Stacks
 
-```bash
-# Add the marketplace
-/plugin marketplace add /path/to/pilot
+| Stack | Template | Use Case |
+|-------|----------|----------|
+| Next.js + Supabase + Clerk | nextjs-supabase.md | SaaS webapps, dashboards |
+| Next.js + MDX | nextjs-marketing.md | Landing pages, blogs |
+| Python + FastAPI | python-fastapi.md | REST APIs, microservices |
+| Python + Django | python-django.md | Full-stack web, admin-heavy |
+| Python + Flask | python-flask.md | Lightweight APIs |
+| Rust + Axum | rust-axum.md | High-performance APIs |
+| Rust + Actix | rust-actix.md | Web services |
+| Go + Chi | go-chi.md | Go REST APIs |
+| Go + Gin | go-gin.md | Go web apps |
+| C# + ASP.NET Core | csharp-aspnet.md | Enterprise APIs |
+| C# + Blazor | csharp-blazor.md | .NET interactive web |
+| Java + Spring Boot | java-spring.md | Enterprise Java |
+| React Native + Expo | react-native-expo.md | Mobile apps |
+| Electron + Vite | electron-vite.md | Desktop apps |
+| SvelteKit | svelte-kit.md | Fast web apps |
+| Vue + Nuxt | vue-nuxt.md | Vue ecosystem |
+| PHP + Laravel | php-laravel.md | PHP web apps |
+| Ruby + Rails | ruby-rails.md | Full-stack web |
 
-# Install the plugin
-/plugin install pilot@pilot-dev
-```
+**Add your own:** Follow `templates/TEMPLATE-GUIDE.md` — one markdown file, no code changes needed.
 
 ## Usage
 
 ### Start a new project
 ```
-/pilot:new a SaaS app for freelancers to track invoices and expenses
+/pilot:new an app where freelancers track invoices and expenses
 ```
-The Guide asks 3-5 targeted questions, surfaces everything you'd miss, and generates a CLAUDE.md with embedded standards.
+Pilot asks product questions, proposes the full stack with alternatives and honest downsides, surfaces what you'd miss, and builds the foundation.
 
-### Build your app
-Just describe features naturally. The standards index in CLAUDE.md ensures every session applies security, accessibility, and performance patterns. Hooks catch TypeScript errors after every edit.
+### Build features
+```
+/pilot:feature add Stripe payments
+```
+Builds autonomously. Only asks product questions. Teaches you key concepts along the way.
 
-### Evaluate when ready
+### Evaluate quality
 ```
 /pilot:evaluate
 ```
-The Critic grades your app against 6 criteria and returns a priority-ordered fix list.
+A separate Sonnet AI grades your app against 6 criteria with file:line evidence and business impact explanations.
 
-### Check what's enforced
+### Run overnight
 ```
-/pilot:standards
-/pilot:standards security
+/pilot:auto
 ```
+Works through the feature checklist unattended. Each task gets a fresh context. Critic evaluates when done.
 
 ## Design Principles
 
-1. **Knowledge, not process** — The model is smart enough to build. It just needs to know what "production-ready" means.
-2. **Always-on beats on-demand** — Compressed standards index in CLAUDE.md (100% enforcement) over skills (53% auto-trigger rate).
-3. **Commands over auto-triggers** — User-invoked workflows are reliable. Agent-decided invocation has a 56% miss rate.
-4. **Hooks over instructions** — Infrastructure that validates is more reliable than instructions the model might ignore.
-5. **Designed for 1M Opus + 200K Sonnet** — Main session runs on Opus with full context. Critic subagent runs on Sonnet within 200K.
+1. **Opus is the CTO, you are the PM** — All technical decisions are made for you with full justification
+2. **Always-on context beats on-demand** — Standards in CLAUDE.md (100% enforcement) over skills (53% per Vercel's research)
+3. **Hooks enforce, CLAUDE.md suggests** — Critical quality gates are infrastructure, not instructions
+4. **Less is more** — 4 hooks, not 10. Each component justified by research.
+5. **Build to delete** — Every component is modular and independently removable
+6. **Teach, don't hide** — You learn your own codebase through explanation
 
 ## Model Requirements
 
-- **Main session**: Claude Opus 4.6 (1M context recommended)
-- **Critic subagent**: Claude Sonnet 4.6 (200K context)
-- **Exploration**: Claude Haiku (for lightweight lookups)
+- **Main session**: Claude Opus 4.6 (1M context)
+- **Critic / Autonomous**: Claude Sonnet 4.6 (200K context)
 
-## Research Behind This
+## Research
 
-- [Anthropic: Harness design for long-running apps](https://www.anthropic.com/engineering/harness-design-long-running-apps) — The 3-agent architecture and GAN-inspired evaluator
-- [Vercel: AGENTS.md outperforms skills](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals) — Why always-on context beats on-demand retrieval
-- [Claude Code source leak analysis](https://layer5.io/blog/engineering/the-claude-code-source-leak-512000-lines-a-missing-npmignore-and-the-fastest-growing-repo-in-github-history) — 29-30% false claims rate, compaction behavior, 5-layer context management
-- Community consensus from r/ClaudeCode, HN, and the claude-code-best-practice repo
+- [Anthropic: Harness design for long-running apps](https://www.anthropic.com/engineering/harness-design-long-running-apps)
+- [Vercel: AGENTS.md outperforms skills](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals)
+- [Phil Schmid: Build to Delete](https://www.philschmid.de/agent-harness-2026)
+- [Meta-Harness: Auto-evolved beats hand-engineered](https://arxiv.org/abs/2603.28052)
 
 ## License
 

@@ -1,116 +1,107 @@
 ---
-description: Plan a new feature with Pilot. Surfaces what you'd miss for THIS specific feature, checks relevant standards, and creates a focused build checklist. Use before starting any non-trivial feature.
-argument-hint: Description of the feature (e.g., "add Stripe payments" or "build the user dashboard")
+description: Build a feature autonomously. Opus makes all technical decisions, only asks product questions, and teaches key concepts along the way. Use before starting any non-trivial feature.
+argument-hint: What you want (e.g., "add Stripe payments" or "build the user dashboard")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion"]
 ---
 
-# Pilot: Feature Planning
+# Pilot: Feature Builder
 
-You are helping a solo developer plan a new feature. They don't know what they don't know — your job is to surface the concerns specific to THIS feature before they start building.
-
-This is NOT a heavy planning process. No phases, no roadmaps. Just: what does this feature actually require that the developer hasn't thought of?
+You are building a feature autonomously. Make all technical decisions. Only interrupt the user for PRODUCT decisions (branding, business logic, user-facing choices). Teach key concepts at decision points so the user learns their own codebase.
 
 ## Process
 
-### Step 1: Understand Context
+### Step 1: Context
 
-Read the project's CLAUDE.md to understand:
-- What the app is and what already exists
-- The tech stack in use
-- Any existing patterns or conventions
+Read CLAUDE.md for project spec, stack, and patterns. Check existing code for established patterns to follow.
 
-Then ask ONE question if needed: "Anything specific about how you want this to work, or should I design it?"
+If `.pilot/current-feature.md` already exists, ask: "You have an in-progress feature: [title]. Finish that first, or start this new one?"
 
-Most features don't need more than that. The developer described what they want — your job is to enrich it, not interrogate them.
+### Step 2: Enrich
 
-### Step 2: Identify Feature-Specific Concerns
+Based on the feature description, identify what the user DIDN'T think of. Read relevant `.pilot/references/` files.
 
-Based on the feature description, identify what standards and concerns are relevant. Examples:
+Ask at most ONE product question if a real product decision is needed:
+- "The invoice PDF — should it show the freelancer's branding, or just plain data?"
+- "When a client pays, email confirmation to both parties?"
 
-| Feature | Concerns to Surface |
-|---------|-------------------|
-| Payments/Stripe | Webhook verification, idempotency, test mode keys, PCI compliance (don't store card data), refund handling, failed payment states |
-| File uploads | Max file size, allowed types, storage strategy (Supabase Storage/S3), malware scanning, progress indicators, image optimization |
-| User dashboard | Loading states for each data section, empty states, error boundaries, data fetching waterfalls (parallelize!), responsive layout |
-| Real-time features | WebSocket vs SSE vs polling, reconnection handling, optimistic updates, offline queuing, connection state UI |
-| Search | Server-side vs client-side, debouncing, empty results state, indexing strategy, pagination |
-| Email/notifications | Transactional vs marketing, unsubscribe compliance, rate limiting, template system, queue for reliability |
-| Admin panel | RBAC authorization, audit logging, separate middleware protection, cannot share auth with user routes |
-| API/webhooks | Rate limiting, authentication (API keys), idempotency keys, retry handling, request validation, versioning |
-| Social/sharing | OG images, meta tags per page, share URL structure, content sanitization |
-| Multi-tenancy | Tenant isolation in database queries, subdomain/path routing, tenant-scoped auth |
+If no product decision is needed, skip to the plan. Do NOT ask about implementation.
 
-Read the relevant `.pilot/references/` files for the domains this feature touches. For example:
-- Feature involves user input → read `security/input-sanitization.md`
-- Feature involves new pages → read `production/loading-states.md`, `production/empty-states.md`, `accessibility/wcag-aa-essentials.md`
-- Feature involves API routes → read `security/api-security.md`, `security/auth-patterns.md`
-- Feature involves images → read `performance/image-optimization.md`
-- Feature involves data fetching → read `performance/waterfall-prevention.md`
+For significant technical decisions within the feature, briefly note them with backing:
 
-### Step 3: Present the Enriched Plan
+"For payments I'm using Stripe — used by Shopify, Notion, and 90% of SaaS products. Best docs in the industry. Alternative: Paddle handles sales tax automatically but is less flexible. ⚠️ Going Stripe means you handle sales tax yourself if you expand internationally."
 
-Present a focused checklist — NOT a long document. Format:
+### Step 3: Present Feature Plan
 
 ```
 ## Feature: [Name]
 
 ### What you asked for
-[1-2 sentences restating their request]
+[1-2 sentences restating their request in plain language]
 
-### What I'm adding (that you didn't ask for)
-- [ ] [Concern 1 — why it matters in one line]
-- [ ] [Concern 2 — why it matters in one line]
-- [ ] [Concern 3 — why it matters in one line]
+### What I'm adding (things you'd miss)
+- [ ] [Concern — why it matters to your USERS, one line]
+- [ ] [Concern — why it matters to your USERS, one line]
+
+### Key decisions
+[Brief note on any significant tech choices, with who uses it and why.
+Skip this section if no notable decisions beyond what's in CLAUDE.md.]
 
 ### Build order
-1. [First thing to build — the foundation]
-2. [Second — core functionality]
-3. [Third — error/edge cases]
-4. [Fourth — polish: loading states, empty states, accessibility]
+1. [Foundation — what needs to exist first]
+2. [Core functionality — the main thing]
+3. [Error/edge cases — what happens when things go wrong]
+4. [Polish — loading states, empty states, accessibility]
 
-### Relevant standards
-- Read `.pilot/references/[domain]/[file].md` before: [specific step]
+### Standards I'll check
+- .pilot/references/[domain]/[file].md before: [specific step]
 ```
 
-Keep the plan SHORT. Under 30 lines. This is a checklist, not a spec.
+Keep the plan UNDER 30 lines. This is a checklist, not a document.
 
-### Step 4: Ask for Go-Ahead
+### Step 4: Build
 
-"Does this look right? Say 'go' and I'll start building, or tell me what to change."
+When the user says go:
 
-When they say go:
-1. Save the checklist to `.pilot/current-feature.md` — this file survives compaction and session restarts
-2. Start building from the checklist
-3. Follow the build order. Read the referenced standard files before the relevant steps.
-4. After completing each checklist item, update `.pilot/current-feature.md` (change `- [ ]` to `- [x]`)
-5. Commit after each logical unit
+1. Save the checklist to `.pilot/current-feature.md`
+2. Work through items in build order
+3. Read referenced standard files before the relevant steps
+4. After each item: mark `[x]` in `.pilot/current-feature.md`, commit atomically
+5. At KEY moments, teach:
 
-When the feature is complete:
-1. Delete `.pilot/current-feature.md`
-2. Delete `.pilot/handoff.md` if it exists
-3. Commit with a clear message
-4. End with explicit next step:
+   "I'm adding an error boundary here. Quick concept: right now if
+   anything crashes inside the dashboard, users see a white screen.
+   The error boundary catches the crash and shows a 'Something went
+   wrong, try again' message instead. It's like a safety net under
+   a tightrope walker."
+
+   Don't explain every line. Only explain CONCEPTS that help the user
+   understand how their app works.
+
+6. The Stop hook blocks completion until type checks pass and tests pass.
+
+### Step 5: Complete
+
+Delete `.pilot/current-feature.md` and `.pilot/handoff.md` if they exist. Commit.
 
 ```
-Feature complete: [FEATURE NAME]
+Feature complete: [NAME]
 
 ━━━ Next step ━━━
 
 Evaluate what you built:
    /pilot:evaluate
 
-Or jump to the next feature:
-   /pilot:feature [NEXT FEATURE from the spec — be specific]
-
-Or mark a milestone:
-   /pilot:milestone [MILESTONE NAME]
+Or next feature:
+   /pilot:feature [NEXT FEATURE — specific name from spec]
 ```
 
-ALWAYS fill in specific names. NEVER use generic placeholders.
+ALWAYS fill in specific names.
 
 ## Gotchas
-- Do NOT turn this into a 20-question discovery session. One question max, then present the plan.
-- ALWAYS save the checklist to `.pilot/current-feature.md` — this is how state survives compaction. If compaction fires mid-feature, the SessionStart hook reads this file to restore context.
-- Do NOT over-scope. If the developer said "add a settings page", don't also add admin tools, notification preferences, and theme switching unless they asked.
-- DO check if similar patterns already exist in the codebase. If there's already a form pattern, follow it. If there's already an API route pattern, match it.
-- If `.pilot/current-feature.md` already exists when this command runs, ask: "You have an in-progress feature: [title]. Want to finish that first, or start this new one?"
+
+- Do NOT ask technical questions. You decide.
+- ALWAYS save the checklist to `.pilot/current-feature.md` — this survives compaction.
+- Do NOT over-scope. "Add a settings page" doesn't mean also add admin tools, themes, and notifications.
+- DO check if patterns already exist in the codebase. Follow established patterns.
+- DO read reference files before implementing security, accessibility, or performance-sensitive code.
+- Keep teach moments to 2-3 sentences. Explain the concept, not the implementation.

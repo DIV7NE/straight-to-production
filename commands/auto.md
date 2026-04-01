@@ -1,32 +1,31 @@
 ---
-description: Run Pilot in autonomous mode. Works through the feature checklist unattended — each task gets a fresh context via headless Claude. Set it up before bed, wake up to finished work. Requires an active feature checklist (.pilot/current-feature.md).
+description: Run Pilot in autonomous mode. Works through the feature checklist unattended — each task gets a fresh context. Set it up before bed, wake up to a built feature.
 argument-hint: Optional max iterations (default 30)
 allowed-tools: ["Read", "Bash", "Write"]
 ---
 
 # Pilot: Auto Mode (Overnight Autonomous)
 
-Run the feature checklist autonomously. Each checklist item runs in a fresh Claude Code session (headless -p mode), so there's NO context rot, NO compaction, NO forgetting.
+Run the feature checklist autonomously. Each checklist item runs in a fresh Claude Code session (headless -p mode) for context isolation. No rot, no compaction, no forgetting.
 
 ## Prerequisites
 
 1. CLAUDE.md exists with project spec and standards
-2. .pilot/current-feature.md exists with a checklist (run /pilot:feature first)
-3. .pilot/references/ set up (run /pilot:setup if not)
+2. `.pilot/current-feature.md` exists with a checklist (run `/pilot:feature` first)
+3. `.pilot/references/` set up
 
 ## How to Run
 
-Tell the user to run this command in their terminal (NOT inside Claude Code):
+Tell the user to run this in their terminal (NOT inside Claude Code):
 
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pilot-auto.sh" 30
 ```
 
-Or if they want it to run overnight with output logging:
-
+Overnight with logging:
 ```bash
 nohup bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pilot-auto.sh" 50 > .pilot/auto.log 2>&1 &
-echo "Pilot auto mode running in background. Check progress:"
+echo "Pilot auto mode running. Check progress:"
 echo "  tail -f .pilot/auto.log"
 echo "  cat .pilot/current-feature.md"
 ```
@@ -34,47 +33,46 @@ echo "  cat .pilot/current-feature.md"
 ## How It Works
 
 ```
-Iteration 1: fresh claude -p → reads CLAUDE.md + checklist → does task 1 → commits → updates checklist
-Iteration 2: fresh claude -p → reads CLAUDE.md + checklist → does task 2 → commits → updates checklist
+Iteration 1: fresh claude -p → reads CLAUDE.md + checklist → does task 1 → commits
+Iteration 2: fresh claude -p → reads CLAUDE.md + checklist → does task 2 → commits
 ...
-Iteration N: all items [x] → runs /pilot:evaluate → saves report → exits
+Iteration N: all items [x] → verification → critic evaluation → exits
 ```
 
 Each iteration:
-- Gets a FRESH context (no rot, no compaction)
+- Fresh context (no rot)
 - Reads standards from CLAUDE.md (always current)
-- Reads references from .pilot/references/ (domain-specific standards)
 - Does ONE task from the checklist
+- Stack-appropriate type check verifies after each task
 - Commits atomically
-- Updates the checklist on disk
+- Updates checklist on disk
 
 ## Safety
 
-- Max iterations cap prevents runaway costs (default 30)
-- If a task fails after 3 attempts, it notes the issue and moves on
-- All work is committed to git — easy to review and revert
-- Final /pilot:evaluate runs automatically when done
-- Rate limit: 3-second pause between iterations
+- Max iterations cap (default 30)
+- Stack-aware verification after each iteration (type check + tests)
+- 3-attempt limit per stuck task — skips with note after 3 failures
+- All work committed to git (easy to review and revert)
+- Critic evaluation runs automatically when checklist completes
+- 3-second pause between iterations
 
-## Next Step
-
-After running this command, tell the user EXACTLY:
+## After Completion
 
 ```
-━━━ Run this in your terminal (not in Claude Code) ━━━
+━━━ Run in your terminal (not in Claude Code) ━━━
 
 bash [PLUGIN_ROOT]/hooks/scripts/pilot-auto.sh 30
 
-To run overnight:
+Overnight:
 nohup bash [PLUGIN_ROOT]/hooks/scripts/pilot-auto.sh 50 > .pilot/auto.log 2>&1 &
 
 Check progress anytime:
-tail -f .pilot/auto.log
-cat .pilot/current-feature.md
-git log --oneline -10
+  tail -f .pilot/auto.log
+  cat .pilot/current-feature.md
+  git log --oneline -10
 
 In the morning:
-cat .pilot/auto-eval-report.txt
+  cat .pilot/auto-eval-report.txt
 ```
 
-Replace [PLUGIN_ROOT] with the actual resolved path to the plugin.
+Replace [PLUGIN_ROOT] with the actual resolved path.
