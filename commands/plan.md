@@ -132,15 +132,23 @@ Goal: Core data models, database, and basic CRUD
 
 Features:
 1. Database setup + migrations
-   - Tests: connection, schema validation
+   - Create: src/db/schema.ts (or models.py, schema.rs, etc.)
+   - Create: src/db/migrations/001_initial.sql
+   - Tests: tests/db.test.ts — connection, schema validation
    - Dependencies: none
    
 2. User model + auth integration
-   - Tests: signup, login, session, protected routes
+   - Create: src/models/user.ts
+   - Create: src/middleware/auth.ts
+   - Modify: src/app/layout.tsx (add auth provider)
+   - Tests: tests/auth.test.ts — signup, login, session, protected routes
    - Dependencies: database
 
 3. [Core model] CRUD
-   - Tests: create, read, update, delete, validation, auth
+   - Create: src/models/[model].ts
+   - Create: src/app/api/[model]/route.ts
+   - Create: src/components/[model]-form.tsx
+   - Tests: tests/[model].test.ts — create, read, update, delete, validation, auth
    - Dependencies: user model
 
 ### Milestone 2: Core Workflow
@@ -148,7 +156,9 @@ Goal: The primary user workflow works end-to-end
 
 Features:
 4. [Primary workflow step 1]
-   - Tests: [specific test cases]
+   - Create: [specific files]
+   - Modify: [specific files]
+   - Tests: [specific test file] — [specific test cases]
    - Dependencies: [which features must exist first]
 
 5. [Primary workflow step 2]
@@ -159,12 +169,18 @@ Goal: Error handling, loading states, empty states, edge cases
 
 Features:
 8. Error handling across all operations
+   - Create: src/app/error.tsx (or equivalent)
+   - Modify: [every API route / server action for try/catch]
 9. Loading states for all async operations
+   - Create: src/app/loading.tsx + per-route loading files
 10. Empty states for all lists/views
+    - Modify: [every list component]
 11. Edge cases from domain research
+    - [Specific files per edge case]
 ```
 
-Each feature includes what tests to write BEFORE implementation (TDD).
+Every feature specifies exact files to create/modify and exact test files to write.
+This prevents drift during implementation — Opus follows the blueprint, not improvisation.
 
 ### Phase 6: Save the Plan
 
@@ -187,32 +203,47 @@ Structure:
 [Phase 4 output]
 
 ## Implementation Plan
-[Phase 5 output — milestones + features + tests + dependencies]
+[Phase 5 output — milestones + features + files + tests + dependencies]
 ```
 
 Commit: `docs: add technical plan`
 
-### Phase 7: Present + Approve
+### Phase 7: Self-Review (Catch Your Own Mistakes)
 
-Summarize the plan for the user. Highlight:
-1. How many milestones and features
-2. What gets built first and why
-3. Any decisions that need their product input
-4. Estimated complexity (small / medium / large per milestone)
+Before showing the plan to the user, review it with fresh eyes:
+
+1. **Placeholder scan:** Any "TBD", "TODO", "[fill in]", or incomplete sections? Fix them now.
+2. **Consistency check:** Do data models match the API design? Do API routes reference models that exist? Do test cases match the features they test?
+3. **Dependency check:** Can features be built in the specified order? Does feature 3 depend on something not yet built?
+4. **File check:** Does every feature specify which files to create/modify? No vague "implement the feature" — specific file paths.
+5. **Test check:** Does every feature have at least one test case? No features without tests.
+6. **Scope check:** Does the plan match the PRD? Nothing missing, nothing added that wasn't discussed?
+
+Fix issues inline. Don't re-present — just fix and move on.
+
+### Phase 8: User Reviews the Written Plan
+
+After saving PLAN.md, ask the user to review it:
 
 ```
 ━━━ Plan ready ━━━
 
-PLAN.md has the full technical blueprint:
-- [N] milestones, [N] features
+PLAN.md saved with the full technical blueprint:
+- [N] milestones, [N] features, [N] files to create
 - Milestone 1 (Foundation): [brief]
-- Milestone 2 (Core): [brief]  
+- Milestone 2 (Core): [brief]
 - Milestone 3 (Polish): [brief]
 
-Review PLAN.md if you want to see the details.
-Start building:
+Please review PLAN.md — this is the blueprint I'll build against.
+Let me know if you want to change anything before we start.
 
+When ready:
 /pilot:feature [FIRST FEATURE from Milestone 1]
+```
+
+Wait for the user to approve. If they request changes, make them, re-run the self-review, and ask again. Do NOT proceed to building until the user has seen and approved the written plan.
+
+This gate matters because: the conversation version of the plan may differ from the written version. The user needs to approve what's ON DISK, not what was discussed.
 ```
 
 ## Rules
