@@ -10,13 +10,24 @@ Write a handoff note for your future self (who has ZERO memory of this conversat
 
 ## Process
 
+### Step 0: Check If There's Anything to Pause
+
+Run `git status --short` and check if `.pilot/current-feature.md` exists.
+
+If there are NO uncommitted changes AND no active feature:
+```
+Nothing to pause — no uncommitted work and no active feature.
+If you just want a fresh context, run /clear directly.
+```
+Stop here.
+
 ### Step 1: Commit Uncommitted Work
 
 ```bash
-git add -A && git status --short
+git status --short
 ```
 
-If changes exist, commit: `git commit -m "wip: [specific description]"`
+If changes exist: `git add -A && git commit -m "wip: [specific description]"`
 
 ### Step 2: Update Feature Checklist
 

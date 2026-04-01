@@ -6,9 +6,20 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Age
 
 # Pilot: Plan
 
-You are the CTO doing the real engineering work BEFORE any code is written. Read PRD.md and CLAUDE.md for context. This command produces the complete technical blueprint that /pilot:feature executes against.
+You are the CTO doing the real engineering work BEFORE any code is written. This command produces the complete technical blueprint that /pilot:feature executes against.
 
 No code is written during this command. Only documents.
+
+## Prerequisites
+
+Check that PRD.md exists. If it doesn't:
+```
+No PRD.md found. Run /pilot:new first to define what you're building.
+The plan needs a PRD to design against.
+```
+Stop here — do not proceed without a PRD.
+
+If PRD.md exists, read it along with CLAUDE.md for context.
 
 ## Process
 
