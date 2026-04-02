@@ -1,7 +1,7 @@
 ---
 description: Build a feature autonomously. Opus makes all technical decisions, only asks product questions, and teaches key concepts along the way. Use before starting any non-trivial feature.
 argument-hint: What you want (e.g., "add Stripe payments" or "build the user dashboard")
-allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion"]
+allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
 
 # Pilot: Feature Builder
@@ -94,56 +94,98 @@ Skip this section if no notable decisions beyond what's in CLAUDE.md.]
 
 Keep the plan UNDER 30 lines. This is a checklist, not a document.
 
-### Step 5: Build (TDD — Tests First)
-
-**IRON RULE: No implementation code exists before tests.** If you catch yourself writing implementation before tests, STOP. Delete it. Write tests first. Run them — they MUST fail. Only then implement.
+### Step 5: Build (Opus plans, Sonnet builds)
 
 When the user says go:
 
 1. Save the checklist to `.pilot/current-feature.md`
 
-2. **Write tests FIRST.** Before ANY implementation code:
-   - Create test files for the feature's core behavior
-   - Use the test cases from the plan (PLAN.md or the checklist's "Tests to write FIRST")
-   - Tests should be specific and behavioral: "when a user creates an invoice with no line items, it returns a validation error"
-   - Run the tests — they SHOULD FAIL (nothing is implemented yet)
-   - Commit: `test: add tests for [feature]`
-   - Teach: "I'm writing the tests before the code. Quick concept: this is called TDD — Test-Driven Development. We define what 'working' means first, then build until the tests pass. It's like writing the answer key before the exam. This way we KNOW when we're done, and we catch regressions if something breaks later."
+2. **Decide: build directly or delegate.**
+   - **Simple task** (1-2 files, quick fix, refactor): Opus builds directly. No subagent overhead.
+   - **Standard feature** (3+ files, new functionality): Spawn `pilot-executor` (Sonnet) subagent.
+   - **Multiple independent features** in same milestone: Spawn multiple executors in parallel.
 
-3. **Implement to make tests pass.**
-   - Work through the build order items
-   - Read referenced standard files before the relevant steps
-   - After each item: run tests, mark `[x]` in `.pilot/current-feature.md`, commit atomically
-   - At KEY moments, teach concepts (not every line — just the ideas that help the user understand their app)
+3. **For delegated builds — spawn the executor:**
 
-4. **Review checkpoint (every 3 checklist items or after any UI change).**
-   Pause and show the user what was built:
+   Compose a focused prompt for the `pilot-executor` agent. Include:
+   - Feature name and 1-line summary
+   - Exact files to create (from the checklist's 8-layer build order)
+   - Exact files to modify (including backward integration)
+   - Test cases to write FIRST
+   - Acceptance criteria
+   - Key patterns to follow (from CONTEXT.md — don't paste the whole file, just the relevant patterns)
+
    ```
-   ━━━ Checkpoint: [N] of [M] items done ━━━
-   
-   What I just built:
-   - [Item 1]: [one-line summary of what it does]
-   - [Item 2]: [one-line summary]
-   - [Item 3]: [one-line summary]
-   
+   Agent(
+     subagent_type="pilot-executor" or just use the general-purpose agent,
+     model="sonnet",
+     isolation="worktree",
+     run_in_background=false (for single feature) or true (for parallel),
+     prompt="[the focused spec above]"
+   )
+   ```
+
+   **200K context budget for Sonnet.** Keep the prompt under 3K tokens. The executor reads CONTEXT.md + CLAUDE.md itself (they load automatically). Don't paste full file contents — just tell it which files to read.
+
+   Teach: "I'm handing this to a builder agent — it works in its own isolated copy of the code so nothing interferes. It'll write the tests first, then implement, then report back. I'll review its work before merging it into the project."
+
+4. **For parallel builds (multiple independent features):**
+
+   Only when features are TRULY independent (no shared file modifications):
+   ```
+   Agent("pilot-executor", model="sonnet", isolation="worktree", run_in_background=true, name="feature-4")
+   Agent("pilot-executor", model="sonnet", isolation="worktree", run_in_background=true, name="feature-5")
+   Agent("pilot-executor", model="sonnet", isolation="worktree", run_in_background=true, name="feature-6")
+   ```
+
+   Wait for all to complete. Each works on its own git branch.
+
+5. **Review the executor's work.**
+
+   When the executor reports back:
+   - Read its report (files created, files modified, test count, decisions, issues)
+   - Review the changes: `git diff main...[worktree-branch]`
+   - Check: does the code follow project patterns? Are tests meaningful? Any red flags?
+   - If issues: fix them directly on the branch before merging
+
+6. **Merge and verify.**
+
+   ```bash
+   git merge [worktree-branch] --no-ff -m "feat: [feature name] (v0.1.3)"
+   ```
+
+   After merge, run full verification:
+   - Type check (the stack's checker — tsc, mypy, cargo check, etc.)
+   - Run ALL tests (not just new ones — catch regressions)
+   - If merge conflicts: resolve them, re-run tests
+
+   For parallel merges: merge one branch at a time, verify after each.
+
+7. **Post-merge polish.**
+   - Run `/simplify` on the combined changes
+   - Teach: "I'm running /simplify on the merged code — it catches any duplication or inconsistency that happened between the parallel builds."
+
+8. **Review checkpoint.**
+   Show the user what was built:
+   ```
+   ━━━ Feature complete: [Name] ━━━
+
+   What was built:
+   - [Summary of what the executor created]
+   - [Backward integration changes]
+
    What's different now:
-   [If UI changed: describe what the user would SEE if they opened the app]
-   [If API changed: describe what endpoints now exist and what they do]
-   
-   Does this match what you expected? Say 'continue' or tell me what's off.
+   [What the user would SEE in the app]
+
+   Tests: [N] new, [N] total, all passing
+   Type check: clean
+
+   Does this look right?
    ```
-   
-   This catches drift BEFORE it compounds. A beginner doesn't know what "right" looks like — checkpoints let them course-correct while the cost of change is low.
-   
-   If the user says "continue" or anything affirmative, proceed. If they flag an issue, fix it before continuing.
 
-5. **All tests green = feature works.** The Stop hook blocks completion until type checks AND tests pass.
+   If the user flags issues, fix them before proceeding.
 
-6. **Run `/simplify` on the feature's changes.** This is a built-in Claude Code command that launches 3 parallel review agents (code reuse, code quality, efficiency) on your recent changes and auto-fixes issues. It catches: duplicated logic, generic names, unnecessary abstractions, missed optimizations, happy-path-only code. Run it BEFORE the Critic — clean code first, then evaluate quality.
-
-   Teach: "I'm running /simplify — it's like a senior engineer reviewing the code I just wrote. It finds copy-pasted logic, bad variable names, and things I could have written more efficiently. It fixes them automatically. This is the polish step — making sure the code is clean, not just correct."
-
-7. **Refactor if needed.** If /simplify missed something or you want further cleanup, do it now. Tests catch any regressions.
+**Fallback:** If the Sonnet executor gets stuck (reports errors it can't fix, or the merge has complex conflicts), Opus takes over and builds directly. Don't waste time — if delegation fails, do it yourself.
 
 ### Step 6: Complete Feature + Version Bump
 
