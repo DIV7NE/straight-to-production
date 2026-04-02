@@ -58,9 +58,24 @@ Read `.pilot/references/security/ai-code-vulnerabilities.md` BEFORE writing code
 - What validation is required? Where? (server-side, always)
 - What secrets/credentials does this feature handle? How are they stored?
 - Can a user manipulate this feature to access another user's data? (IDOR check)
+- **Race conditions:** Can concurrent requests cause double-spend, double-booking, or duplicate records? If yes → database transactions + locking
+- **Mass assignment:** Are you spreading request body into DB operations? Pick allowed fields explicitly.
+- **Timing attacks:** Are you comparing tokens or secrets? Use timing-safe comparison.
+- **Data privacy:** Does this feature collect/store PII? What's the retention period? Can it be fully deleted (GDPR)?
+- **Resource exhaustion:** Are all inputs bounded? (max payload, max items, pagination, timeouts)
+- **Error leakage:** Do error responses reveal internal state? Different messages for "not found" vs "wrong password"?
 - Read `.pilot/references/security/` files relevant to this feature
 
-**E. Edge Cases + What Could Break**
+**E. Resilience Research — what if things fail?**
+
+- What happens when the database is slow or down?
+- What happens when external services fail? (Stripe, email, storage)
+- Is there a failure scenario where money is taken but no record is created? (saga pattern needed)
+- Should external calls have retry logic? (exponential backoff, max 3 retries)
+- Can the app still function partially if a non-critical service is down? (graceful degradation)
+- What's the timeout for every external call? (never infinite — 10-30 seconds max)
+
+**F. Edge Cases + What Could Break**
 
 - What happens when the input is empty? Too large? Malformed?
 - What happens during network failure? Database timeout? External service down?
@@ -68,14 +83,14 @@ Read `.pilot/references/security/ai-code-vulnerabilities.md` BEFORE writing code
 - Which existing tests might fail after this change?
 - What are the 3 most likely failure modes for this feature?
 
-**F. Backward Integration + Improvement Opportunities**
+**G. Backward Integration + Improvement Opportunities**
 
 - Which existing features could BENEFIT from this new feature?
 - What existing code is currently incomplete that this feature completes?
 - Are there gaps in existing features this could fill? (e.g., adding search to a list that had none)
 - Present improvements to the user: "While building Purchase Orders, I noticed the Supplier page has no order history. I'll add that too — it makes the app feel connected."
 
-**G. Anti-Hallucination Verification**
+**H. Anti-Hallucination Verification**
 
 Before finalizing the feature plan:
 - Verify every import/package you plan to use actually EXISTS in the registry
