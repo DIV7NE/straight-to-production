@@ -269,8 +269,12 @@ Project ready.
 What was created:
 - PRD.md — your project's requirements (for you to read and share)
 - CLAUDE.md — project brain (spec + standards + patterns for Claude)
+- CONTEXT.md — live codebase map (updated as we build)
+- VERSION — version tracking (0.1.0)
+- CHANGELOG.md — project history (updated every feature)
 - .pilot/references/ — production standards I'll check against
-- Hooks active: type checking after every edit, quality gate before completion
+- .github/workflows/ci.yml — CI pipeline (runs on every push)
+- Hooks active: type checking + test enforcement + secret detection
 
 ━━━ Next step ━━━
 
