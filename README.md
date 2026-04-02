@@ -31,7 +31,7 @@ PILOT:
 ```
 pilot/
 ├── commands/           # 8 commands
-│   ├── brainstorm.md   # /pilot:brainstorm — Explore ideas + research approaches
+│   ├── whiteboard.md   # /pilot:whiteboard — Explore ideas + research approaches
 │   ├── new.md          # /pilot:new — Product discovery + PRD
 │   ├── plan.md         # /pilot:plan — Research + Architecture + PLAN.md
 │   ├── feature.md      # /pilot:feature — TDD Feature Builder
@@ -89,11 +89,11 @@ pilot/
 
 ## Usage
 
-### 0. Brainstorm (optional — use anytime)
+### 0. Whiteboard (optional — use anytime)
 ```
-/pilot:brainstorm I have an idea for a fitness tracking app
-/pilot:brainstorm should we use WebSockets or SSE for real-time?
-/pilot:brainstorm this payment feature is complex, what's the best approach?
+/pilot:whiteboard I have an idea for a fitness tracking app
+/pilot:whiteboard should we use WebSockets or SSE for real-time?
+/pilot:whiteboard this payment feature is complex, what's the best approach?
 ```
 Explore ideas, research approaches, compare options with industry backing. No code — just thinking. Decisions are saved to disk so they survive /clear. Use before /pilot:new to shape a vague idea, before /pilot:feature for complex decisions, or standalone for any technical question.
 
@@ -129,7 +129,7 @@ Works through the feature checklist unattended. TDD per task. Critic evaluates w
 
 ### The full flow
 ```
-/pilot:brainstorm → Shape ideas, research approaches (optional, anytime)
+/pilot:whiteboard → Shape ideas, research approaches (optional, anytime)
 /pilot:new        → PRD.md (what we're building)
 /pilot:plan       → PLAN.md (how we're building it — verified by Critic)
 /pilot:feature    → TDD → /simplify → checkpoint → milestone auto-eval

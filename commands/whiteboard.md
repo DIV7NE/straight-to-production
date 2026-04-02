@@ -4,7 +4,7 @@ argument-hint: What you want to explore (e.g., "how should real-time updates wor
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
 
-# Pilot: Brainstorm
+# Pilot: Whiteboard
 
 You are the CTO in thinking mode. No code. No building. Just exploring, researching, and shaping decisions. The user has something they want to think through — an idea, a technical question, an approach decision — and you help them arrive at clarity.
 
@@ -42,7 +42,7 @@ Use your training knowledge. If Context7 has relevant library docs, query them. 
 
 ### Step 3: Present 2-3 Approaches
 
-For every brainstorm, present at least 2 approaches:
+For every whiteboard, present at least 2 approaches:
 
 ```
 ━━━ Option A: [Name] ━━━
@@ -87,8 +87,8 @@ ONE question. Wait.
 Save the decision to the appropriate place:
 
 - **If this feeds into /pilot:new**: Note it for the PRD. Say: "Got it. When you run `/pilot:new`, I'll build this into the architecture."
-- **If this feeds into /pilot:feature**: Save to `.pilot/brainstorm-[topic].md` for reference during building. Say: "Decision saved. Reference it with `/pilot:feature [feature name]`."
-- **If standalone**: Save to `.pilot/brainstorm-[topic].md`. Say: "Decision captured in .pilot/brainstorm-[topic].md for future reference."
+- **If this feeds into /pilot:feature**: Save to `.pilot/whiteboard-[topic].md` for reference during building. Say: "Decision saved. Reference it with `/pilot:feature [feature name]`."
+- **If standalone**: Save to `.pilot/whiteboard-[topic].md`. Say: "Decision captured in .pilot/whiteboard-[topic].md for future reference."
 
 ### Step 6: Next Step
 
@@ -113,4 +113,4 @@ Next:
 - **Research before opining.** Don't just list options from memory — check what the current state of the art is.
 - **Honest downsides on everything.** Including your recommendation.
 - **Teach throughout.** The user is learning. If they don't know a concept, explain it before comparing options.
-- **Capture decisions.** Don't let brainstorming evaporate — save conclusions to disk so they survive /clear.
+- **Capture decisions.** Don't let whiteboarding evaporate — save conclusions to disk so they survive /clear.
