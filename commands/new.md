@@ -162,7 +162,35 @@ why, and what alternatives were considered.]
    
    This ensures quality is enforced REMOTELY, not just locally via hooks.
    Teach: "This CI pipeline runs the same checks as the hooks, but on GitHub's servers. Even if you bypass the local hooks, the CI catches it before it reaches production."
-6. Initialize git if needed, first commit: `chore: initialize project with Pilot standards`
+6. Initialize version tracking:
+   - Create `VERSION` file containing `0.1.0`
+   - Create `CHANGELOG.md` with the initial entry:
+     ```markdown
+     # Changelog
+     
+     All notable changes to this project are documented here.
+     Pilot updates this automatically on every feature and milestone completion.
+     The AI reads this to understand the project's full history.
+     
+     ## [0.1.0] — [DATE] — Project Initialized
+     
+     **Stack:** [framework + database + auth + styling]
+     **Planned:** [N] milestones, [N] features
+     
+     ### Architecture Decisions
+     - [Decision 1 — why, alternatives considered]
+     - [Decision 2 — why, alternatives considered]
+     
+     ### Documents Created
+     - PRD.md — product requirements
+     - CLAUDE.md — standards + patterns
+     - .pilot/references/ — [N] production standards
+     - .github/workflows/ci.yml — CI pipeline
+     ```
+   
+   Teach: "VERSION and CHANGELOG.md track your project's evolution. Every time I complete a feature, the version bumps and the changelog records what was built, what tests were added, and what decisions were made. If I start a fresh session months from now, I read the changelog to understand the full history of your project."
+
+7. Initialize git if needed, first commit: `chore: initialize project with Pilot standards (v0.1.0)`
 
 ### Step 7: Handoff
 

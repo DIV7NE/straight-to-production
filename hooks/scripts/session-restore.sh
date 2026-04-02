@@ -54,12 +54,19 @@ if [ -f "$FEATURE_FILE" ]; then
 fi
 
 # Recovery steps
-echo "[Pilot] Recovery:" >&2
-echo "  1. Read CLAUDE.md (project spec + standards)" >&2
-if [ -f "$FEATURE_FILE" ]; then
-  echo "  2. Read .pilot/current-feature.md (feature checklist)" >&2
+# Show current version
+if [ -f "VERSION" ]; then
+  VERSION=$(cat VERSION 2>/dev/null)
+  echo "[Pilot] Project version: $VERSION" >&2
 fi
-echo "  3. git log --oneline -5 (recent work)" >&2
-echo "  4. Continue from where you left off" >&2
+
+echo "[Pilot] Recovery:" >&2
+echo "  1. Read CHANGELOG.md (what was built, when, and why)" >&2
+echo "  2. Read CLAUDE.md (project spec + standards)" >&2
+if [ -f "$FEATURE_FILE" ]; then
+  echo "  3. Read .pilot/current-feature.md (feature checklist)" >&2
+fi
+echo "  4. Read PLAN.md (milestones + what's done vs remaining)" >&2
+echo "  5. Continue from where you left off" >&2
 
 exit 0

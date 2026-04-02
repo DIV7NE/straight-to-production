@@ -111,30 +111,81 @@ When the user says go:
 
 7. **Refactor if needed.** If /simplify missed something or you want further cleanup, do it now. Tests catch any regressions.
 
-### Step 5: Complete Feature
+### Step 5: Complete Feature + Version Bump
 
-1. If any significant technical decisions were made during this feature (library choices, architecture patterns, tradeoffs), append them to the `## Technical Decisions Log` section in `PRD.md`. Format: what was decided, why, alternatives considered.
-2. Update PLAN.md — mark this feature as completed.
-3. Delete `.pilot/current-feature.md` and `.pilot/handoff.md` if they exist.
-4. Commit.
+1. **Bump patch version.** Read `VERSION` file (e.g., `0.1.2`), increment patch → `0.1.3`, write back.
+
+2. **Add CHANGELOG entry.** Prepend to CHANGELOG.md (newest first, below header):
+   ```markdown
+   ## [0.1.3] — [DATE] — Feature: [Feature Name]
+   
+   [1-2 sentence summary of what was built]
+   
+   ### Changes
+   - [File created/modified — what it does]
+   - [File created/modified — what it does]
+   
+   ### Tests Added
+   - [Test file] — [what it covers] ([N] tests)
+   
+   ### Decisions Made
+   - [Any technical decisions during this feature — why, alternatives]
+   
+   ### Stats
+   - Tests: [N] passing
+   - Type check: clean
+   ```
+
+3. Update PLAN.md — mark this feature `[x]` with version: `- [x] 3. Ingredient CRUD (v0.1.3)`
+4. Update PRD.md Technical Decisions Log if significant decisions were made.
+5. Delete `.pilot/current-feature.md` and `.pilot/handoff.md` if they exist.
+6. Commit: `feat: [feature name] (v0.1.3)`
 
 ### Step 6: Milestone Check (Automatic)
 
 After completing a feature, check PLAN.md: **is this the last feature in the current milestone?**
 
-If YES — this milestone is complete. Run two things automatically:
+If YES — this milestone is complete:
 
-**1. Integration Verification**
-Test that features within this milestone work TOGETHER, not just individually. Unit tests pass, but does the full workflow work?
+**1. Bump minor version.** Reset patch: `0.1.3` → `0.2.0`. Write to VERSION.
 
-For example, after Milestone 2 (Core Workflow):
-- Can a user create an invoice, add line items, send it to a client, and track payment status?
-- Does the full chain work end-to-end, or do individual pieces pass tests but fail when connected?
+**2. Integration Verification**
+Test that features within this milestone work TOGETHER, not just individually.
 
 Write and run integration/E2E tests for the milestone's primary workflow. Commit them.
 
-**2. Automatic Critic Evaluation**
-Spawn the `pilot-critic` agent automatically — don't wait for the user to ask. The Critic grades the milestone against PRD.md + PLAN.md + the 6 quality criteria. Present the results.
+**3. Automatic Critic Evaluation**
+Spawn the `pilot-critic` agent automatically. Grade against PRD.md + PLAN.md + 6 criteria. Present results.
+
+**4. Milestone CHANGELOG entry.** Add a milestone summary entry:
+   ```markdown
+   ## [0.2.0] — [DATE] — Milestone 2: [Milestone Name]
+   
+   ### Summary
+   [2-3 sentences: what this milestone achieved, what the app can now do]
+   
+   ### Features Included
+   - v0.1.4: [Feature name]
+   - v0.1.5: [Feature name]
+   - v0.1.6: [Feature name]
+   
+   ### Critic Evaluation
+   - Functionality: [PASS/PARTIAL/FAIL]
+   - Design: [PASS/PARTIAL/FAIL]
+   - Security: [PASS/PARTIAL/FAIL]
+   - Accessibility: [PASS/PARTIAL/FAIL]
+   - Performance: [PASS/PARTIAL/FAIL]
+   - Production: [PASS/PARTIAL/FAIL]
+   
+   ### Integration Tests
+   - [Workflow tested] — PASS
+   
+   ### Key Decisions This Milestone
+   - [Decision — why]
+   ```
+
+5. Commit: `milestone: [milestone name] (v0.2.0)`
+6. Git tag: `git tag v0.2.0`
 
 Then:
 
