@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pilot Whiteboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface-2: #1e1e1e;
+      --border: #2a2a2a;
+      --text: #e4e4e7;
+      --text-muted: #71717a;
+      --accent: #3b82f6;
+      --green: #22c55e;
+      --yellow: #eab308;
+      --red: #ef4444;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.idle { background: var(--text-muted); animation: none; }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+    }
+
+    nav button {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    nav button:hover { color: var(--text); }
+    nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .content { padding: 24px; max-width: 1200px; margin: 0 auto; }
+
+    .section { display: none; animation: fadeIn 0.2s ease; }
+    .section.active { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .card-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+    .card-text { font-size: 14px; line-height: 1.6; color: var(--text-muted); }
+
+    .diagram-container {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin: 16px 0;
+      overflow-x: auto;
+      display: flex;
+      justify-content: center;
+    }
+
+    .diagram-label {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 16px 0 8px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-green { background: rgba(34, 197, 94, 0.15); color: var(--green); }
+    .badge-yellow { background: rgba(234, 179, 8, 0.15); color: var(--yellow); }
+    .badge-blue { background: rgba(59, 130, 246, 0.15); color: var(--accent); }
+
+    .milestone-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .milestone-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .milestone-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .check-box {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 10px;
+    }
+
+    .feature-item.done .check-box {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+    }
+
+    .feature-item.done { color: var(--text); }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state h3 { font-size: 16px; color: var(--text); margin-bottom: 8px; }
+    .empty-state p { font-size: 14px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 12px 0;
+    }
+
+    th {
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <div class="logo-icon">P</div>
+      <span>Pilot Whiteboard</span>
+    </div>
+    <div class="status">
+      <div class="status-dot idle" id="statusDot"></div>
+      <span id="statusText">Waiting for data...</span>
+    </div>
+  </header>
+
+  <nav id="nav"></nav>
+
+  <div class="content" id="content">
+    <div class="empty-state">
+      <h3>Whiteboard is ready</h3>
+      <p>Run /pilot:plan or /pilot:whiteboard — diagrams will appear here live.</p>
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'dark',
+      themeVariables: {
+        darkMode: true,
+        background: '#1e1e1e',
+        primaryColor: '#3b82f6',
+        primaryTextColor: '#e4e4e7',
+        primaryBorderColor: '#2a2a2a',
+        lineColor: '#71717a',
+        secondaryColor: '#1e3a5f',
+        tertiaryColor: '#141414',
+        fontFamily: '-apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+        fontSize: '14px',
+      }
+    });
+
+    let currentSection = null;
+    let lastHash = null;
+
+    function sanitize(str) {
+      return DOMPurify.sanitize(str, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    }
+
+    function sanitizeHtml(str) {
+      return DOMPurify.sanitize(str, {
+        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'code', 'br', 'p', 'ul', 'ol', 'li', 'a', 'h3', 'h4'],
+        ALLOWED_ATTR: ['href']
+      });
+    }
+
+    async function renderMermaid(container) {
+      const blocks = container.querySelectorAll('.mermaid-source');
+      for (const block of blocks) {
+        const code = block.textContent.trim();
+        const id = 'mermaid-' + Math.random().toString(36).substr(2, 9);
+        try {
+          const { svg } = await mermaid.render(id, code);
+          const wrapper = document.createElement('div');
+          wrapper.className = 'diagram-container';
+          // Mermaid SVG is trusted output from the library
+          wrapper.appendChild(new DOMParser().parseFromString(svg, 'image/svg+xml').documentElement);
+          block.replaceWith(wrapper);
+        } catch (e) {
+          const errMsg = document.createElement('pre');
+          errMsg.style.cssText = 'color: var(--red); font-size: 12px;';
+          errMsg.textContent = 'Diagram error: ' + e.message;
+          block.replaceWith(errMsg);
+        }
+      }
+    }
+
+    function buildNav(sections) {
+      const nav = document.getElementById('nav');
+      while (nav.firstChild) nav.removeChild(nav.firstChild);
+      sections.forEach(function(section, i) {
+        const btn = document.createElement('button');
+        btn.textContent = section.title;
+        btn.addEventListener('click', function() { switchSection(i, sections); });
+        if (currentSection === section.title || (!currentSection && i === 0)) {
+          btn.classList.add('active');
+        }
+        nav.appendChild(btn);
+      });
+    }
+
+    function switchSection(index, sections) {
+      currentSection = sections[index].title;
+      document.querySelectorAll('nav button').forEach(function(b, i) {
+        b.classList.toggle('active', i === index);
+      });
+      document.querySelectorAll('.section').forEach(function(s, i) {
+        s.classList.toggle('active', i === index);
+      });
+    }
+
+    function buildFeatureItem(name, done) {
+      const item = document.createElement('div');
+      item.className = 'feature-item' + (done ? ' done' : '');
+
+      const check = document.createElement('div');
+      check.className = 'check-box';
+      if (done) check.textContent = '\u2713';
+
+      const label = document.createElement('span');
+      label.textContent = name;
+
+      item.appendChild(check);
+      item.appendChild(label);
+      return item;
+    }
+
+    function buildTable(tableData) {
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      tableData.headers.forEach(function(h) {
+        const th = document.createElement('th');
+        th.textContent = h;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      tableData.rows.forEach(function(row) {
+        const tr = document.createElement('tr');
+        row.forEach(function(cell) {
+          const td = document.createElement('td');
+          td.textContent = cell;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      return table;
+    }
+
+    function renderSection(section) {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const title = document.createElement('h2');
+      title.className = 'card-title';
+      title.textContent = section.title;
+      card.appendChild(title);
+
+      if (section.subtitle) {
+        const sub = document.createElement('p');
+        sub.className = 'card-subtitle';
+        sub.textContent = section.subtitle;
+        card.appendChild(sub);
+      }
+
+      if (section.content) {
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'card-text';
+        // Content may include safe HTML from the AI
+        contentDiv.innerHTML = sanitizeHtml(section.content);
+        card.appendChild(contentDiv);
+      }
+
+      if (section.diagrams) {
+        section.diagrams.forEach(function(d) {
+          if (d.label) {
+            const label = document.createElement('div');
+            label.className = 'diagram-label';
+            label.textContent = d.label;
+            card.appendChild(label);
+          }
+          const source = document.createElement('div');
+          source.className = 'mermaid-source';
+          source.textContent = d.code;
+          card.appendChild(source);
+        });
+      }
+
+      if (section.table) {
+        card.appendChild(buildTable(section.table));
+      }
+
+      if (section.milestones) {
+        const grid = document.createElement('div');
+        grid.className = 'milestone-grid';
+        section.milestones.forEach(function(m) {
+          const mCard = document.createElement('div');
+          mCard.className = 'milestone-card';
+
+          const done = m.features.filter(function(f) { return f.done; }).length;
+          const total = m.features.length;
+          const badgeClass = done === total ? 'badge-green' : done > 0 ? 'badge-yellow' : 'badge-blue';
+
+          const h4 = document.createElement('h4');
+          h4.textContent = m.name + ' ';
+          const badge = document.createElement('span');
+          badge.className = 'badge ' + badgeClass;
+          badge.textContent = done + '/' + total;
+          h4.appendChild(badge);
+          mCard.appendChild(h4);
+
+          if (m.goal) {
+            const goal = document.createElement('p');
+            goal.style.cssText = 'font-size:13px;color:var(--text-muted);margin-bottom:8px';
+            goal.textContent = m.goal;
+            mCard.appendChild(goal);
+          }
+
+          m.features.forEach(function(f) {
+            mCard.appendChild(buildFeatureItem(f.name, f.done));
+          });
+
+          grid.appendChild(mCard);
+        });
+        card.appendChild(grid);
+      }
+
+      return card;
+    }
+
+    async function loadData() {
+      try {
+        var resp = await fetch('/data.json?t=' + Date.now());
+        if (!resp.ok) return;
+
+        var data = await resp.json();
+        var hash = JSON.stringify(data);
+        if (hash === lastHash) return;
+        lastHash = hash;
+
+        var dot = document.getElementById('statusDot');
+        var statusEl = document.getElementById('statusText');
+
+        dot.classList.remove('idle');
+        statusEl.textContent = data.status || 'Live';
+
+        if (data.sections && data.sections.length > 0) {
+          buildNav(data.sections);
+          var content = document.getElementById('content');
+          while (content.firstChild) content.removeChild(content.firstChild);
+
+          data.sections.forEach(function(s, i) {
+            var wrapper = document.createElement('div');
+            wrapper.className = 'section';
+            if (currentSection === s.title || (!currentSection && i === 0)) {
+              wrapper.classList.add('active');
+            }
+            wrapper.appendChild(renderSection(s));
+            content.appendChild(wrapper);
+          });
+
+          await renderMermaid(content);
+        }
+      } catch (e) {
+        // Server not ready or no data yet
+      }
+    }
+
+    loadData();
+    setInterval(loadData, 2000);
+  </script>
+</body>
+</html>

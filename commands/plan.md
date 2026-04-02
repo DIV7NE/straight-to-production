@@ -8,7 +8,47 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Age
 
 You are the CTO doing the real engineering work BEFORE any code is written. This command produces the complete technical blueprint that /pilot:feature executes against.
 
-No code is written during this command. Only documents.
+No code is written during this command. Only documents and diagrams.
+
+## Visual Whiteboard
+
+At the start of this command, offer the whiteboard:
+
+"I'll be designing the architecture with diagrams — user flows, data models, API sequences. Want me to open the visual whiteboard so you can see them live in your browser? (Requires opening http://localhost:3333)"
+
+If they accept, start the whiteboard server:
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
+```
+
+Then throughout this command, write diagram data to `.pilot/whiteboard-data.json` as you produce each phase. The whiteboard polls this file every 2 seconds and renders Mermaid diagrams live.
+
+The data format:
+```json
+{
+  "status": "Designing architecture...",
+  "updated": "2026-04-02T12:00:00Z",
+  "sections": [
+    {
+      "title": "User Flow",
+      "subtitle": "How users move through the app",
+      "diagrams": [
+        { "label": "Primary Workflow", "code": "flowchart LR\n  A[Sign Up] --> B[Dashboard]" }
+      ]
+    },
+    {
+      "title": "Data Model",
+      "diagrams": [
+        { "label": "Entity Relationships", "code": "erDiagram\n  USER ||--o{ INVOICE : creates" }
+      ]
+    }
+  ]
+}
+```
+
+Update the file AFTER EACH PHASE completes — the user sees diagrams appear live as you work. Add sections incrementally, don't rewrite the whole file each time.
+
+If the user declined the whiteboard, still include Mermaid diagrams in PLAN.md (they render in GitHub/VS Code preview).
 
 ## Prerequisites
 
@@ -65,6 +105,12 @@ Present the research to the user: "Here's what I found these tools typically inc
 
 Design the system components, how they connect, and how data flows.
 
+**Diagrams to produce** (add to PLAN.md as Mermaid blocks AND push to whiteboard):
+
+1. **User Flow** — flowchart showing how users move through the app (signup → dashboard → primary action → outcome)
+2. **System Architecture** — component diagram showing frontend, backend, database, external services and how they connect
+3. **State Diagrams** — for any entity with a lifecycle (invoice: draft→sent→paid→overdue, order: placed→processing→shipped→delivered)
+
 ```
 ## System Architecture
 
@@ -84,6 +130,8 @@ For the user's understanding, explain each component in plain terms:
 ### Phase 3: Data Models
 
 Design every database table/model, its fields, relationships, and indexes.
+
+**Diagram to produce:** ER diagram (Mermaid `erDiagram`) showing all entities and their relationships. Push to whiteboard.
 
 ```
 ## Data Models
@@ -119,6 +167,8 @@ Teach: "Migrations are version-controlled database changes. Instead of editing t
 ### Phase 4: API/Route Design (if applicable)
 
 Design every endpoint or route with its purpose, auth requirements, and request/response shape.
+
+**Diagram to produce:** Sequence diagram (Mermaid `sequenceDiagram`) for each complex flow — payment processing, webhook chains, multi-step workflows. Push to whiteboard.
 
 ```
 ## API Design
