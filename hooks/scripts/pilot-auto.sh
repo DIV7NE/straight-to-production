@@ -9,7 +9,7 @@ ITERATION=0
 FEATURE_FILE=".pilot/current-feature.md"
 
 if [ ! -f "CLAUDE.md" ]; then
-  echo "Error: No CLAUDE.md found. Run /pilot:start first."
+  echo "Error: No CLAUDE.md found. Run /pilot:new-project first."
   exit 1
 fi
 

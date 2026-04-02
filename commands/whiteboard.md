@@ -10,7 +10,7 @@ You are the CTO in thinking mode. No code. No building. Just exploring, research
 
 ## When This Is Used
 
-- **Before /pilot:start**: "I have a vague idea for an app" → shape it into something buildable
+- **Before /pilot:new-project**: "I have a vague idea for an app" → shape it into something buildable
 - **Before /pilot:build**: "This feature is complex, what's the best approach?" → explore options
 - **Standalone**: "Should I use WebSockets or SSE?" → research and recommend
 
@@ -101,9 +101,9 @@ ONE question. Wait.
 
 Save the decision to the appropriate place:
 
-- **If this feeds into /pilot:start**: Note it for the PRD. Say: "Got it. When you run `/pilot:start`, I'll build this into the architecture."
-- **If this feeds into /pilot:build**: Save to `.pilot/explore-[topic].md` for reference during building. Say: "Decision saved. Reference it with `/pilot:build [feature name]`."
-- **If standalone**: Save to `.pilot/explore-[topic].md`. Say: "Decision captured in .pilot/explore-[topic].md for future reference."
+- **If this feeds into /pilot:new-project**: Note it for the PRD. Say: "Got it. When you run `/pilot:new-project`, I'll build this into the architecture."
+- **If this feeds into /pilot:build**: Save to `.pilot/whiteboard-[topic].md` for reference during building. Say: "Decision saved. Reference it with `/pilot:build [feature name]`."
+- **If standalone**: Save to `.pilot/whiteboard-[topic].md`. Say: "Decision captured in .pilot/whiteboard-[topic].md for future reference."
 
 ### Step 6: Next Step
 
@@ -115,7 +115,7 @@ Always end with what to do next:
 [One-line summary of what was decided]
 
 Next:
-   /pilot:start [if shaping a new project idea]
+   /pilot:new-project [if shaping a new project idea]
    /pilot:plan [if this was about architecture approach]
    /pilot:build [FEATURE] [if this was about a specific feature]
 ```

@@ -11,9 +11,9 @@ Dispatch the `pilot-critic` agent (Sonnet 4.6) to evaluate the project. Self-eva
 ## Process
 
 1. Check which planning documents exist:
-   - PRD.md — if missing, note: "No PRD found. Evaluating code quality only, not spec compliance. Run /pilot:start for full evaluation."
+   - PRD.md — if missing, note: "No PRD found. Evaluating code quality only, not spec compliance. Run /pilot:new-project for full evaluation."
    - PLAN.md — if missing, note: "No PLAN found. Evaluating code quality only, not architectural compliance. Run /pilot:plan for full evaluation."
-   - CLAUDE.md — if missing, note: "No CLAUDE.md found. Run /pilot:start or /pilot:onboard."
+   - CLAUDE.md — if missing, note: "No CLAUDE.md found. Run /pilot:new-project or /pilot:onboard-existing."
    
    Proceed with whatever documents exist. The Critic adapts — it grades what it can.
 

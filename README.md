@@ -35,14 +35,14 @@ PILOT:
 ```
 pilot/
 ├── commands/           # 8 commands
-│   ├── explore.md     # /pilot:explore — Explore ideas + research approaches
-│   ├── start.md       # /pilot:start — Start a new project + PRD
-│   ├── plan.md        # /pilot:plan — Design the architecture + PLAN.md
-│   ├── build.md       # /pilot:build — Build a feature (TDD)
-│   ├── review.md      # /pilot:review — Quality evaluation (7 criteria)
-│   ├── autopilot.md   # /pilot:autopilot — Overnight autonomous building
-│   ├── pause.md       # /pilot:pause — Save progress and take a break
-│   └── onboard.md     # /pilot:onboard — Take over an existing project
+│   ├── whiteboard.md      # /pilot:whiteboard — Explore ideas + research
+│   ├── new-project.md     # /pilot:new-project — Start a new project
+│   ├── plan.md            # /pilot:plan — Design the architecture
+│   ├── build.md           # /pilot:build — Build a feature (TDD)
+│   ├── review.md          # /pilot:review — Quality evaluation (7 criteria)
+│   ├── autopilot.md       # /pilot:autopilot — Overnight autonomous
+│   ├── pause.md           # /pilot:pause — Save progress, take a break
+│   └── onboard-existing.md # /pilot:onboard-existing — Take over existing project
 ├── agents/
 │   └── critic.md       # Sonnet evaluator (7 criteria, business impact)
 ├── hooks/              # 4 hook scripts
@@ -96,17 +96,17 @@ pilot/
 
 ## Usage
 
-### 0. Explore ideas (optional — use anytime)
+### 0. Whiteboard (optional — use anytime)
 ```
-/pilot:explore I have an idea for a fitness tracking app
-/pilot:explore should we use WebSockets or SSE for real-time?
-/pilot:explore this payment feature is complex, what's the best approach?
+/pilot:whiteboard I have an idea for a fitness tracking app
+/pilot:whiteboard should we use WebSockets or SSE for real-time?
+/pilot:whiteboard this payment feature is complex, what's the best approach?
 ```
-Explore ideas, research approaches, compare options with industry backing. No code — just thinking. Decisions are saved to disk so they survive /clear. Use before /pilot:start to shape a vague idea, before /pilot:build for complex decisions, or standalone for any technical question.
+Explore ideas, research approaches, compare options with industry backing. No code — just thinking. Decisions are saved to disk so they survive /clear. Use before /pilot:new-project to shape a vague idea, before /pilot:build for complex decisions, or standalone for any technical question.
 
 ### 1. Start a new project
 ```
-/pilot:start an app where freelancers track invoices and expenses
+/pilot:new-project an app where freelancers track invoices and expenses
 ```
 Opus asks product questions (one at a time), proposes the full stack with alternatives and honest downsides, surfaces what you'd miss. Creates **PRD.md** (with acceptance criteria), **CONTEXT.md** (codebase map), **CHANGELOG.md**, **VERSION**, CI pipeline, and scaffolds the foundation.
 
@@ -136,14 +136,14 @@ Works through the feature checklist unattended. TDD per task. Critic evaluates w
 
 ### The full flow
 ```
-/pilot:explore   → Shape ideas, research approaches (optional, anytime)
-/pilot:start     → PRD.md (what we're building)
-/pilot:plan      → PLAN.md (how we're building it — verified by Critic)
-/pilot:build     → Research → TDD → /simplify → checkpoint → milestone auto-eval
-/pilot:review    → Separate AI grades against PRD + PLAN + 7 criteria
-/pilot:pause     → Save state → /clear → resume next session
-/pilot:autopilot → Overnight TDD autonomous with Critic at completion
-/pilot:onboard   → Take over an existing project → analyze → document → plan
+/pilot:whiteboard        → Shape ideas, research approaches (optional, anytime)
+/pilot:new-project       → PRD.md (what we're building)
+/pilot:plan              → PLAN.md (how we're building it — verified by Critic)
+/pilot:build             → Research → TDD → /simplify → checkpoint → milestone auto-eval
+/pilot:review            → Separate AI grades against PRD + PLAN + 7 criteria
+/pilot:pause             → Save state → /clear → resume next session
+/pilot:autopilot         → Overnight TDD autonomous with Critic at completion
+/pilot:onboard-existing  → Take over an existing project → analyze → document → plan
 ```
 
 ## Quality Enforcement (Hook Gates — Cannot Be Bypassed)
@@ -163,12 +163,12 @@ Works through the feature checklist unattended. TDD per task. Critic evaluates w
 
 | Document | Created By | Updated By | Purpose |
 |----------|-----------|------------|---------|
-| PRD.md | /pilot:start | /pilot:build (decisions log) | What we're building + acceptance criteria |
+| PRD.md | /pilot:new-project | /pilot:build (decisions log) | What we're building + acceptance criteria |
 | PLAN.md | /pilot:plan | /pilot:build (mark [x] + version) | How we're building it (verified blueprint) |
-| CONTEXT.md | /pilot:start | /pilot:build (incremental), milestone (full refresh) | What exists RIGHT NOW (codebase map) |
-| CHANGELOG.md | /pilot:start | /pilot:build (per feature + milestone) | What happened (versioned history) |
-| VERSION | /pilot:start | /pilot:build (patch bump), milestone (minor bump) | Current version number |
-| CLAUDE.md | /pilot:start | — | Standards + patterns for Claude |
+| CONTEXT.md | /pilot:new-project | /pilot:build (incremental), milestone (full refresh) | What exists RIGHT NOW (codebase map) |
+| CHANGELOG.md | /pilot:new-project | /pilot:build (per feature + milestone) | What happened (versioned history) |
+| VERSION | /pilot:new-project | /pilot:build (patch bump), milestone (minor bump) | Current version number |
+| CLAUDE.md | /pilot:new-project | — | Standards + patterns for Claude |
 
 ## Design Principles
 

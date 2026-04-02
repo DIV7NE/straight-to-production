@@ -1,5 +1,5 @@
 ---
-description: Research the domain, design the architecture, and create a detailed implementation plan. Run after /pilot:start and before /pilot:build. This is where all the thinking happens before any code is written.
+description: Research the domain, design the architecture, and create a detailed implementation plan. Run after /pilot:new-project and before /pilot:build. This is where all the thinking happens before any code is written.
 argument-hint: Optional focus (e.g., "just the database schema" or "API design only")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
@@ -54,7 +54,7 @@ If the user declined the whiteboard, still include Mermaid diagrams in PLAN.md (
 
 Check that PRD.md exists. If it doesn't:
 ```
-No PRD.md found. Run /pilot:start first to define what you're building.
+No PRD.md found. Run /pilot:new-project first to define what you're building.
 The plan needs a PRD to design against.
 ```
 Stop here — do not proceed without a PRD.
@@ -65,7 +65,7 @@ If PRD.md exists, read it along with CLAUDE.md for context.
 
 ### Phase 1: Domain Research
 
-Research what a production version of this product actually needs. This is NOT about the tech stack (decided in /pilot:start) — it's about the DOMAIN.
+Research what a production version of this product actually needs. This is NOT about the tech stack (decided in /pilot:new-project) — it's about the DOMAIN.
 
 For an invoicing app, research:
 - What do existing invoice tools do? (FreshBooks, Wave, Invoice Ninja)
