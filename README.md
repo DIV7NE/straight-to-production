@@ -44,7 +44,7 @@ pilot/
 │   ├── pause.md        # /pilot:pause — Handoff for /clear
 │   └── setup.md        # /pilot:setup — Add standards to existing project
 ├── agents/
-│   └── critic.md       # Sonnet evaluator (6 criteria, business impact)
+│   └── critic.md       # Sonnet evaluator (7 criteria, business impact)
 ├── hooks/              # 4 hook scripts
 │   ├── hooks.json
 │   └── scripts/
@@ -52,7 +52,7 @@ pilot/
 │       ├── post-edit-check.sh  # Type check after edits (stack-aware)
 │       ├── pre-compact-save.sh # State save before compaction
 │       └── session-restore.sh  # State restore on session start
-├── references/         # Universal production standards (19 files)
+├── references/         # Universal production standards (20 files)
 │   ├── security/       # OWASP, env handling, auth, validation, API
 │   ├── accessibility/  # WCAG AA, keyboard, screen reader, contrast
 │   ├── performance/    # Web Vitals, bundles, queries, images
@@ -140,7 +140,7 @@ Works through the feature checklist unattended. TDD per task. Critic evaluates w
 /pilot:new        → PRD.md (what we're building)
 /pilot:plan       → PLAN.md (how we're building it — verified by Critic)
 /pilot:feature    → TDD → /simplify → checkpoint → milestone auto-eval
-/pilot:evaluate   → Separate AI grades against PRD + PLAN + 6 criteria
+/pilot:evaluate   → Separate AI grades against PRD + PLAN + 7 criteria
 /pilot:pause      → Save state → /clear → resume next session
 /pilot:auto       → Overnight TDD autonomous with Critic at completion
 ```

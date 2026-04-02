@@ -343,7 +343,7 @@ Test that features within this milestone work TOGETHER, not just individually.
 Write and run integration/E2E tests for the milestone's primary workflow. Commit them.
 
 **3. Automatic Critic Evaluation**
-Spawn the `pilot-critic` agent automatically. Grade against PRD.md + PLAN.md + 6 criteria. Present results.
+Spawn the `pilot-critic` agent automatically. Grade against PRD.md + PLAN.md + 7 criteria. Present results.
 
 **4. Milestone CHANGELOG entry.** Add a milestone summary entry:
    ```markdown

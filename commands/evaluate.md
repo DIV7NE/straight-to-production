@@ -27,7 +27,7 @@ Read these documents FIRST:
 - PLAN.md — how it was supposed to be built (data models, API design, milestones)
 - CLAUDE.md — stack patterns and quality standards
 
-Grade against all 6 criteria. Every finding needs a file:line reference AND business impact.
+Grade against all 7 criteria. Every finding needs a file:line reference AND business impact.
 Project directory: [cwd]
 Focus area: $ARGUMENTS (if provided, go deeper on this but still check everything)
 ```
@@ -59,7 +59,7 @@ If everything PASSED:
 ```
 ━━━ Next step ━━━
 
-All 6 criteria passed. Next feature:
+All 7 criteria passed. Next feature:
    /pilot:feature [NEXT FEATURE]
 ```
 
@@ -67,7 +67,7 @@ All 6 criteria passed. Next feature:
 
 ## Focus Areas
 
-If the user specified a focus, still run all 6 criteria but go deeper on the focused area:
+If the user specified a focus, still run all 7 criteria but go deeper on the focused area:
 - "security" → additional grep for common vulnerabilities, check every API route
 - "accessibility" → check every page for heading hierarchy, focus management, ARIA
 - "performance" → analyze bundle, check for query waterfalls, review caching
