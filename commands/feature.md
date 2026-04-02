@@ -82,9 +82,30 @@ When the user says go:
    - After each item: run tests, mark `[x]` in `.pilot/current-feature.md`, commit atomically
    - At KEY moments, teach concepts (not every line — just the ideas that help the user understand their app)
 
-4. **All tests green = feature works.** The Stop hook blocks completion until type checks AND tests pass.
+4. **Review checkpoint (every 3 checklist items or after any UI change).**
+   Pause and show the user what was built:
+   ```
+   ━━━ Checkpoint: [N] of [M] items done ━━━
+   
+   What I just built:
+   - [Item 1]: [one-line summary of what it does]
+   - [Item 2]: [one-line summary]
+   - [Item 3]: [one-line summary]
+   
+   What's different now:
+   [If UI changed: describe what the user would SEE if they opened the app]
+   [If API changed: describe what endpoints now exist and what they do]
+   
+   Does this match what you expected? Say 'continue' or tell me what's off.
+   ```
+   
+   This catches drift BEFORE it compounds. A beginner doesn't know what "right" looks like — checkpoints let them course-correct while the cost of change is low.
+   
+   If the user says "continue" or anything affirmative, proceed. If they flag an issue, fix it before continuing.
 
-5. **Refactor if needed.** Once tests pass, clean up code without changing behavior. Tests catch any regressions.
+5. **All tests green = feature works.** The Stop hook blocks completion until type checks AND tests pass.
+
+6. **Refactor if needed.** Once tests pass, clean up code without changing behavior. Tests catch any regressions.
 
 ### Step 5: Complete Feature
 
