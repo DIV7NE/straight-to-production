@@ -18,12 +18,16 @@ You describe what you want to build. Pilot makes every technical decision, prese
 YOU: "I want an app where freelancers track invoices"
 
 PILOT:
-├── Decides the entire stack (with justification)
-├── Asks 2-3 PRODUCT questions (not technical ones)
+├── Decides the entire stack (with alternatives + honest downsides)
+├── Asks PRODUCT questions only (one at a time, never technical)
 ├── Surfaces what you didn't think of (auth, security, empty states...)
-├── Generates CLAUDE.md with embedded standards
-├── Builds with quality hooks enforcing every edit
-└── Evaluates with a separate Critic AI when you're done
+├── Creates: PRD.md, PLAN.md (verified), CONTEXT.md, CHANGELOG.md
+├── Visual whiteboard: live diagrams in your browser (localhost)
+├── Impact analysis: checks what existing features each new feature touches
+├── TDD: writes tests before code, /simplify polishes after
+├── 6 enforcement gates: type check, tests exist, tests pass, no secrets,
+│   unchecked items, plan warning — cannot be bypassed
+└── Auto-Critic at every milestone (separate Sonnet AI, not self-grading)
 ```
 
 ## Architecture
@@ -48,11 +52,14 @@ pilot/
 │       ├── post-edit-check.sh  # Type check after edits (stack-aware)
 │       ├── pre-compact-save.sh # State save before compaction
 │       └── session-restore.sh  # State restore on session start
-├── references/         # Universal production standards
+├── references/         # Universal production standards (19 files)
 │   ├── security/       # OWASP, env handling, auth, validation, API
 │   ├── accessibility/  # WCAG AA, keyboard, screen reader, contrast
 │   ├── performance/    # Web Vitals, bundles, queries, images
-│   └── production/     # Errors, loading, empty states, edge cases, SEO
+│   └── production/     # Errors, loading, empty states, edge cases, SEO, legal
+├── whiteboard/         # Visual whiteboard (live diagrams in browser)
+│   ├── index.html      # Dark-theme dashboard with Mermaid rendering
+│   └── serve.py        # Lightweight Python server (zero dependencies)
 └── templates/          # 18 stack templates + extensibility guide
     ├── nextjs-supabase.md
     ├── python-fastapi.md
@@ -101,19 +108,19 @@ Explore ideas, research approaches, compare options with industry backing. No co
 ```
 /pilot:new an app where freelancers track invoices and expenses
 ```
-Opus asks product questions (one at a time), proposes the full stack with alternatives and honest downsides, surfaces what you'd miss, writes **PRD.md**, and scaffolds the foundation.
+Opus asks product questions (one at a time), proposes the full stack with alternatives and honest downsides, surfaces what you'd miss. Creates **PRD.md** (with acceptance criteria), **CONTEXT.md** (codebase map), **CHANGELOG.md**, **VERSION**, CI pipeline, and scaffolds the foundation.
 
 ### 2. Plan the architecture
 ```
 /pilot:plan
 ```
-Researches the domain, designs system architecture, data models, API routes, breaks features into milestones with test cases. Critic verifies the plan. Writes **PLAN.md**. No code — just the blueprint.
+Researches the domain, designs system architecture, data models, API routes, auth model, error strategy, Feature Touchpoint Map (where each feature appears across the app). Visual whiteboard renders diagrams live. Critic verifies the plan. Writes **PLAN.md**. No code — just the verified blueprint.
 
 ### 3. Build features (TDD)
 ```
 /pilot:feature database setup and user model
 ```
-Reads the plan. Writes tests FIRST. Implements to make tests pass. Teaches you concepts along the way. Only asks product questions.
+Impact analysis first (what existing features does this touch?). Writes tests FIRST. Implements to make tests pass. `/simplify` polishes code. Checkpoints every 3 items. Backward integration updates existing features. Auto-Critic + integration tests at milestone boundaries. Teaches you concepts along the way.
 
 ### 4. Evaluate quality
 ```
@@ -137,6 +144,30 @@ Works through the feature checklist unattended. TDD per task. Critic evaluates w
 /pilot:pause      → Save state → /clear → resume next session
 /pilot:auto       → Overnight TDD autonomous with Critic at completion
 ```
+
+## Quality Enforcement (Hook Gates — Cannot Be Bypassed)
+
+| Gate | What It Blocks | Enforcement |
+|------|---------------|-------------|
+| Type/compile errors | Code with errors | 100% — hook exit 2 |
+| Tests must pass | Failing tests | 100% — hook exit 2 |
+| Tests must exist | Source files without any test files | 100% — hook exit 2 |
+| No hardcoded secrets | Stripe keys, AWS keys, passwords in source | 100% — hook exit 2 |
+| Unchecked items | Stopping with work remaining | 100% — hook exit 2 |
+| PLAN.md missing | Building features without a plan | Warning (non-blocking) |
+
+3-attempt safety valve prevents session bricking if an issue is truly unfixable.
+
+## Documents Generated
+
+| Document | Created By | Updated By | Purpose |
+|----------|-----------|------------|---------|
+| PRD.md | /pilot:new | /pilot:feature (decisions log) | What we're building + acceptance criteria |
+| PLAN.md | /pilot:plan | /pilot:feature (mark [x] + version) | How we're building it (verified blueprint) |
+| CONTEXT.md | /pilot:new | /pilot:feature (incremental), milestone (full refresh) | What exists RIGHT NOW (codebase map) |
+| CHANGELOG.md | /pilot:new | /pilot:feature (per feature + milestone) | What happened (versioned history) |
+| VERSION | /pilot:new | /pilot:feature (patch bump), milestone (minor bump) | Current version number |
+| CLAUDE.md | /pilot:new | — | Standards + patterns for Claude |
 
 ## Design Principles
 
