@@ -310,6 +310,40 @@ flowchart LR
 
 This diagram tells /pilot:feature exactly how to execute — no analysis needed at build time, just follow the waves.
 
+**Push the FULL build plan to the whiteboard.** After Phase 5 is complete, write a comprehensive "Build Plan" section to `.pilot/whiteboard-data.json` that includes:
+
+1. **Milestone overview** — card per milestone showing feature count, wave count, estimated complexity
+2. **Wave execution diagram** — the Mermaid dependency graph per milestone (above)
+3. **Feature detail cards** — each feature with: files to create/modify, test cases, dependencies, which wave it's in
+4. **Timeline view** — which waves run parallel, which are sequential, the critical path
+
+Example whiteboard data for the build plan section:
+```json
+{
+  "title": "Build Plan",
+  "subtitle": "Wave execution — what builds in parallel",
+  "milestones": [
+    {
+      "name": "Milestone 1: Foundation",
+      "goal": "Database, auth, basic CRUD",
+      "features": [
+        {"name": "Database setup", "done": false},
+        {"name": "Auth integration", "done": false},
+        {"name": "Ingredient CRUD", "done": false}
+      ]
+    }
+  ],
+  "diagrams": [
+    {
+      "label": "Milestone 2: Dependency Graph + Parallel Waves",
+      "code": "flowchart LR\n  subgraph W1[Wave 1 — parallel]\n    F4[Stock Alerts]\n    F5[Supplier CRUD]\n  end\n  subgraph W2[Wave 2]\n    F7[Orders]\n  end\n  F4 --> F7\n  F5 --> F7"
+    }
+  ]
+}
+```
+
+The user sees the entire build plan visualized — milestones as cards with progress tracking, waves as dependency diagrams, and they can see at a glance what will be built in parallel vs sequentially. This is presented for approval BEFORE any building starts.
+
 **Test strategy (applies to every feature):**
 - Unit tests: minimum 2 per feature (happy path + error case)
 - Integration tests: 1 per cross-feature workflow (at milestone boundaries)
