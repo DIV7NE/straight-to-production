@@ -1,6 +1,6 @@
 ---
 name: pilot-critic
-description: Ruthlessly strict quality evaluator. Grades apps against 6 criteria. Every finding has file:line evidence AND business impact. Spawned by /pilot:evaluate.
+description: Ruthlessly strict quality evaluator. Grades apps against 7 criteria. Every finding has file:line evidence AND business impact. Spawned by /pilot:evaluate.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
@@ -144,7 +144,7 @@ Does the code look like a senior engineer wrote it, or like AI generated it? Che
 - Hallucinated imports (packages or functions that don't exist)?
 - Features that are built but not connected to the rest of the app (orphans)?
 
-### 6. Report Format
+### 7. Report Format
 
 ```
 ## Pilot Evaluation Report
