@@ -190,7 +190,44 @@ why, and what alternatives were considered.]
    
    Teach: "VERSION and CHANGELOG.md track your project's evolution. Every time I complete a feature, the version bumps and the changelog records what was built, what tests were added, and what decisions were made. If I start a fresh session months from now, I read the changelog to understand the full history of your project."
 
-7. Initialize git if needed, first commit: `chore: initialize project with Pilot standards (v0.1.0)`
+7. Create `CONTEXT.md` — a live snapshot of the codebase that the AI reads to understand what exists RIGHT NOW:
+   ```markdown
+   # Project Context — [Project Name] v0.1.0
+   Updated: [DATE] after project initialization
+   
+   ## Stack
+   - Framework: [name + version]
+   - Database: [name]
+   - Auth: [name]
+   - Styling: [name]
+   - Testing: [framework]
+   - Deployment: [platform]
+   
+   ## File Map
+   [Tree of every significant file with 1-line purpose.
+   Generated from the scaffolded project structure.]
+   
+   ## Data Schema
+   [Empty — no models yet. Updated after first database feature.]
+   
+   ## API Endpoints
+   [Empty — no routes yet. Updated after first API feature.]
+   
+   ## Patterns
+   [Key conventions from CLAUDE.md that apply to this project:
+   - Server components by default (add 'use client' only when needed)
+   - Zod validation on all inputs
+   - etc.]
+   
+   ## Environment Variables
+   [List from .env.example or the stack recipe]
+   ```
+   
+   CONTEXT.md is the AI's map of the codebase. CHANGELOG tells it what happened. CONTEXT tells it what exists. Keep it under 150 lines — a snapshot, not documentation.
+   
+   Teach: "CONTEXT.md is like a building's floor plan. If I start a fresh session, I read it to know where everything is — which files exist, what the database looks like, what API endpoints are available, what patterns to follow. I update it every time I add something new."
+
+8. Initialize git if needed, first commit: `chore: initialize project with Pilot standards (v0.1.0)`
 
 ### Step 7: Handoff
 

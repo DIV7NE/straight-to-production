@@ -138,8 +138,18 @@ When the user says go:
 
 3. Update PLAN.md — mark this feature `[x]` with version: `- [x] 3. Ingredient CRUD (v0.1.3)`
 4. Update PRD.md Technical Decisions Log if significant decisions were made.
-5. Delete `.pilot/current-feature.md` and `.pilot/handoff.md` if they exist.
-6. Commit: `feat: [feature name] (v0.1.3)`
+
+5. **Update CONTEXT.md** — reflect the current state of the codebase after this feature:
+   - Add new files to the file map (with 1-line purpose each)
+   - Update data schema if new tables/columns were added
+   - Update API endpoints if new routes were created
+   - Update patterns section if new conventions were established
+   - Update environment variables if new ones are required
+   
+   CONTEXT.md is a SNAPSHOT of what exists NOW — not history. Replace outdated info, don't append. Keep it under 150 lines.
+
+6. Delete `.pilot/current-feature.md` and `.pilot/handoff.md` if they exist.
+7. Commit: `feat: [feature name] (v0.1.3)`
 
 ### Step 6: Milestone Check (Automatic)
 
@@ -184,8 +194,18 @@ Spawn the `pilot-critic` agent automatically. Grade against PRD.md + PLAN.md + 6
    - [Decision — why]
    ```
 
-5. Commit: `milestone: [milestone name] (v0.2.0)`
-6. Git tag: `git tag v0.2.0`
+5. **Full CONTEXT.md refresh.** At milestone boundaries, do a complete rewrite of CONTEXT.md — don't just incrementally update. Re-read the entire codebase and regenerate:
+   - Full file map (every significant file with purpose)
+   - Current data schema (all tables/models as they exist NOW)
+   - All API endpoints (with auth requirements)
+   - Current patterns and conventions
+   - All environment variables
+   - Update version number in the header
+   
+   This ensures CONTEXT.md stays accurate as the codebase grows. Incremental updates during features can miss renames, deletions, or structural changes. The milestone refresh catches everything.
+
+6. Commit: `milestone: [milestone name] (v0.2.0)`
+7. Git tag: `git tag v0.2.0`
 
 Then:
 

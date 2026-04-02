@@ -76,10 +76,11 @@ fi
 
 echo "" >&2
 echo "[Pilot] Recovery — read these in order:" >&2
-echo "  1. CHANGELOG.md (what was built, when, and why)" >&2
-echo "  2. PLAN.md (milestones + what's done vs remaining)" >&2
+echo "  1. CONTEXT.md (what exists now — file map, schema, API, patterns)" >&2
+echo "  2. CHANGELOG.md (what was built, when, and why)" >&2
+echo "  3. PLAN.md (milestones + what's done vs remaining)" >&2
 if [ -f "$FEATURE_FILE" ]; then
-  echo "  3. .pilot/current-feature.md (active feature checklist)" >&2
+  echo "  4. .pilot/current-feature.md (active feature checklist)" >&2
 fi
 if [ -f "$STATE_DIR/handoff.md" ]; then
   echo "  4. .pilot/handoff.md (detailed context from last session)" >&2
