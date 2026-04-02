@@ -295,9 +295,80 @@ When the user says go:
 
    If the user flags issues, fix them before proceeding.
 
+10. **Automated QA — Opus tests the running app.**
+
+   Before asking the user to test, test it yourself. Start the dev server and verify the feature works end-to-end:
+
+   ```bash
+   # Start the dev server (stack-appropriate)
+   npm run dev &  # or python manage.py runserver, cargo run, etc.
+   ```
+
+   Use browser automation (Playwright, browse skill, or curl for APIs) to verify:
+   - **Happy path works**: navigate to the feature, perform the primary action, verify the result
+   - **API endpoints respond**: curl each new endpoint, verify status codes + response shape
+   - **Error handling works**: send invalid data, verify error messages (not stack traces)
+   - **Auth is enforced**: try accessing without auth, verify 401/redirect
+   - **Empty state shows**: access the feature with no data, verify it's not blank
+   - **Loading state shows**: if observable, verify skeleton/spinner appears
+
+   Fix any issues found BEFORE showing the user. The user should only see a working feature.
+
+   ```
+   ━━━ Automated QA Results ━━━
+   ✓ Happy path: [what was tested, result]
+   ✓ Error handling: [what was tested, result]
+   ✓ Auth: [verified — 401 without token]
+   ✓ Empty state: [verified — shows onboarding prompt]
+   ✗ [Any failures — fixed before proceeding]
+   ```
+
+11. **Guided QA Session — the user tests the feature.**
+
+   Automated tests prove the CODE works. Automated QA proves the FEATURES work. Manual QA proves the PRODUCT feels right. Present a test guide:
+
+   ```
+   ━━━ QA: Test this feature ━━━
+
+   What was added/changed:
+   - [File 1] — [what it does, in plain language]
+   - [File 2] — [what changed]
+
+   How to see it:
+   [Exact command to run the app: npm run dev, python manage.py runserver, etc.]
+   [Exact URL or screen to navigate to]
+
+   Test these scenarios (do each one):
+   1. [Happy path] — [exact steps: click X, type Y, expect Z]
+   2. [Empty state] — [go to the page with no data, what do you see?]
+   3. [Error case] — [submit without required fields, what happens?]
+   4. [Edge case] — [try very long text, special characters, etc.]
+   5. [Mobile] — [resize browser to phone width, does it work?]
+   6. [Keyboard] — [Tab through the feature, can you reach everything?]
+
+   Look for:
+   - Does loading show while data loads? (not a blank screen)
+   - Do buttons disable during submission? (no double-click)
+   - Are error messages helpful? (not technical jargon)
+   - Does it feel right? (trust your gut — if something feels off, it is)
+
+   Report anything that doesn't look right — I'll fix it.
+   Say 'approved' when it works as expected.
+   ```
+
+   This is NOT optional. The user must test and approve before the feature is marked done.
+   
+   If the user finds issues:
+   - Fix each one
+   - Re-run affected tests
+   - Show the user the fix
+   - Ask them to re-test that specific scenario
+   
+   Teach: "Even though all automated tests pass, YOU need to actually use the feature. Automated tests check if the code works correctly — but they can't tell if the flow is confusing, if a button is in the wrong place, or if something just feels off. Your eyes catch what code can't."
+
 **Fallback:** If the Sonnet executor gets stuck (reports errors it can't fix, or the merge has complex conflicts), Opus takes over and builds directly. Don't waste time — if delegation fails, do it yourself.
 
-### Step 6: Complete Feature + Version Bump
+### Step 7: Complete Feature + Version Bump
 
 1. **Bump patch version.** Read `VERSION` file (e.g., `0.1.2`), increment patch → `0.1.3`, write back.
 
@@ -341,7 +412,7 @@ When the user says go:
 6. Delete `.pilot/current-feature.md` and `.pilot/handoff.md` if they exist.
 7. Commit: `feat: [feature name] (v0.1.3)`
 
-### Step 7: Milestone Check (Automatic)
+### Step 8: Milestone Check (Automatic)
 
 After completing a feature, check PLAN.md: **is this the last feature in the current milestone?**
 
