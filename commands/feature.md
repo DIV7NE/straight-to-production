@@ -170,7 +170,10 @@ When the user says go:
    - Type check: clean
    ```
 
-3. Update PLAN.md — mark this feature `[x]` with version: `- [x] 3. Ingredient CRUD (v0.1.3)`
+3. **Update PLAN.md:**
+   - Mark this feature `[x]` with version: `- [x] 3. Ingredient CRUD (v0.1.3)`
+   - If this feature was NOT in the original plan (unplanned work), ADD it to the appropriate milestone with `[x]` already checked, and update the Feature Touchpoint Map to include it. PLAN.md must reflect ALL features that exist, not just originally planned ones.
+
 4. Update PRD.md Technical Decisions Log if significant decisions were made.
 
 5. **Update CONTEXT.md** — reflect the current state of the codebase after this feature:
@@ -179,6 +182,7 @@ When the user says go:
    - Update API endpoints if new routes were created
    - Update patterns section if new conventions were established
    - Update environment variables if new ones are required
+   - **Add any deferred issues to Known Issues / Tech Debt** — if /simplify flagged something unfixable, if you noticed something suboptimal but out of scope, or if the Critic previously flagged something the user said "fix later" — record it here so it's not forgotten.
    
    CONTEXT.md is a SNAPSHOT of what exists NOW — not history. Replace outdated info, don't append. Keep it under 150 lines.
 

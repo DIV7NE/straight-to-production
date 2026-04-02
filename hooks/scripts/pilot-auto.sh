@@ -137,6 +137,7 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
 
   OUTPUT=$(claude -p "
 You are working on: $FEATURE_TITLE
+Read CONTEXT.md for the current codebase state (file map, schema, API, patterns).
 Read CLAUDE.md for project context and standards.
 Read PLAN.md for the technical blueprint (data models, API design, test cases).
 Read .pilot/current-feature.md for the checklist.
