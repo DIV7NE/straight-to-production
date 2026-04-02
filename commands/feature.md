@@ -18,31 +18,80 @@ If PLAN.md exists and this feature is listed, use the plan's test cases and depe
 
 If `.pilot/current-feature.md` already exists, ask: "You have an in-progress feature: [title]. Finish that first, or start this new one?"
 
-### Step 2: Impact Analysis (BEFORE building)
+### Step 2: Research (BEFORE building — comprehensive, not optional)
 
-Read CONTEXT.md and PLAN.md's Feature Touchpoint Map. Answer these questions:
+This is the most important step. Skip this and you ship broken, insecure, disconnected code.
 
-**What existing features does this new feature touch?**
+**A. Codebase Research — understand what EXISTS**
+
+Read CONTEXT.md for the map, then deep-dive into the actual code:
+- Read 3-5 representative files in the area you'll be modifying — learn the ACTUAL patterns, don't assume
+- Trace the data flow: UI → API → database for related features
+- Find existing functions, types, utilities you should REUSE (don't duplicate)
+- Check: does a similar pattern already exist? Follow it, don't invent a new one
+- Find existing variables, constants, config that the new feature should reference
+
+**B. Impact Analysis — what does this feature touch?**
+
+Read PLAN.md's Feature Touchpoint Map:
 - Which existing pages need to show data from this feature?
 - Which existing API endpoints need to return this feature's data?
-- Does the dashboard need updating?
-- Does navigation need a new link?
-- Does search need to index this?
-- Do notifications need to include this?
+- Does the dashboard need updating? Navigation? Search? Notifications?
+- List EVERY file that needs modification to connect this feature
+- These become checklist items (backward integration)
 
-**What existing code needs backward integration?**
-- List every file that needs modification to CONNECT to this new feature
-- These become checklist items alongside the new feature's tasks
+**C. Feature Research — how should this actually be done?**
 
-**What could break?**
+Research the RIGHT way to implement this feature. Trust hierarchy:
+1. Context7 docs (HIGH trust) — query for the specific library/framework pattern
+2. Official documentation (HIGH trust) — read the docs, not training data
+3. Industry leaders (MEDIUM trust) — how do Stripe/Shopify/Notion implement this exact feature?
+4. AI training data (LOWEST trust) — only when nothing else is available
+
+For every significant pattern: verify it works with the CURRENT version of the framework. Your training data may be stale.
+
+**D. Security Research — what can go wrong?**
+
+Read `.pilot/references/security/ai-code-vulnerabilities.md` BEFORE writing code. Then for THIS specific feature:
+- What OWASP category does this feature touch? (auth → A01, user input → A03, etc.)
+- What are the known security mistakes for this type of feature?
+- What validation is required? Where? (server-side, always)
+- What secrets/credentials does this feature handle? How are they stored?
+- Can a user manipulate this feature to access another user's data? (IDOR check)
+- Read `.pilot/references/security/` files relevant to this feature
+
+**E. Edge Cases + What Could Break**
+
+- What happens when the input is empty? Too large? Malformed?
+- What happens during network failure? Database timeout? External service down?
+- What happens with concurrent access? (two users editing the same resource)
 - Which existing tests might fail after this change?
-- Which existing features share database tables or API endpoints?
+- What are the 3 most likely failure modes for this feature?
 
-Teach: "Before building something new, I check what ALREADY EXISTS that should connect to it. If I add Purchase Orders but don't update the Dashboard to show them and don't update the Supplier page to list order history, the app works but feels disconnected. So I plan the connections upfront."
+**F. Backward Integration + Improvement Opportunities**
 
-### Step 3: Enrich
+- Which existing features could BENEFIT from this new feature?
+- What existing code is currently incomplete that this feature completes?
+- Are there gaps in existing features this could fill? (e.g., adding search to a list that had none)
+- Present improvements to the user: "While building Purchase Orders, I noticed the Supplier page has no order history. I'll add that too — it makes the app feel connected."
 
-Based on the impact analysis and PLAN.md, identify what the user DIDN'T think of. Read relevant `.pilot/references/` files.
+**G. Anti-Hallucination Verification**
+
+Before finalizing the feature plan:
+- Verify every import/package you plan to use actually EXISTS in the registry
+- Verify every function/method you plan to call EXISTS in that package's current version
+- If using an API, verify the endpoint/method signature against Context7 or official docs
+- If using a config option, verify it's real (not hallucinated from training data)
+
+Teach: "I'm doing thorough research before writing any code. I'm checking what already exists in the codebase, researching how this feature should actually work, verifying every package and API I'll use is real, checking for security vulnerabilities specific to this type of feature, and finding opportunities to improve existing features along the way. This takes a few minutes but prevents days of fixing mistakes."
+
+### Step 3: Enrich + Correct the User
+
+Based on ALL the research above, identify what the user DIDN'T think of. Read relevant `.pilot/references/` files.
+
+**If the user's approach is wrong, say so.** You are the CTO — if the user asked for "a simple password field" but the industry standard is OAuth, recommend OAuth and explain why. Don't blindly implement bad ideas. Present the researched, proven approach.
+
+"You asked for X, but based on my research, Y is how this is actually done in production. Here's why: [Stripe/Shopify/Notion do it this way because...]. The downside of X is [security risk / scalability issue / user experience problem]."
 
 Ask at most ONE product question if a real product decision is needed. If no product decision is needed, skip to the plan.
 

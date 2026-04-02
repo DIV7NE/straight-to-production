@@ -16,6 +16,7 @@ the referenced files contain verified, current standards.
 |auth-patterns.md — Middleware protection, server-side auth, row-level security, webhook verification
 |input-sanitization.md — Input validation at every boundary, parameterized queries, output encoding
 |api-security.md — Rate limiting, CORS, security headers, API key rotation, webhook signatures
+|ai-code-vulnerabilities.md — AI-specific security mistakes, OX Security 10 anti-patterns, slopsquatting, verification checklist
 
 ## Accessibility Standards
 |domain:accessibility|root:.pilot/references/accessibility

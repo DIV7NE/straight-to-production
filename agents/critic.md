@@ -90,7 +90,26 @@ grep -rn "from ['\"]@/components['\"]" --include="*.ts" --include="*.tsx" --excl
 grep -rn "<img " --include="*.tsx" --include="*.jsx" --exclude-dir=node_modules . 2>/dev/null | head -10
 ```
 
-### 4. Grade Against 6 Criteria
+### 4. AI Slop Scan (read .pilot/references/security/ai-code-vulnerabilities.md)
+
+Check for the OX Security 10 anti-patterns:
+- God files over 300 lines? Flag them.
+- Generic variable names (data, result, item, temp, handler) in business logic? Flag them.
+- Duplicate logic that should be a shared function? Flag it.
+- Happy-path only code (try/catch that catches but doesn't handle)? Flag it.
+- Fake tests (tests that assert true, test implementation not behavior)? Flag them.
+- Hallucinated imports (packages/functions that don't exist)? CRITICAL — flag immediately.
+- Missing cleanup (event listeners, subscriptions, timers without cleanup)? Flag them.
+- Excessive comments stating the obvious? Flag them.
+
+Also check AI-specific insecure patterns:
+- Math.random() used for anything security-related?
+- JWT stored in localStorage?
+- CORS wildcard in production?
+- Missing request body size limits?
+- Client-only validation without server-side?
+
+### 5. Grade Against 7 Criteria
 
 For each: **PASS / FAIL / PARTIAL** with file:line evidence AND business impact.
 
@@ -101,7 +120,7 @@ Can users complete their primary goals? Do all interactive elements work? Are AP
 Coherent visual identity or generic AI slop? Look for: purple gradients on white cards, centered everything, excessive whitespace, stock placeholder text, inconsistent spacing/typography.
 
 **Criterion 3 — Security**
-Env vars handled properly? User input validated? API routes/endpoints protected with auth? Rate limiting present? No hardcoded secrets? Dependency audit clean (run `npm audit` / `pip audit` / `cargo audit` or equivalent)?
+Env vars handled properly? User input validated? API routes/endpoints protected with auth? Rate limiting present? No hardcoded secrets? Dependency audit clean? AI-specific insecure patterns checked? Read `.pilot/references/security/ai-code-vulnerabilities.md` for the full checklist.
 
 **Criterion 4 — Accessibility**
 Heading hierarchy correct? Images have alt text? Interactive elements keyboard-accessible? Forms have labels? Color contrast sufficient? (Web projects primarily — skip for APIs/CLIs.)
@@ -112,7 +131,20 @@ Sequential queries that should be parallel? Images optimized? Heavy components l
 **Criterion 6 — Production Readiness**
 Error handling exists? Loading states exist? Empty states exist? Custom error pages? Debug logging removed? Tests exist for critical paths? CI pipeline exists (`.github/workflows/`)? Error tracking configured (Sentry or equivalent)? Database migrations exist and have rollback procedures? E2E tests exist for primary workflow? Privacy policy / terms of service exist (if user-facing web app)?
 
-### 5. Report Format
+**Criterion 7 — AI Code Quality (anti-slop)**
+Does the code look like a senior engineer wrote it, or like AI generated it? Check against the OX Security 10 anti-patterns:
+- Any God files over 300 lines?
+- Duplicate logic that should be shared functions?
+- Generic variable names in business logic (data, result, item)?
+- Tests that test implementation details instead of behavior?
+- Happy-path only functions with no error branches?
+- Excessive/obvious comments that add no value?
+- Missing cleanup (listeners, subscriptions, timers)?
+- Code that ignores existing project patterns (reinvents instead of reuses)?
+- Hallucinated imports (packages or functions that don't exist)?
+- Features that are built but not connected to the rest of the app (orphans)?
+
+### 6. Report Format
 
 ```
 ## Pilot Evaluation Report
