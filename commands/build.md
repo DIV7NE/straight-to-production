@@ -261,9 +261,21 @@ When the user says go:
 
 7. **Post-merge polish.**
    - Run `/simplify` on the combined changes
-   - Teach: "I'm running /simplify on the merged code — it catches any duplication or inconsistency that happened between the parallel builds."
 
-8. **Review checkpoint.**
+8. **Hygiene scan.** (read `.pilot/references/production/code-hygiene.md` for the full checklist)
+   - Remove any unused imports, variables, functions
+   - Remove any console.log / print / debug statements
+   - Remove any commented-out code blocks (git has the history)
+   - Remove any TODO/FIXME that aren't in PLAN.md
+   - Check for God files over 300 lines — split them
+   - Check for duplicate utility functions — consolidate
+   - Verify no .md files were scattered in random places (plans go in PLAN.md only)
+   - Verify .gitignore covers build output, deps, OS files, env files
+   - Remove any empty placeholder files
+   
+   Teach: "I'm doing a hygiene scan — cleaning up the garbage that accumulates during building. Unused imports, debug logging, commented-out code, duplicate functions. Think of it as washing the dishes after cooking — the meal is ready, but the kitchen needs to be clean."
+
+9. **Review checkpoint.**
    Show the user what was built:
    ```
    ━━━ Feature complete: [Name] ━━━

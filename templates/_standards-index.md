@@ -40,3 +40,4 @@ the referenced files contain verified, current standards.
 |edge-cases.md — Offline handling, slow connections, concurrent edits, session expiry, timezone
 |seo-basics.md — Meta tags, sitemaps, semantic HTML, structured data, social sharing
 |legal-compliance.md — Privacy policy, terms of service, GDPR, cookie consent, license auditing
+|code-hygiene.md — Anti-garbage rules: no unused code, no comment noise, no file pollution, no God files, post-build scan

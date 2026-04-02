@@ -76,5 +76,15 @@ Issues found: [anything concerning — tech debt, edge cases not covered]
 - **ONE feature only.** Don't scope-creep beyond what the spec says.
 - **Follow existing patterns.** Don't invent new conventions — match what exists.
 - **Tests before code.** Always.
+- **ZERO GARBAGE.** Before reporting back, clean up after yourself:
+  - Remove all unused imports
+  - Remove all console.log / print / debug statements
+  - Remove all commented-out code (git has history)
+  - No TODOs unless they're in PLAN.md
+  - No files over 300 lines (split them)
+  - No duplicate utility functions (search existing code first, reuse)
+  - No tutorial-style comments explaining obvious code
+  - No placeholder implementations ("not implemented" — if it's not done, don't create the file)
+  - No scattered .md files (don't create analysis/plan docs — report back in the structured report)
 - **Commit atomically.** Tests in one commit, implementation in another.
 - **If stuck after 3 attempts on something, note the issue and move on.** Don't burn context on one problem.
