@@ -101,6 +101,52 @@ Use your training knowledge. If Context7 or web search would help for specific t
 
 Present the research to the user: "Here's what I found these tools typically include — I'm building all of this into the plan." Do NOT ask the user to make technical scope decisions. You are the CTO — you decide what's in and what's out.
 
+### Phase 1b: Technical Research
+
+Before designing the architecture, research the CURRENT state of every major technology in the stack. Your training data may be stale. This is NOT optional.
+
+**For the framework** (Next.js, FastAPI, Rails, etc.):
+- Query Context7: resolve the library ID, then query for latest patterns
+- Check: any breaking changes since your training cutoff? New recommended patterns?
+- Check: what's the current recommended project structure?
+
+**For the database/ORM** (Supabase, SQLAlchemy, Prisma, etc.):
+- Query Context7: latest migration patterns, connection pooling, security
+- Check: Row Level Security best practices (if applicable)
+
+**For auth** (Clerk, Auth.js, Devise, etc.):
+- Query Context7: latest middleware pattern, webhook verification
+- Check: any recent security advisories?
+
+**For integrations** (Stripe, Resend, etc.):
+- Query Context7: latest API version, recommended patterns
+- Check: deprecated endpoints? New recommended flows?
+
+**For testing** (Vitest, pytest, etc.):
+- Query Context7: latest configuration, best practices
+
+Record findings in PLAN.md under a `## Technical Research` section:
+```
+## Technical Research
+
+### Next.js (App Router)
+- Current stable: [version]
+- Key finding: [anything different from training data]
+- Recommended pattern: [current best practice]
+
+### Supabase
+- Current stable: [version]
+- Key finding: [RLS pattern, connection pooling changes, etc.]
+
+### Stripe
+- Current API version: [version]
+- Key finding: [checkout flow changes, webhook patterns, etc.]
+```
+
+This research INFORMS all subsequent phases. Architecture decisions made on stale knowledge lead to rewrites.
+
+Teach: "I'm researching the current state of every technology we're using — frameworks change fast, and what I learned in training might already be outdated. Better to check now than discover a deprecated pattern mid-build."
+
 ### Phase 2: System Architecture
 
 Design the system components, how they connect, and how data flows.
