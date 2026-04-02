@@ -9,12 +9,12 @@ ITERATION=0
 FEATURE_FILE=".pilot/current-feature.md"
 
 if [ ! -f "CLAUDE.md" ]; then
-  echo "Error: No CLAUDE.md found. Run /pilot:new first."
+  echo "Error: No CLAUDE.md found. Run /pilot:start first."
   exit 1
 fi
 
 if [ ! -f "$FEATURE_FILE" ]; then
-  echo "Error: No .pilot/current-feature.md found. Run /pilot:feature first."
+  echo "Error: No .pilot/current-feature.md found. Run /pilot:build first."
   exit 1
 fi
 
@@ -113,7 +113,7 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
       echo ""
       echo "=== ALL VERIFICATION PASSED ==="
       echo "Running Critic evaluation..."
-      claude -p "Run /pilot:evaluate on this project. Read CLAUDE.md for context. Be ruthlessly strict." 2>&1 | tee .pilot/auto-eval-report.txt
+      claude -p "Run /pilot:review on this project. Read CLAUDE.md for context. Be ruthlessly strict." 2>&1 | tee .pilot/auto-eval-report.txt
       echo ""
       echo "=== PILOT AUTO COMPLETE ==="
       echo "Feature: $FEATURE_TITLE"

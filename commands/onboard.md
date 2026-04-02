@@ -130,7 +130,7 @@ Be extra thorough — this code was written without Pilot's standards.
 Flag everything. This is the baseline we're improving from.
 ```
 
-Present findings to the user in business terms (same as /pilot:evaluate).
+Present findings to the user in business terms (same as /pilot:review).
 
 ### Step 4: Plan — Remediation + Next Steps
 
@@ -189,7 +189,7 @@ Baseline assessment:
 ━━━ Next step ━━━
 
 Start with the highest priority:
-   /pilot:feature [FIRST TASK from PLAN.md]
+   /pilot:build [FIRST TASK from PLAN.md]
 ```
 
 ## Rules

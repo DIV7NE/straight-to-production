@@ -9,7 +9,7 @@ FEATURE_FILE="$STATE_DIR/current-feature.md"
 
 if [ ! -d "$STATE_DIR" ]; then
   if [ -f "CLAUDE.md" ]; then
-    echo "[Pilot] CLAUDE.md found but no .pilot/ directory. Run /pilot:setup to add standards." >&2
+    echo "[Pilot] CLAUDE.md found but no .pilot/ directory. Run /pilot:onboard to add standards." >&2
   fi
   exit 0
 fi

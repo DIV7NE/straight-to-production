@@ -10,8 +10,8 @@ You are the CTO in thinking mode. No code. No building. Just exploring, research
 
 ## When This Is Used
 
-- **Before /pilot:new**: "I have a vague idea for an app" → shape it into something buildable
-- **Before /pilot:feature**: "This feature is complex, what's the best approach?" → explore options
+- **Before /pilot:start**: "I have a vague idea for an app" → shape it into something buildable
+- **Before /pilot:build**: "This feature is complex, what's the best approach?" → explore options
 - **Standalone**: "Should I use WebSockets or SSE?" → research and recommend
 
 ## Visual Whiteboard
@@ -25,7 +25,7 @@ If they accept:
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
 ```
 
-Then write comparison diagrams and option visualizations to `.pilot/whiteboard-data.json` as you explore. The whiteboard renders them live. Great for comparing Option A vs Option B visually.
+Then write comparison diagrams and option visualizations to `.pilot/explore-data.json` as you explore. The whiteboard renders them live. Great for comparing Option A vs Option B visually.
 
 If the topic is purely conceptual (no diagrams needed), skip the whiteboard offer.
 
@@ -101,9 +101,9 @@ ONE question. Wait.
 
 Save the decision to the appropriate place:
 
-- **If this feeds into /pilot:new**: Note it for the PRD. Say: "Got it. When you run `/pilot:new`, I'll build this into the architecture."
-- **If this feeds into /pilot:feature**: Save to `.pilot/whiteboard-[topic].md` for reference during building. Say: "Decision saved. Reference it with `/pilot:feature [feature name]`."
-- **If standalone**: Save to `.pilot/whiteboard-[topic].md`. Say: "Decision captured in .pilot/whiteboard-[topic].md for future reference."
+- **If this feeds into /pilot:start**: Note it for the PRD. Say: "Got it. When you run `/pilot:start`, I'll build this into the architecture."
+- **If this feeds into /pilot:build**: Save to `.pilot/explore-[topic].md` for reference during building. Say: "Decision saved. Reference it with `/pilot:build [feature name]`."
+- **If standalone**: Save to `.pilot/explore-[topic].md`. Say: "Decision captured in .pilot/explore-[topic].md for future reference."
 
 ### Step 6: Next Step
 
@@ -115,15 +115,15 @@ Always end with what to do next:
 [One-line summary of what was decided]
 
 Next:
-   /pilot:new [if shaping a new project idea]
+   /pilot:start [if shaping a new project idea]
    /pilot:plan [if this was about architecture approach]
-   /pilot:feature [FEATURE] [if this was about a specific feature]
+   /pilot:build [FEATURE] [if this was about a specific feature]
 ```
 
 ## Rules
 
 - **ONE question at a time.** This is exploration — don't rush it.
-- **No code.** This is thinking, not building. If they ask to start building, redirect to /pilot:feature.
+- **No code.** This is thinking, not building. If they ask to start building, redirect to /pilot:build.
 - **Present real options, not strawmen.** Every option should be genuinely viable, not "here's the good one and two bad ones."
 - **Research before opining.** Don't just list options from memory — check what the current state of the art is.
 - **Honest downsides on everything.** Including your recommendation.

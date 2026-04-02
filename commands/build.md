@@ -400,7 +400,7 @@ Priority fixes (if any):
 2. [Second]
 
 Fix these now? Or continue to Milestone [N+1]:
-   /pilot:feature [FIRST FEATURE of next milestone]
+   /pilot:build [FIRST FEATURE of next milestone]
 ```
 
 If this is the **LAST milestone** (all milestones complete):
@@ -427,7 +427,7 @@ Feature complete: [NAME]
 [N] of [M] features done in Milestone [current].
 
 ━━━ Next ━━━
-/pilot:feature [NEXT FEATURE in this milestone]
+/pilot:build [NEXT FEATURE in this milestone]
 ```
 
 ALWAYS fill in specific names.

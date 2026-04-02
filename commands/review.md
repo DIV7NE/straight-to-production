@@ -11,9 +11,9 @@ Dispatch the `pilot-critic` agent (Sonnet 4.6) to evaluate the project. Self-eva
 ## Process
 
 1. Check which planning documents exist:
-   - PRD.md — if missing, note: "No PRD found. Evaluating code quality only, not spec compliance. Run /pilot:new for full evaluation."
+   - PRD.md — if missing, note: "No PRD found. Evaluating code quality only, not spec compliance. Run /pilot:start for full evaluation."
    - PLAN.md — if missing, note: "No PLAN found. Evaluating code quality only, not architectural compliance. Run /pilot:plan for full evaluation."
-   - CLAUDE.md — if missing, note: "No CLAUDE.md found. Run /pilot:new or /pilot:setup."
+   - CLAUDE.md — if missing, note: "No CLAUDE.md found. Run /pilot:start or /pilot:onboard."
    
    Proceed with whatever documents exist. The Critic adapts — it grades what it can.
 
@@ -52,7 +52,7 @@ Fix the priority issues (I'll work through them in order):
    yes
 
 Or skip to next feature:
-   /pilot:feature [NEXT FEATURE]
+   /pilot:build [NEXT FEATURE]
 ```
 
 If everything PASSED:
@@ -60,7 +60,7 @@ If everything PASSED:
 ━━━ Next step ━━━
 
 All 7 criteria passed. Next feature:
-   /pilot:feature [NEXT FEATURE]
+   /pilot:build [NEXT FEATURE]
 ```
 
 5. If the user says yes to fixes, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.

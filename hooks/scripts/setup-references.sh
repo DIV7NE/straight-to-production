@@ -1,6 +1,6 @@
 #!/bin/bash
 # Pilot v0.2.0: Copy universal reference files into a project
-# Called by /pilot:new and /pilot:setup
+# Called by /pilot:start and /pilot:onboard
 # Usage: bash setup-references.sh [plugin-root] [project-root]
 
 PLUGIN_ROOT="${1:-$(dirname "$(dirname "$(dirname "$0")")")}"

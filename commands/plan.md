@@ -1,12 +1,12 @@
 ---
-description: Research the domain, design the architecture, and create a detailed implementation plan. Run after /pilot:new and before /pilot:feature. This is where all the thinking happens before any code is written.
+description: Research the domain, design the architecture, and create a detailed implementation plan. Run after /pilot:start and before /pilot:build. This is where all the thinking happens before any code is written.
 argument-hint: Optional focus (e.g., "just the database schema" or "API design only")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
 
 # Pilot: Plan
 
-You are the CTO doing the real engineering work BEFORE any code is written. This command produces the complete technical blueprint that /pilot:feature executes against.
+You are the CTO doing the real engineering work BEFORE any code is written. This command produces the complete technical blueprint that /pilot:build executes against.
 
 No code is written during this command. Only documents and diagrams.
 
@@ -54,7 +54,7 @@ If the user declined the whiteboard, still include Mermaid diagrams in PLAN.md (
 
 Check that PRD.md exists. If it doesn't:
 ```
-No PRD.md found. Run /pilot:new first to define what you're building.
+No PRD.md found. Run /pilot:start first to define what you're building.
 The plan needs a PRD to design against.
 ```
 Stop here — do not proceed without a PRD.
@@ -65,7 +65,7 @@ If PRD.md exists, read it along with CLAUDE.md for context.
 
 ### Phase 1: Domain Research
 
-Research what a production version of this product actually needs. This is NOT about the tech stack (decided in /pilot:new) — it's about the DOMAIN.
+Research what a production version of this product actually needs. This is NOT about the tech stack (decided in /pilot:start) — it's about the DOMAIN.
 
 For an invoicing app, research:
 - What do existing invoice tools do? (FreshBooks, Wave, Invoice Ninja)
@@ -354,7 +354,7 @@ flowchart LR
   F5 --> F8
 ```
 
-This diagram tells /pilot:feature exactly how to execute — no analysis needed at build time, just follow the waves.
+This diagram tells /pilot:build exactly how to execute — no analysis needed at build time, just follow the waves.
 
 **Push the FULL build plan to the whiteboard.** After Phase 5 is complete, write a comprehensive "Build Plan" section to `.pilot/whiteboard-data.json` that includes:
 
@@ -482,7 +482,7 @@ This prevents drift during implementation — Opus follows the blueprint, not im
 
 ### Phase 6: Save the Plan
 
-Write everything to `PLAN.md` at the project root. This is the technical blueprint that `/pilot:feature` executes against.
+Write everything to `PLAN.md` at the project root. This is the technical blueprint that `/pilot:build` executes against.
 
 Structure:
 ```markdown
@@ -573,7 +573,7 @@ Please review PLAN.md — this is the blueprint I'll build against.
 Let me know if you want to change anything before we start.
 
 When ready:
-/pilot:feature [FIRST FEATURE from Milestone 1]
+/pilot:build [FIRST FEATURE from Milestone 1]
 ```
 
 Wait for the user to approve. If they request changes, make them, re-verify, and ask again. Do NOT proceed to building until the user has approved the verified plan.
@@ -585,6 +585,6 @@ Wait for the user to approve. If they request changes, make them, re-verify, and
 - Every feature in the plan MUST include what tests to write BEFORE implementation.
 - Dependencies between features must be explicit — can't build invoices before the database exists.
 - Data models must include indexes — query performance is designed, not discovered.
-- The plan is a LIVING document — /pilot:feature updates it as decisions change.
+- The plan is a LIVING document — /pilot:build updates it as decisions change.
 - If the user has a focus argument (e.g., "just the database schema"), only do that phase and return. Don't force the full process for partial updates.
 - Teach throughout. Explain WHY the architecture is shaped this way, not just what it is.

@@ -1,6 +1,6 @@
 ---
 name: pilot-critic
-description: Ruthlessly strict quality evaluator. Grades apps against 7 criteria. Every finding has file:line evidence AND business impact. Spawned by /pilot:evaluate.
+description: Ruthlessly strict quality evaluator. Grades apps against 7 criteria. Every finding has file:line evidence AND business impact. Spawned by /pilot:review.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---

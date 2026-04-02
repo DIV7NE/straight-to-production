@@ -37,7 +37,7 @@ fi
 
 if [ "$RETRY_COUNT" -ge 3 ]; then
   echo "WARNING: 3 technical blocks hit. Allowing stop to prevent session bricking." >&2
-  echo "Unresolved issues may exist. Run /pilot:evaluate to check." >&2
+  echo "Unresolved issues may exist. Run /pilot:review to check." >&2
   rm -f "$RETRY_FILE"
   exit 0
 fi

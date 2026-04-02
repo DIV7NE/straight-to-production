@@ -11,7 +11,7 @@ Run the feature checklist autonomously. Each checklist item runs in a fresh Clau
 ## Prerequisites
 
 1. CLAUDE.md exists with project spec and standards
-2. `.pilot/current-feature.md` exists with a checklist (run `/pilot:feature` first)
+2. `.pilot/current-feature.md` exists with a checklist (run `/pilot:build` first)
 3. `.pilot/references/` set up
 
 ## How to Run
