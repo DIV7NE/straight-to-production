@@ -295,37 +295,53 @@ When the user says go:
 
    If the user flags issues, fix them before proceeding.
 
-10. **Automated QA — Opus tests the running app.**
+10. **Independent QA — separate agent tests the running app.**
 
-   Before asking the user to test, test it yourself. Start the dev server and verify the feature works end-to-end:
+   Same principle as the Critic: the builder should NOT QA its own work. Spawn the `pilot-qa` agent — it has NEVER seen the build process and tests purely against acceptance criteria.
 
+   First, ensure the dev server is running:
    ```bash
-   # Start the dev server (stack-appropriate)
+   # Start if not already running (stack-appropriate)
    npm run dev &  # or python manage.py runserver, cargo run, etc.
    ```
 
-   Use browser automation (Playwright, browse skill, or curl for APIs) to verify:
-   - **Happy path works**: navigate to the feature, perform the primary action, verify the result
-   - **API endpoints respond**: curl each new endpoint, verify status codes + response shape
-   - **Error handling works**: send invalid data, verify error messages (not stack traces)
-   - **Auth is enforced**: try accessing without auth, verify 401/redirect
-   - **Empty state shows**: access the feature with no data, verify it's not blank
-   - **Loading state shows**: if observable, verify skeleton/spinner appears
-
-   Fix any issues found BEFORE showing the user. The user should only see a working feature.
-
+   Then spawn the QA agent:
    ```
-   ━━━ Automated QA Results ━━━
-   ✓ Happy path: [what was tested, result]
-   ✓ Error handling: [what was tested, result]
-   ✓ Auth: [verified — 401 without token]
-   ✓ Empty state: [verified — shows onboarding prompt]
-   ✗ [Any failures — fixed before proceeding]
+   Agent(
+     name="qa-[feature-name]",
+     model="sonnet",
+     prompt="QA test this feature:
+       Feature: [name]
+       URL: [where to find it]
+       Acceptance criteria (from PRD.md):
+       - AC1: [testable condition]
+       - AC2: [testable condition]
+       Test: happy path, empty state, validation, error handling, auth, mobile, keyboard.
+       Report every bug with reproduction steps."
+   )
    ```
 
-11. **Guided QA Session — the user tests the feature.**
+   When the QA agent reports back:
+   - **PASS**: proceed to user QA
+   - **NEEDS FIXES**: fix every bug found, then re-spawn QA to verify fixes
 
-   Automated tests prove the CODE works. Automated QA proves the FEATURES work. Manual QA proves the PRODUCT feels right. Present a test guide:
+   Present the QA report to the user:
+   ```
+   ━━━ QA Report ━━━
+   ✓ AC1: User can create invoice — PASS
+   ✓ AC2: Invoice shows in list — PASS
+   ✗ Empty state: blank page instead of prompt — FIXED
+   ✓ Auth: redirects without login — PASS
+   ✓ Mobile: works at 375px — PASS
+   
+   All issues found were fixed. Ready for your review.
+   ```
+
+   Teach: "I had a separate QA tester check the feature — it hasn't seen how the code was written, so it tests like a real user would. Same reason I use a separate Critic for code review — you catch more bugs when fresh eyes look at it."
+
+11. **Guided Manual QA — the user tests the feature.**
+
+   Automated tests prove the CODE works. Independent QA proves the FEATURES work. Manual QA proves the PRODUCT feels right. Present a test guide:
 
    ```
    ━━━ QA: Test this feature ━━━
