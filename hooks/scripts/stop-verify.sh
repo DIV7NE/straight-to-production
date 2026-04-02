@@ -127,19 +127,32 @@ if [ "$TEST_EXIT" -ne 0 ]; then
 fi
 
 # ── Gate 3: Tests must EXIST for new code ────────────────────────
-# If we're building a feature, test files must exist. No shipping untested code.
+# If we're building a feature AND source files exist, test files must too.
+# Skip this check if the project only has config/migration files (no testable code yet).
 if [ -f "$FEATURE_FILE" ]; then
-  TEST_FILES=$(find . -type f \( \
-    -name "*.test.*" -o -name "*.spec.*" -o -name "test_*.py" -o \
-    -name "*_test.go" -o -name "*Test.java" -o -name "*_test.rs" -o \
-    -name "*Tests.cs" -o -name "*_spec.rb" -o -name "*Test.php" \
+  # Check if any source files exist (not just config/migrations)
+  SRC_FILES=$(find . -type f \( \
+    -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o \
+    -name "*.py" -o -name "*.rs" -o -name "*.go" -o -name "*.cs" -o \
+    -name "*.java" -o -name "*.rb" -o -name "*.php" \
   \) -not -path "*/node_modules/*" -not -path "*/.venv/*" -not -path "*/vendor/*" \
-     -not -path "*/target/*" 2>/dev/null | head -5)
+     -not -path "*/target/*" -not -path "*/.next/*" -not -path "*/migrations/*" \
+     -not -name "*.config.*" -not -name "*.d.ts" 2>/dev/null | head -3)
 
-  if [ -z "$TEST_FILES" ]; then
-    echo "BLOCKED: No test files found. Write tests before completing." >&2
-    echo "TDD: tests must exist before implementation is considered done." >&2
-    HAS_ERRORS=true
+  if [ -n "$SRC_FILES" ]; then
+    # Source files exist — test files must too
+    TEST_FILES=$(find . -type f \( \
+      -name "*.test.*" -o -name "*.spec.*" -o -name "test_*.py" -o \
+      -name "*_test.go" -o -name "*Test.java" -o -name "*_test.rs" -o \
+      -name "*Tests.cs" -o -name "*_spec.rb" -o -name "*Test.php" \
+    \) -not -path "*/node_modules/*" -not -path "*/.venv/*" -not -path "*/vendor/*" \
+       -not -path "*/target/*" 2>/dev/null | head -5)
+
+    if [ -z "$TEST_FILES" ]; then
+      echo "BLOCKED: Source files exist but no test files found." >&2
+      echo "TDD: write tests before implementation is considered done." >&2
+      HAS_ERRORS=true
+    fi
   fi
 fi
 

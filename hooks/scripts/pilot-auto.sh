@@ -149,10 +149,11 @@ RULES:
 2. Write TESTS FIRST (TDD). Define what 'working' means before implementing.
 3. Implement to make the tests pass.
 4. Run the type checker AND tests for this project. Fix any errors.
-5. Update .pilot/current-feature.md — mark completed item [x]
-6. Commit tests: git add -A && git commit -m 'test: add tests for [description]'
-7. Commit implementation: git add -A && git commit -m 'feat: [description]'
-8. If stuck after 3 attempts, add a note and move on.
+5. Run /simplify on the changes (3-agent code review: reuse, quality, efficiency).
+6. Update .pilot/current-feature.md — mark completed item [x]
+7. Commit tests: git add -A && git commit -m 'test: add tests for [description]'
+8. Commit implementation: git add -A && git commit -m 'feat: [description]'
+9. If stuck after 3 attempts, add a note and move on.
 " 2>&1)
 
   echo "$OUTPUT" | tail -15
