@@ -126,7 +126,46 @@ if [ "$TEST_EXIT" -ne 0 ]; then
   HAS_ERRORS=true
 fi
 
-# ── Gate 3: Unchecked feature items ──────────────────────────────
+# ── Gate 3: Tests must EXIST for new code ────────────────────────
+# If we're building a feature, test files must exist. No shipping untested code.
+if [ -f "$FEATURE_FILE" ]; then
+  TEST_FILES=$(find . -type f \( \
+    -name "*.test.*" -o -name "*.spec.*" -o -name "test_*.py" -o \
+    -name "*_test.go" -o -name "*Test.java" -o -name "*_test.rs" -o \
+    -name "*Tests.cs" -o -name "*_spec.rb" -o -name "*Test.php" \
+  \) -not -path "*/node_modules/*" -not -path "*/.venv/*" -not -path "*/vendor/*" \
+     -not -path "*/target/*" 2>/dev/null | head -5)
+
+  if [ -z "$TEST_FILES" ]; then
+    echo "BLOCKED: No test files found. Write tests before completing." >&2
+    echo "TDD: tests must exist before implementation is considered done." >&2
+    HAS_ERRORS=true
+  fi
+fi
+
+# ── Gate 4: No hardcoded secrets ─────────────────────────────────
+SECRETS=$(grep -rn "sk_live_\|sk_test_\|password\s*=\s*[\"'][^\"']\{8,\}\|AKIA[0-9A-Z]\{16\}" \
+  --include="*.ts" --include="*.tsx" --include="*.js" --include="*.py" \
+  --include="*.rs" --include="*.go" --include="*.cs" --include="*.java" \
+  --include="*.rb" --include="*.php" \
+  --exclude-dir=node_modules --exclude-dir=.venv --exclude-dir=vendor \
+  --exclude-dir=target --exclude-dir=.next . 2>/dev/null | \
+  grep -v "\.env" | grep -v "example" | grep -v "test" | grep -v "mock" | head -5)
+
+if [ -n "$SECRETS" ]; then
+  echo "BLOCKED: Potential hardcoded secrets found:" >&2
+  echo "$SECRETS" >&2
+  echo "Move secrets to environment variables. See .pilot/references/security/env-handling.md" >&2
+  HAS_ERRORS=true
+fi
+
+# ── Gate 5: PLAN.md should exist if building features ────────────
+if [ -f "$FEATURE_FILE" ] && [ ! -f "PLAN.md" ]; then
+  echo "WARNING: Building features without PLAN.md. Run /pilot:plan for better results." >&2
+  # Warning only, not blocking — user might be doing a quick fix
+fi
+
+# ── Gate 6: Unchecked feature items ──────────────────────────────
 if [ -f "$FEATURE_FILE" ]; then
   UNCHECKED=$(grep -c '\[ \]' "$FEATURE_FILE" 2>/dev/null || echo "0")
   CHECKED=$(grep -c '\[x\]' "$FEATURE_FILE" 2>/dev/null || echo "0")
