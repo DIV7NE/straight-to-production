@@ -30,7 +30,8 @@ PILOT:
 
 ```
 pilot/
-├── commands/           # 7 commands
+├── commands/           # 8 commands
+│   ├── brainstorm.md   # /pilot:brainstorm — Explore ideas + research approaches
 │   ├── new.md          # /pilot:new — Product discovery + PRD
 │   ├── plan.md         # /pilot:plan — Research + Architecture + PLAN.md
 │   ├── feature.md      # /pilot:feature — TDD Feature Builder
@@ -88,17 +89,25 @@ pilot/
 
 ## Usage
 
+### 0. Brainstorm (optional — use anytime)
+```
+/pilot:brainstorm I have an idea for a fitness tracking app
+/pilot:brainstorm should we use WebSockets or SSE for real-time?
+/pilot:brainstorm this payment feature is complex, what's the best approach?
+```
+Explore ideas, research approaches, compare options with industry backing. No code — just thinking. Decisions are saved to disk so they survive /clear. Use before /pilot:new to shape a vague idea, before /pilot:feature for complex decisions, or standalone for any technical question.
+
 ### 1. Start a new project
 ```
 /pilot:new an app where freelancers track invoices and expenses
 ```
-Opus asks product questions, proposes the full stack with alternatives and honest downsides, surfaces what you'd miss, writes **PRD.md**, and scaffolds the foundation.
+Opus asks product questions (one at a time), proposes the full stack with alternatives and honest downsides, surfaces what you'd miss, writes **PRD.md**, and scaffolds the foundation.
 
 ### 2. Plan the architecture
 ```
 /pilot:plan
 ```
-Researches the domain, designs system architecture, data models, API routes, breaks features into milestones with test cases. Writes **PLAN.md**. No code — just the blueprint.
+Researches the domain, designs system architecture, data models, API routes, breaks features into milestones with test cases. Critic verifies the plan. Writes **PLAN.md**. No code — just the blueprint.
 
 ### 3. Build features (TDD)
 ```
@@ -120,11 +129,13 @@ Works through the feature checklist unattended. TDD per task. Critic evaluates w
 
 ### The full flow
 ```
-/pilot:new      → PRD.md (what we're building)
-/pilot:plan     → PLAN.md (how we're building it)
-/pilot:feature  → Tests first → implement → verify (repeat per feature)
-/pilot:evaluate → Separate AI grades the result
-/pilot:pause    → Save state → /clear → resume next session
+/pilot:brainstorm → Shape ideas, research approaches (optional, anytime)
+/pilot:new        → PRD.md (what we're building)
+/pilot:plan       → PLAN.md (how we're building it — verified by Critic)
+/pilot:feature    → TDD → /simplify → checkpoint → milestone auto-eval
+/pilot:evaluate   → Separate AI grades against PRD + PLAN + 6 criteria
+/pilot:pause      → Save state → /clear → resume next session
+/pilot:auto       → Overnight TDD autonomous with Critic at completion
 ```
 
 ## Design Principles
