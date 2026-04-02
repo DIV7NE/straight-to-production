@@ -27,5 +27,13 @@ find .pilot/references -name "*.md" | wc -l
 5. Tell the user:
    - Reference files in `.pilot/references/` (security, accessibility, performance, production)
    - Hooks active: type checking after edits, quality gate before completion
-   - Run `/pilot:standards` or read CLAUDE.md to see what's enforced
-   - For the full guided setup with architecture proposal: `/pilot:new`
+
+```
+━━━ Next step ━━━
+
+For a new project with full architecture guidance:
+   /pilot:new [describe what you're building]
+
+For an existing project, start planning features:
+   /pilot:plan
+```

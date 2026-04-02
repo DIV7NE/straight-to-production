@@ -33,18 +33,19 @@ echo "  cat .pilot/current-feature.md"
 ## How It Works
 
 ```
-Iteration 1: fresh claude -p → reads CLAUDE.md + checklist → does task 1 → commits
-Iteration 2: fresh claude -p → reads CLAUDE.md + checklist → does task 2 → commits
+Iteration 1: fresh claude -p → reads CLAUDE.md + PLAN.md + checklist → writes tests → implements → commits
+Iteration 2: fresh claude -p → reads context → next task → tests first → implements → commits
 ...
 Iteration N: all items [x] → verification → critic evaluation → exits
 ```
 
 Each iteration:
 - Fresh context (no rot)
-- Reads standards from CLAUDE.md (always current)
+- Reads standards from CLAUDE.md + blueprint from PLAN.md (always current)
+- TDD: writes tests FIRST, then implements to pass them
 - Does ONE task from the checklist
-- Stack-appropriate type check verifies after each task
-- Commits atomically
+- Stack-appropriate type check + test verification after each task
+- Commits atomically (test commit, then implementation commit)
 - Updates checklist on disk
 
 ## Safety

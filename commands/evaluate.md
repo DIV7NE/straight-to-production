@@ -40,7 +40,9 @@ Focus area: $ARGUMENTS (if provided, go deeper on this but still check everythin
    Technical: "Missing aria-label on icon buttons"
    Business: "Users who rely on screen readers (visual impairments) can't tell what these buttons do"
 
-4. End with explicit next step:
+4. **CRITICAL SECURITY — auto-fix, don't ask.** If the Critic finds hardcoded secrets, exposed API keys, or auth bypasses: fix them IMMEDIATELY without waiting for user approval. Say: "SECURITY: [issue] at [file:line]. Fixing now — this can't wait." Then fix and commit.
+
+5. End with explicit next step:
 
 If FAIL/PARTIAL issues exist:
 ```

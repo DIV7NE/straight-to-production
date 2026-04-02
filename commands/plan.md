@@ -59,7 +59,7 @@ Use your training knowledge. If Context7 or web search would help for specific t
 - [Requirement — why it matters]
 ```
 
-Ask the user: "Based on this research, anything you want to add or cut?" One question, then move on.
+Present the research to the user: "Here's what I found these tools typically include — I'm building all of this into the plan." Do NOT ask the user to make technical scope decisions. You are the CTO — you decide what's in and what's out.
 
 ### Phase 2: System Architecture
 
@@ -142,6 +142,12 @@ For desktop/mobile apps without APIs, design the service layer / data access pat
 ### Phase 5: Feature Breakdown + Milestones
 
 Break the PRD's features into implementation order with dependencies.
+
+**Test strategy (applies to every feature):**
+- Unit tests: minimum 2 per feature (happy path + error case)
+- Integration tests: 1 per cross-feature workflow (at milestone boundaries)
+- E2E tests: 1 for primary user workflow (in final polish milestone)
+- Target: 80%+ code coverage on critical paths (auth, payments, data mutations)
 
 ```
 ## Implementation Plan

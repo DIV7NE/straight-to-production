@@ -62,11 +62,13 @@ Keep the plan UNDER 30 lines. This is a checklist, not a document.
 
 ### Step 4: Build (TDD — Tests First)
 
+**IRON RULE: No implementation code exists before tests.** If you catch yourself writing implementation before tests, STOP. Delete it. Write tests first. Run them — they MUST fail. Only then implement.
+
 When the user says go:
 
 1. Save the checklist to `.pilot/current-feature.md`
 
-2. **Write tests FIRST.** Before any implementation code:
+2. **Write tests FIRST.** Before ANY implementation code:
    - Create test files for the feature's core behavior
    - Use the test cases from the plan (PLAN.md or the checklist's "Tests to write FIRST")
    - Tests should be specific and behavioral: "when a user creates an invoice with no line items, it returns a validation error"
