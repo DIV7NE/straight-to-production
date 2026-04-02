@@ -262,6 +262,54 @@ This map prevents the #1 solo-dev mistake: building a feature in isolation but f
 
 Break the PRD's features into implementation order with dependencies.
 
+**Parallelism planning (design for maximum parallel execution):**
+
+When creating the milestone feature list, explicitly plan which features can be built simultaneously. This is decided NOW during planning, not at build time.
+
+For each milestone, produce a **Wave Execution Plan**:
+
+```
+### Milestone 2: Core Workflow
+
+Wave 1 (parallel — independent features):
+- [ ] 4. Stock alerts        — creates: src/lib/alerts.ts, src/app/api/alerts/
+- [ ] 5. Supplier CRUD        — creates: src/models/supplier.ts, src/app/suppliers/
+- [ ] 6. Categories            — creates: src/models/category.ts, src/app/categories/
+  (No shared files between 4, 5, 6 → safe to parallelize)
+
+Wave 2 (after Wave 1 merges — depends on Wave 1):
+- [ ] 7. Purchase orders       — depends on 4+5 (needs alerts + suppliers)
+- [ ] 8. Email notifications   — depends on 5 (needs supplier emails)
+  (7 and 8 share no files → parallel within Wave 2)
+```
+
+**Rules for wave assignment:**
+- Compare each feature's "Create" and "Modify" file lists
+- Two features sharing ANY modified file → different waves
+- A feature depending on another feature's output → later wave
+- Within a wave, all features are independent → parallel
+- Mark the wave assignment in PLAN.md — this is the execution blueprint
+
+**Diagram to produce:** Push a dependency graph to the whiteboard showing which features can run in parallel and which must wait:
+
+```mermaid
+flowchart LR
+  subgraph Wave 1 [Wave 1 — parallel]
+    F4[Stock Alerts]
+    F5[Supplier CRUD]
+    F6[Categories]
+  end
+  subgraph Wave 2 [Wave 2 — parallel]
+    F7[Purchase Orders]
+    F8[Email Notifications]
+  end
+  F4 --> F7
+  F5 --> F7
+  F5 --> F8
+```
+
+This diagram tells /pilot:feature exactly how to execute — no analysis needed at build time, just follow the waves.
+
 **Test strategy (applies to every feature):**
 - Unit tests: minimum 2 per feature (happy path + error case)
 - Integration tests: 1 per cross-feature workflow (at milestone boundaries)
