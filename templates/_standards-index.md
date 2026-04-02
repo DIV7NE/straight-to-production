@@ -41,3 +41,6 @@ the referenced files contain verified, current standards.
 |seo-basics.md — Meta tags, sitemaps, semantic HTML, structured data, social sharing
 |legal-compliance.md — Privacy policy, terms of service, GDPR, cookie consent, license auditing
 |code-hygiene.md — Anti-garbage rules: no unused code, no comment noise, no file pollution, no God files, post-build scan
+|rollback-strategy.md — Deploy rollback, database DOWN migrations, two-phase migration pattern
+|backup-strategy.md — Automated backups, restoration testing, disaster recovery plan
+|monitoring-setup.md — Error tracking (Sentry), uptime monitoring, performance alerts, health check endpoint

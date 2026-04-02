@@ -144,7 +144,7 @@ Does the code look like a senior engineer wrote it, or like AI generated it? Che
 - Hallucinated imports (packages or functions that don't exist)?
 - Features that are built but not connected to the rest of the app (orphans)?
 
-### 7. Report Format
+### 6. Report Format
 
 ```
 ## Pilot Evaluation Report

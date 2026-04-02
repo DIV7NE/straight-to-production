@@ -384,7 +384,7 @@ When the user says go:
 
 **Fallback:** If the Sonnet executor gets stuck (reports errors it can't fix, or the merge has complex conflicts), Opus takes over and builds directly. Don't waste time — if delegation fails, do it yourself.
 
-### Step 7: Complete Feature + Version Bump
+### Step 6: Complete Feature + Version Bump
 
 1. **Bump patch version.** Read `VERSION` file (e.g., `0.1.2`), increment patch → `0.1.3`, write back.
 
@@ -428,7 +428,7 @@ When the user says go:
 6. Delete `.pilot/current-feature.md` and `.pilot/handoff.md` if they exist.
 7. Commit: `feat: [feature name] (v0.1.3)`
 
-### Step 8: Milestone Check (Automatic)
+### Step 7: Milestone Check (Automatic)
 
 After completing a feature, check PLAN.md: **is this the last feature in the current milestone?**
 

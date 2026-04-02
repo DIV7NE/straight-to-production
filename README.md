@@ -43,16 +43,18 @@ pilot/
 │   ├── autopilot.md       # /pilot:autopilot — Overnight autonomous
 │   ├── pause.md           # /pilot:pause — Save progress, take a break
 │   └── onboard-existing.md # /pilot:onboard-existing — Take over existing project
-├── agents/
-│   └── critic.md       # Sonnet evaluator (7 criteria, business impact)
-├── hooks/              # 4 hook scripts
+├── agents/             # 3 independent Sonnet agents
+│   ├── executor.md     # Builder — TDD in isolated worktrees
+│   ├── qa.md           # QA tester — tests running app against PRD
+│   └── critic.md       # Reviewer — grades code against 7 criteria
+├── hooks/              # 4 hook scripts (6 enforcement gates)
 │   ├── hooks.json
 │   └── scripts/
 │       ├── stop-verify.sh      # Quality gate (stack-aware, 3-attempt max)
 │       ├── post-edit-check.sh  # Type check after edits (stack-aware)
 │       ├── pre-compact-save.sh # State save before compaction
 │       └── session-restore.sh  # State restore on session start
-├── references/         # Universal production standards (20 files)
+├── references/         # Universal production standards (24 files)
 │   ├── security/       # OWASP, env handling, auth, validation, API
 │   ├── accessibility/  # WCAG AA, keyboard, screen reader, contrast
 │   ├── performance/    # Web Vitals, bundles, queries, images
