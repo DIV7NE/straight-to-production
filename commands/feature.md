@@ -105,7 +105,11 @@ When the user says go:
 
 5. **All tests green = feature works.** The Stop hook blocks completion until type checks AND tests pass.
 
-6. **Refactor if needed.** Once tests pass, clean up code without changing behavior. Tests catch any regressions.
+6. **Run `/simplify` on the feature's changes.** This is a built-in Claude Code command that launches 3 parallel review agents (code reuse, code quality, efficiency) on your recent changes and auto-fixes issues. It catches: duplicated logic, generic names, unnecessary abstractions, missed optimizations, happy-path-only code. Run it BEFORE the Critic — clean code first, then evaluate quality.
+
+   Teach: "I'm running /simplify — it's like a senior engineer reviewing the code I just wrote. It finds copy-pasted logic, bad variable names, and things I could have written more efficiently. It fixes them automatically. This is the polish step — making sure the code is clean, not just correct."
+
+7. **Refactor if needed.** If /simplify missed something or you want further cleanup, do it now. Tests catch any regressions.
 
 ### Step 5: Complete Feature
 
