@@ -53,20 +53,37 @@ if [ -f "$FEATURE_FILE" ]; then
   echo "" >&2
 fi
 
-# Recovery steps
-# Show current version
+# Project status summary
+echo "" >&2
+echo "[Pilot] Project Status:" >&2
+
 if [ -f "VERSION" ]; then
-  VERSION=$(cat VERSION 2>/dev/null)
-  echo "[Pilot] Project version: $VERSION" >&2
+  echo "  Version: $(cat VERSION 2>/dev/null)" >&2
 fi
 
-echo "[Pilot] Recovery:" >&2
-echo "  1. Read CHANGELOG.md (what was built, when, and why)" >&2
-echo "  2. Read CLAUDE.md (project spec + standards)" >&2
-if [ -f "$FEATURE_FILE" ]; then
-  echo "  3. Read .pilot/current-feature.md (feature checklist)" >&2
+if [ -f "PLAN.md" ]; then
+  PLAN_DONE=$(grep -c '\[x\]' PLAN.md 2>/dev/null || echo "0")
+  PLAN_TOTAL=$(grep -c '\[.\]' PLAN.md 2>/dev/null || echo "0")
+  echo "  Plan progress: $PLAN_DONE/$PLAN_TOTAL features complete" >&2
 fi
-echo "  4. Read PLAN.md (milestones + what's done vs remaining)" >&2
-echo "  5. Continue from where you left off" >&2
+
+if [ -f "CHANGELOG.md" ]; then
+  LAST_ENTRY=$(grep -m1 "^## \[" CHANGELOG.md 2>/dev/null | sed 's/^## //')
+  if [ -n "$LAST_ENTRY" ]; then
+    echo "  Last change: $LAST_ENTRY" >&2
+  fi
+fi
+
+echo "" >&2
+echo "[Pilot] Recovery — read these in order:" >&2
+echo "  1. CHANGELOG.md (what was built, when, and why)" >&2
+echo "  2. PLAN.md (milestones + what's done vs remaining)" >&2
+if [ -f "$FEATURE_FILE" ]; then
+  echo "  3. .pilot/current-feature.md (active feature checklist)" >&2
+fi
+if [ -f "$STATE_DIR/handoff.md" ]; then
+  echo "  4. .pilot/handoff.md (detailed context from last session)" >&2
+fi
+echo "  Then continue from where you left off." >&2
 
 exit 0
