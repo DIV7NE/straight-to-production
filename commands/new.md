@@ -115,21 +115,38 @@ Format:
 but the full picture including what was surfaced]
 
 ## Who It's For
-[Target users and their primary need]
+[Target user persona — who they are, what they need, their skill level,
+how they'll use the product. Not "restaurant owners" but "Solo restaurant
+owner, not technical, checks stock from phone in kitchen between services."]
+
+## Success Metrics
+[How the user knows this product is working:]
+- [Metric 1: e.g., "Owner saves 2+ hours/week on inventory management"]
+- [Metric 2: e.g., "Zero stock-outs from forgotten reorders"]
+- [Metric 3: e.g., "Order placement takes <2 minutes vs 15 min manually"]
 
 ## Architecture Decisions
 [The full proposal presented in Step 2 — every decision with
 alternatives and downsides. This is the permanent record.]
 
 ## Features
+Each feature has acceptance criteria — testable conditions that define "done."
+
 ### Core (from user)
 - [Feature 1]
+  - AC: [When X happens, Y should result]
+  - AC: [User can do Z successfully]
 - [Feature 2]
+  - AC: [Testable condition]
 
 ### Included (surfaced by Pilot)
 - [Auth — why]
+  - AC: [Unauthenticated user redirected to login]
+  - AC: [User can only see their own data]
 - [Error handling — why]
+  - AC: [User sees friendly message, not stack trace]
 - [Empty states — why]
+  - AC: [New user sees onboarding prompt, not blank page]
 - [etc.]
 
 ## Out of Scope (for now)
@@ -221,6 +238,21 @@ why, and what alternatives were considered.]
    
    ## Environment Variables
    [List from .env.example or the stack recipe]
+   
+   ## Build & Run
+   - Install: [npm install / pip install -r requirements.txt / cargo build / etc.]
+   - Dev server: [npm run dev / python manage.py runserver / cargo run / etc.]
+   - Tests: [npm test / pytest / cargo test / etc.]
+   - Build: [npm run build / etc.]
+   - Lint: [npm run lint / ruff check . / etc.]
+   
+   ## Key Dependencies
+   [Major packages with versions and purpose — not exhaustive, just the ones
+   that matter for understanding the codebase]
+   
+   ## Known Issues / Tech Debt
+   [Empty at project start. Updated as issues are discovered but deferred.
+   Each entry: what the issue is, why it was deferred, when to address it.]
    ```
    
    CONTEXT.md is the AI's map of the codebase. CHANGELOG tells it what happened. CONTEXT tells it what exists. Keep it under 150 lines — a snapshot, not documentation.

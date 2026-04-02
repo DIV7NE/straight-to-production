@@ -189,6 +189,75 @@ Response: { invoices[], total, page }
 
 For desktop/mobile apps without APIs, design the service layer / data access patterns instead.
 
+### Phase 4b: Auth & Authorization Design
+
+Design the CENTRALIZED auth model — don't leave it endpoint-by-endpoint.
+
+```
+## Auth & Authorization
+
+### Authentication
+- Provider: [Clerk / Supabase Auth / etc.]
+- Protected routes: [everything except: /, /sign-in, /sign-up, /api/webhooks, /api/health]
+- Session handling: [cookies / JWT / tokens — where stored, how refreshed]
+
+### Authorization (who can do what)
+- Default: users can ONLY access their own data (filter by user_id)
+- Roles (if applicable): [admin, user, viewer — what each can do]
+- Row-level security: [how queries are scoped to the authenticated user]
+
+### Webhook auth
+- [Each webhook endpoint: how signatures are verified]
+```
+
+Teach: "Auth is the #1 source of security vulnerabilities. Without a centralized design, each endpoint invents its own auth check — some will be wrong, some will be missing. We design it once here, then every endpoint follows the same pattern."
+
+### Phase 4c: Error Handling Strategy
+
+Design the CENTRALIZED error handling approach — not per-feature.
+
+```
+## Error Handling Strategy
+
+### Error response format (consistent across ALL endpoints)
+{ "error": "User-safe message", "code": "MACHINE_CODE", "status": 400 }
+
+### Error propagation
+- Database error → catch → log full error → return safe message
+- Validation error → return field-level errors
+- Auth error → 401/403 with redirect
+- External service error → retry once → fallback → user message
+
+### User-facing error messages
+- NEVER show: stack traces, database names, internal paths
+- ALWAYS show: what happened, what to do next, retry button if applicable
+
+### Error tracking
+- Service: [Sentry / Datadog / etc.]
+- What's captured: error type, stack trace, user ID, request ID
+- Alerts: on error rate spike (> X errors/minute)
+```
+
+### Phase 4d: Cross-Cutting Concerns
+
+Identify features that touch MULTIPLE parts of the app. When a new feature is added, where does it need to appear across the ENTIRE app?
+
+```
+## Feature Touchpoint Map
+
+For each feature, list every place in the app it should appear:
+
+| Feature | Database | API | UI Pages | Navigation | Search | Notifications | Dashboard |
+|---------|----------|-----|----------|------------|--------|--------------|-----------|
+| Invoices | invoices table | /api/invoices | list, detail, create | sidebar link | searchable | on overdue | count + chart |
+| Payments | payments table | /api/payments | payment page | — | — | on received | revenue chart |
+| Clients | clients table | /api/clients | list, detail | sidebar link | searchable | — | top clients |
+```
+
+This map prevents the #1 solo-dev mistake: building a feature in isolation but forgetting to connect it everywhere. When "Purchase Orders" is added later, this map tells you to also update: dashboard (order count), supplier page (order history), ingredient page (link to orders), search (orders searchable), notifications (order confirmed).
+
+**Flow domain research back to PRD:** If Phase 1 research discovered features or requirements not in PRD.md, update PRD.md now with the new features and acceptance criteria. The PRD must stay the source of truth for "what should exist."
+
 ### Phase 5: Feature Breakdown + Milestones
 
 Break the PRD's features into implementation order with dependencies.

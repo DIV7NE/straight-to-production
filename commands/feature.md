@@ -18,15 +18,37 @@ If PLAN.md exists and this feature is listed, use the plan's test cases and depe
 
 If `.pilot/current-feature.md` already exists, ask: "You have an in-progress feature: [title]. Finish that first, or start this new one?"
 
-### Step 2: Enrich
+### Step 2: Impact Analysis (BEFORE building)
 
-Based on the feature description and PLAN.md, identify what the user DIDN'T think of. Read relevant `.pilot/references/` files.
+Read CONTEXT.md and PLAN.md's Feature Touchpoint Map. Answer these questions:
+
+**What existing features does this new feature touch?**
+- Which existing pages need to show data from this feature?
+- Which existing API endpoints need to return this feature's data?
+- Does the dashboard need updating?
+- Does navigation need a new link?
+- Does search need to index this?
+- Do notifications need to include this?
+
+**What existing code needs backward integration?**
+- List every file that needs modification to CONNECT to this new feature
+- These become checklist items alongside the new feature's tasks
+
+**What could break?**
+- Which existing tests might fail after this change?
+- Which existing features share database tables or API endpoints?
+
+Teach: "Before building something new, I check what ALREADY EXISTS that should connect to it. If I add Purchase Orders but don't update the Dashboard to show them and don't update the Supplier page to list order history, the app works but feels disconnected. So I plan the connections upfront."
+
+### Step 3: Enrich
+
+Based on the impact analysis and PLAN.md, identify what the user DIDN'T think of. Read relevant `.pilot/references/` files.
 
 Ask at most ONE product question if a real product decision is needed. If no product decision is needed, skip to the plan.
 
 For significant technical decisions, briefly note them with industry backing.
 
-### Step 3: Present Feature Plan
+### Step 4: Present Feature Plan
 
 ```
 ## Feature: [Name]
@@ -38,6 +60,11 @@ For significant technical decisions, briefly note them with industry backing.
 - [ ] [Concern — why it matters to your USERS, one line]
 - [ ] [Concern — why it matters to your USERS, one line]
 
+### Impact on existing features (backward integration)
+- [ ] [Update: existing page/component — what changes]
+- [ ] [Update: existing page/component — what changes]
+(These are just as important as the new feature itself.)
+
 ### Key decisions
 [Brief note on any significant tech choices, with who uses it and why.
 Skip this section if no notable decisions beyond what's in CLAUDE.md.]
@@ -47,12 +74,19 @@ Skip this section if no notable decisions beyond what's in CLAUDE.md.]
 - [ ] [Test case 2]
 - [ ] [Test case 3]
 
-### Build order
-1. [Write tests for this feature (TDD — tests before code)]
-2. [Foundation — what needs to exist first]
-3. [Core functionality — make the tests pass]
-4. [Error/edge cases — what happens when things go wrong]
-5. [Polish — loading states, empty states, accessibility]
+### Build order (8-layer Definition of Done)
+1. [Database — migrations, schema changes]
+2. [Write tests FIRST (TDD)]
+3. [API / server logic — endpoints, server actions, validation]
+4. [Business logic — core feature functionality, make tests pass]
+5. [UI — pages, components, forms, connected to API]
+6. [Error/edge cases — error handling, loading states, empty states]
+7. [Backward integration — update existing features to connect]
+8. [Polish — accessibility, /simplify, verify acceptance criteria from PRD]
+
+### Acceptance criteria (from PRD.md)
+- [ ] [AC 1 — testable condition that defines "done"]
+- [ ] [AC 2 — testable condition]
 
 ### Standards I'll check
 - .pilot/references/[domain]/[file].md before: [specific step]
