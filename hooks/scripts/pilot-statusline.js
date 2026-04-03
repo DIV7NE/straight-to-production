@@ -83,7 +83,6 @@ process.stdin.on('end', () => {
     if (remaining != null) {
       const used = Math.max(0, Math.min(100, Math.round(100 - remaining)));
       const compactAt = 83; // ~83% is where auto-compact fires (100% - 16.5% buffer)
-      const tillCompact = Math.max(0, compactAt - used);
 
       // Bar: 20 chars = 100% of window. Compaction threshold marked with │
       const BAR_WIDTH = 20;
@@ -108,11 +107,17 @@ process.stdin.on('end', () => {
         }
       }
 
+      // Show usage as fraction of the effective limit
+      // If compaction is enabled (compactAt < 100), show X% of compaction threshold used
+      // If compaction is disabled, show X% of full context used
+      const effectiveLimit = compactAt < 100 ? compactAt : 100;
+      const usedOfLimit = Math.min(100, Math.round(used * 100 / effectiveLimit));
+
       let label;
-      if (used >= compactAt) {
-        label = `\x1b[31m${used}% ⚠ compact\x1b[0m`;
+      if (used >= compactAt && compactAt < 100) {
+        label = `\x1b[31m${usedOfLimit}% used ⚠ compact\x1b[0m`;
       } else {
-        label = `${used}% \x1b[2m(${tillCompact}% before compaction)\x1b[0m`;
+        label = `${usedOfLimit}% used`;
       }
 
       parts.push(`${fillColor}${bar}\x1b[0m ${label}`);
