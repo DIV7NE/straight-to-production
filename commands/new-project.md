@@ -120,10 +120,27 @@ For EACH question you generate:
 
 **Always ask WHO the users are first** (unless obvious from description). Everything else depends on this.
 
-**Skip questions where:**
-- The answer is obvious from their description
-- The answer doesn't affect architecture (you can decide later)
-- It's a technical question (you decide those, not them)
+**Readiness Gate — you CANNOT proceed to architecture until you know:**
+
+After parsing the description + asking questions, check this list. Every item must be KNOWN (from their description) or DECIDED (by you, the CTO). If any item is UNKNOWN and you can't decide it yourself, ask ONE more question.
+
+| Must Know | Why | Can You Decide It? |
+|-----------|-----|-------------------|
+| Who the primary user is | Shapes every UX decision | NO — ask them |
+| What the user's primary action is | Defines the core workflow + data model | NO — ask them |
+| How money flows (if applicable) | Determines payment integration, pricing model | SOMETIMES — ask if unclear |
+| Whether users create accounts | Determines auth, data isolation, privacy | YES — infer from product type |
+| Whether data is user-generated or system-provided | Determines storage, moderation, permissions | YES — infer from description |
+| Target platform (web, mobile, desktop, API) | Determines framework, deployment, UI toolkit | YES — infer from description |
+| Online-only vs offline capability | Determines database choice, sync strategy | YES — infer from use case |
+| Single user vs multi-user/multi-tenant | Determines data isolation, auth complexity | SOMETIMES — ask if ambiguous |
+
+**Rules:**
+- If you CAN decide it (right column = YES): decide it, don't ask
+- If you CAN'T decide it (right column = NO): you MUST ask
+- If SOMETIMES: ask only if the description is genuinely ambiguous
+- Once ALL items are KNOWN or DECIDED → proceed to architecture
+- Maximum 4 questions total — if you still need info after 4, make your best judgment and note the assumption
 
 NEVER ask about tech stack, database choice, architecture, or development tools. You decide those.
 
