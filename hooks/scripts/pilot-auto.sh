@@ -113,7 +113,7 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
       echo ""
       echo "=== ALL VERIFICATION PASSED ==="
       echo "Running Critic evaluation..."
-      claude -p "Run /pilot:review on this project. Read CLAUDE.md for context. Be ruthlessly strict." 2>&1 | tee .pilot/auto-eval-report.txt
+      claude -p --model sonnet --effort high "Run /pilot:review on this project. Read CLAUDE.md for context. Be ruthlessly strict." 2>&1 | tee .pilot/auto-eval-report.txt
       echo ""
       echo "=== PILOT AUTO COMPLETE ==="
       echo "Feature: $FEATURE_TITLE"
@@ -135,7 +135,7 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   echo "--- Iteration $ITERATION/$MAX_ITERATIONS ($CHECKED done, $UNCHECKED remaining) ---"
   echo "Task: ${NEXT_TASK:-fix verification failures}"
 
-  OUTPUT=$(claude -p "
+  OUTPUT=$(claude -p --model sonnet --effort medium "
 You are working on: $FEATURE_TITLE
 Read CONTEXT.md for the current codebase state (file map, schema, API, patterns).
 Read CLAUDE.md for project context and standards.
