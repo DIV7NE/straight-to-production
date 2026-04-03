@@ -162,19 +162,48 @@ After parsing the description + asking questions, check this list. Every item mu
 | Target platform (web, mobile, desktop, API) | Determines framework, deployment, UI toolkit | YES — infer from description |
 | Online-only vs offline capability | Determines database choice, sync strategy | YES — infer from use case |
 | Single user vs multi-user/multi-tenant | Determines data isolation, auth complexity | SOMETIMES — ask if ambiguous |
+| Testing strategy for v1 | Determines TDD depth, CI complexity, time to ship | SOMETIMES — ask if user has a preference |
 
 **Rules:**
 - If you CAN decide it (right column = YES): decide it, don't ask
 - If you CAN'T decide it (right column = NO): you MUST ask
 - If SOMETIMES: ask only if the description is genuinely ambiguous
 - Once ALL items are KNOWN or DECIDED → proceed to architecture
-- Maximum 4 questions total — if you still need info after 4, make your best judgment and note the assumption
+- Maximum 5 questions total — if you still need info after 5, make your best judgment and note the assumption
 
-NEVER ask about tech stack, database choice, architecture, or development tools. You decide those.
+NEVER ask about tech stack, database choice, architecture, or development tools. You decide those — but PRESENT your decisions interactively in Step 2.
 
-### Step 2: Architecture Proposal
+### Step 2: Architecture Proposal (Interactive)
 
-Based on the product description and answers, present every major decision in this format:
+For EACH major technical decision, use `AskUserQuestion` to present your recommendation with alternatives. The CTO recommends, the user approves or pushes back. This is NOT asking them to decide — it's presenting YOUR decision for sign-off.
+
+**Use AskUserQuestion for each decision:**
+```
+AskUserQuestion(
+  question: "Framework: I'm going with [X]. Here's why and what else I considered.",
+  options: [
+    "(Recommended) [Your pick]\n[What it is in plain language]. [Who uses it]. [Why it fits THIS project].",
+    "[Alternative 1]\n[What it is]. [Why NOT this — honest tradeoff].",
+    "[Alternative 2]\n[What it is]. [Why NOT this — honest tradeoff].",
+    "Type something.",
+    "Chat about this"
+  ]
+)
+Why recommended: [Specific reasoning for THIS project, citing industry examples]
+⚠️ Honest downside: [The real risk/limitation of your pick]
+```
+
+**Decisions to present interactively (one at a time):**
+- Framework (the foundation)
+- Database (where data lives)
+- Auth provider (how users log in)
+- Styling/UI toolkit (how it looks)
+- Deployment platform (how it reaches users)
+- Key library choices that shape architecture (ORM, state management, MVVM framework, etc.)
+
+For each: present YOUR recommendation as the first option, 2-3 alternatives below it, honest downside, and "Chat about this" for discussion. The user picks or accepts the recommended.
+
+If the user just wants to move fast, they can say "accept all" — in that case, briefly list all decisions and proceed.
 
 ```
 DECISION: [Technology Name]
