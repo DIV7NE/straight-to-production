@@ -95,19 +95,37 @@ want before you decide what to charge for.
 
 **Questions to ask (in order, skip if already answered):**
 
-1. **Who are the users?** — Infer 3-4 persona options from their description. Each option describes the user type + their primary need. Recommend the most likely persona.
-   - `Why recommended:` explain which user type is the best starting market and why
+**IMPORTANT: These are TEMPLATES, not a fixed script.** Read the user's description carefully and generate questions that are RELEVANT to THIS specific project. Don't ask about payments for an open-source CLI tool. Don't ask about team size if they said "just me" in the description. Skip questions that are already answered.
 
-2. **Revenue model?** — Monthly subscription, one-time, freemium, free, not sure yet.
-   - `Why recommended:` explain which model fits THIS product and why, citing similar successful products
+**Generate 2-4 questions by analyzing what PRODUCT DECISIONS are unresolved:**
 
-3. **Must-have integrations?** — Infer what integrations make sense for the product. Include "You decide" as recommended if unsure.
-   - `Why recommended:` explain what integrations the product actually needs vs nice-to-haves
+Parse the description and identify what you DON'T know that you NEED to know to build it. Common patterns:
 
-4. **Team size?** — Just me, small team later, team from start.
-   - `Why recommended:` explain how team size affects architecture decisions (auth, deployment, code organization)
+| If the project is... | Ask about... |
+|---|---|
+| User-facing web/mobile app | Who are the users? Revenue model? Key workflows? |
+| SaaS product | Revenue model? Multi-tenant? Integrations? |
+| Desktop tool | Target platforms? Licensing model? Offline-first? |
+| API / developer tool | Who consumes it? Auth model? Rate limits? |
+| Internal tool | Who in the org uses it? What systems does it replace? |
+| Open source | Contribution model? Hosting? Documentation needs? |
+| E-commerce | Payment processor? Inventory? Shipping? |
+| Content platform | User-generated content? Moderation? Monetization? |
 
-NEVER ask about tech stack, database choice, or architecture. You decide those.
+For EACH question you generate:
+- Infer 3-5 options from the project context — don't use generic options, make them SPECIFIC to what they described
+- Mark one as `(Recommended)` based on your CTO judgment
+- Add `Why recommended:` with reasoning citing industry examples
+- Include "Type something." and "Chat about this" as last two options
+
+**Always ask WHO the users are first** (unless obvious from description). Everything else depends on this.
+
+**Skip questions where:**
+- The answer is obvious from their description
+- The answer doesn't affect architecture (you can decide later)
+- It's a technical question (you decide those, not them)
+
+NEVER ask about tech stack, database choice, architecture, or development tools. You decide those.
 
 ### Step 2: Architecture Proposal
 
