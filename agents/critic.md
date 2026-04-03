@@ -170,6 +170,9 @@ Does the code look like a senior engineer wrote it, or like AI generated it? Che
 ### 6. Production Readiness: [PASS/FAIL/PARTIAL]
 [Findings with business impact]
 
+### 7. AI Code Quality: [PASS/FAIL/PARTIAL]
+[Findings: God files, duplicate logic, fake tests, generic names, hallucinated imports, missing cleanup]
+
 ### Priority Fixes (by business impact)
 1. [Most critical — what users/business lose if unfixed]
 2. [Second]

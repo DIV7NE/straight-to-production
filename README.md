@@ -47,7 +47,7 @@ pilot/
 │   ├── executor.md     # Builder — TDD in isolated worktrees
 │   ├── qa.md           # QA tester — tests running app against PRD
 │   └── critic.md       # Reviewer — grades code against 7 criteria
-├── hooks/              # 4 hook scripts (6 enforcement gates)
+├── hooks/              # 7 scripts (4 hook-triggered + 3 utilities)
 │   ├── hooks.json
 │   └── scripts/
 │       ├── stop-verify.sh      # Quality gate (stack-aware, 3-attempt max)
