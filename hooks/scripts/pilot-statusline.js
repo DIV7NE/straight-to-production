@@ -16,11 +16,14 @@ process.stdin.on('end', () => {
     const model = data.model?.display_name || 'Claude';
     const dir = path.basename(data.workspace?.current_dir || process.cwd());
     const remaining = data.context_window?.remaining_percentage;
+    const effort = data.effort_level || null;
 
     const parts = [];
 
-    // Model (dim)
-    parts.push(`\x1b[2m${model}\x1b[0m`);
+    // Model (dim) + effort level
+    const effortColors = { low: '\x1b[2m', medium: '\x1b[33m', high: '\x1b[32m', max: '\x1b[35m' };
+    const effortTag = effort ? ` ${effortColors[effort] || '\x1b[2m'}${effort}\x1b[0m` : '';
+    parts.push(`\x1b[2m${model}\x1b[0m${effortTag}`);
 
     // Version (blue)
     try {
