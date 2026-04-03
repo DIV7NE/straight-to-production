@@ -112,7 +112,7 @@ process.stdin.on('end', () => {
       if (used >= compactAt) {
         label = `\x1b[31m${used}% ⚠ compact\x1b[0m`;
       } else {
-        label = `${used}% \x1b[2m(${tillCompact}% left)\x1b[0m`;
+        label = `${used}% \x1b[2m(${tillCompact}% before compaction)\x1b[0m`;
       }
 
       parts.push(`${fillColor}${bar}\x1b[0m ${label}`);
