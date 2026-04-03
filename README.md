@@ -34,7 +34,7 @@ PILOT:
 
 ```
 pilot/
-├── commands/           # 8 commands
+├── commands/           # 9 commands
 │   ├── whiteboard.md      # /pilot:whiteboard — Explore ideas + research
 │   ├── new-project.md     # /pilot:new-project — Start a new project
 │   ├── plan.md            # /pilot:plan — Design the architecture
@@ -42,7 +42,8 @@ pilot/
 │   ├── review.md          # /pilot:review — Quality evaluation (7 criteria)
 │   ├── autopilot.md       # /pilot:autopilot — Overnight autonomous
 │   ├── pause.md           # /pilot:pause — Save progress, take a break
-│   └── onboard-existing.md # /pilot:onboard-existing — Take over existing project
+│   ├── onboard-existing.md # /pilot:onboard-existing — Take over existing project
+│   └── upgrade.md         # /pilot:upgrade — Pull latest from GitHub
 ├── agents/             # 3 independent Sonnet agents
 │   ├── executor.md     # Builder — TDD in isolated worktrees
 │   ├── qa.md           # QA tester — tests running app against PRD
@@ -146,6 +147,7 @@ Works through the feature checklist unattended. TDD per task. Critic evaluates w
 /pilot:pause             → Save state → /clear → resume next session
 /pilot:autopilot         → Overnight TDD autonomous with Critic at completion
 /pilot:onboard-existing  → Take over an existing project → analyze → document → plan
+/pilot:upgrade           → Pull latest Pilot version from GitHub
 ```
 
 ## Quality Enforcement (Hook Gates — Cannot Be Bypassed)
