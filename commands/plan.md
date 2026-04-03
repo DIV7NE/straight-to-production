@@ -316,6 +316,35 @@ Break the PRD's features into implementation order with dependencies.
 
 When creating the milestone feature list, explicitly plan which features can be built simultaneously. This is decided NOW during planning, not at build time.
 
+**Scope prioritization — ask about borderline features:**
+
+After listing all features, identify any that are NOT clearly essential for v1. For each borderline feature, use AskUserQuestion:
+
+```
+AskUserQuestion(
+  question: "Should [feature] be part of v1?",
+  options: [
+    "(Recommended) Yes, build it in v1\n[Why it matters for launch — e.g., 'Users need this to complete the core workflow']",
+    "Defer to v2\n[What v1 looks like without it — e.g., 'App works fine, just no export. Add it based on user feedback']",
+    "Build a minimal version\n[What the simplified version looks like — e.g., 'Basic export only, no formatting options']",
+    "Type something.",
+    "Chat about this"
+  ]
+)
+Why recommended: [specific reasoning for THIS feature in THIS project]
+```
+
+Examples of borderline features that should be asked about:
+- Supporting tools (CLI generators, admin panels, migration scripts)
+- Advanced features (export, import, analytics, reporting)
+- Multi-platform support (mobile app alongside web)
+- Integration features (third-party API connections, webhooks)
+- Nice-to-haves (dark mode, themes, custom branding)
+
+Essential features are NEVER asked about — auth, core CRUD, error handling, loading states. Those are always v1. Only ask about features where deferring is a REAL option that doesn't break the product.
+
+Features the user defers go into a `## Deferred to v2` section in PLAN.md and PRD.md's "Out of Scope."
+
 For each milestone, produce a **Wave Execution Plan**:
 
 ```
