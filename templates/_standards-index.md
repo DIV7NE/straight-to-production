@@ -44,3 +44,4 @@ the referenced files contain verified, current standards.
 |rollback-strategy.md — Deploy rollback, database DOWN migrations, two-phase migration pattern
 |backup-strategy.md — Automated backups, restoration testing, disaster recovery plan
 |monitoring-setup.md — Error tracking (Sentry), uptime monitoring, performance alerts, health check endpoint
+|environment-conflicts.md — Platform mismatches, runtime versions, native module prerequisites, service requirements, scale mismatches, deployment limits
