@@ -573,8 +573,8 @@ PLAN.md saved and verified by the Critic:
 - Milestone 3 (Polish): [brief]
 - Verification: PASS — [any notes]
 
-Please review PLAN.md — this is the blueprint I'll build against.
-Let me know if you want to change anything before we start.
+Use AskUserQuestion: "(Recommended) Looks good — start building", "I want to change something — let me explain", "Show me the whiteboard diagrams first", "Chat about this".
+
 
 When ready:
 /pilot:build [FIRST FEATURE from Milestone 1]

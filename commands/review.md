@@ -52,7 +52,7 @@ If FAIL/PARTIAL issues exist:
 ```
 ━━━ Next step ━━━
 
-Fix the priority issues (I'll work through them in order):
+Use AskUserQuestion with options:
    yes
 
 Or skip to next feature:

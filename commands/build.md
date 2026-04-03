@@ -20,7 +20,7 @@ Read PLAN.md for this feature's requirements, test cases, and dependencies. Read
 
 If PLAN.md exists and this feature is listed, use the plan's test cases and dependencies. If PLAN.md doesn't exist or this feature isn't in it, create the plan inline (but recommend running `/pilot:plan` first for complex projects).
 
-If `.pilot/current-feature.md` already exists, ask: "You have an in-progress feature: [title]. Finish that first, or start this new one?"
+If `.pilot/current-feature.md` already exists, use AskUserQuestion with options: "(Recommended) Finish [existing feature] first — picking up is faster than context-switching", "Abandon it, start [new feature] — mark old one incomplete", "Chat about this".
 
 ### Step 2: Research (BEFORE building — comprehensive, not optional)
 
@@ -294,7 +294,7 @@ When the user says go:
    Tests: [N] new, [N] total, all passing
    Type check: clean
 
-   Does this look right?
+   Use AskUserQuestion: "(Recommended) Looks good, continue", "Something is off — let me explain", "Chat about this".
    ```
 
    If the user flags issues, fix them before proceeding.
@@ -373,7 +373,7 @@ When the user says go:
    - Does it feel right? (trust your gut — if something feels off, it is)
 
    Report anything that doesn't look right — I'll fix it.
-   Say 'approved' when it works as expected.
+   Use AskUserQuestion: "(Recommended) Approved — everything works", "Found an issue — here's what's wrong", "Need to test more", "Chat about this".
    ```
 
    This is NOT optional. The user must test and approve before the feature is marked done.

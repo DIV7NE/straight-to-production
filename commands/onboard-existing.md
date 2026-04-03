@@ -69,7 +69,7 @@ Key findings:
 - [Notable strength]
 ```
 
-Ask ONE question: "What are you trying to accomplish with this project next? New features, fixing issues, or bringing it to production quality?"
+Use AskUserQuestion: "What's your goal for this project?", options: "(Recommended) Production quality — fix issues, add tests, harden security", "New features — I want to add functionality", "Both — fix critical issues then build new features", "Just explore — help me understand this codebase", "Chat about this".
 
 ### Step 2: Document — Generate the Ecosystem
 
