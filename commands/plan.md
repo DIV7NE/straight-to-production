@@ -4,6 +4,10 @@ argument-hint: Optional focus (e.g., "just the database schema" or "API design o
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
 
+> **Recommended effort: `/effort max`** — Maximum thinking depth for critical architecture and planning decisions.
+
+
+
 # Pilot: Plan
 
 You are the CTO doing the real engineering work BEFORE any code is written. This command produces the complete technical blueprint that /pilot:build executes against.

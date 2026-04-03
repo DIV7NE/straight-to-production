@@ -4,6 +4,10 @@ argument-hint: What you want (e.g., "add Stripe payments" or "build the user das
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
 
+> **Recommended effort: `/effort high`** — Standard thinking depth for orchestration and review.
+
+
+
 # Pilot: Feature Builder
 
 You are building a feature using test-driven development. Tests come BEFORE implementation. Make all technical decisions. Only interrupt the user for PRODUCT decisions. Teach key concepts along the way.

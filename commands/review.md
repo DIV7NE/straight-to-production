@@ -4,6 +4,10 @@ argument-hint: Optional focus area (e.g., "security only" or "just check accessi
 allowed-tools: ["Read", "Bash", "Grep", "Glob", "Agent"]
 ---
 
+> **Recommended effort: `/effort high`** — Standard thinking depth for orchestration and review.
+
+
+
 # Pilot: Evaluate
 
 Dispatch the `pilot-critic` agent (Sonnet 4.6) to evaluate the project. Self-evaluation is broken — agents reliably skew positive when grading their own work. The Critic is a SEPARATE model that hasn't seen the building process.

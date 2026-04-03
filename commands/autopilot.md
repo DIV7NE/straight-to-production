@@ -4,6 +4,10 @@ argument-hint: Optional max iterations (default 30)
 allowed-tools: ["Read", "Bash", "Write"]
 ---
 
+> **Recommended effort: `/effort medium`** — Efficient thinking for routine execution tasks.
+
+
+
 # Pilot: Auto Mode (Overnight Autonomous)
 
 Run the feature checklist autonomously. Each checklist item runs in a fresh Claude Code session (headless -p mode) for context isolation. No rot, no compaction, no forgetting.
