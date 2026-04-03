@@ -79,26 +79,43 @@ process.stdin.on('end', () => {
       } catch (e) {}
     }
 
-    // Context bar (same logic as GSD)
+    // Context bar — shows FULL window with compaction threshold marker
     if (remaining != null) {
-      const AUTO_COMPACT_BUFFER_PCT = 16.5;
-      const usableRemaining = Math.max(0, ((remaining - AUTO_COMPACT_BUFFER_PCT) / (100 - AUTO_COMPACT_BUFFER_PCT)) * 100);
-      const used = Math.max(0, Math.min(100, Math.round(100 - usableRemaining)));
+      const used = Math.max(0, Math.min(100, Math.round(100 - remaining)));
+      const compactAt = 83; // ~83% is where auto-compact fires (100% - 16.5% buffer)
+      const tillCompact = Math.max(0, compactAt - used);
 
-      const filled = Math.floor(used / 10);
-      const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
+      // Bar: 20 chars = 100% of window. Compaction threshold marked with │
+      const BAR_WIDTH = 20;
+      const filledPos = Math.round(used * BAR_WIDTH / 100);
+      const compactPos = Math.round(compactAt * BAR_WIDTH / 100);
 
-      let ctx;
-      if (used < 50) {
-        ctx = `\x1b[32m${bar} ${used}%\x1b[0m`;
-      } else if (used < 65) {
-        ctx = `\x1b[33m${bar} ${used}%\x1b[0m`;
-      } else if (used < 80) {
-        ctx = `\x1b[38;5;208m${bar} ${used}%\x1b[0m`;
-      } else {
-        ctx = `\x1b[5;31m${bar} ${used}%\x1b[0m`;
+      // Color: green < 50%, yellow < 65%, orange < compact, red/blink past compact
+      let fillColor;
+      if (used < 50) fillColor = '\x1b[32m';       // green
+      else if (used < 65) fillColor = '\x1b[33m';   // yellow
+      else if (used < compactAt) fillColor = '\x1b[38;5;208m'; // orange
+      else fillColor = '\x1b[5;31m';                 // blinking red
+
+      let bar = '';
+      for (let i = 0; i < BAR_WIDTH; i++) {
+        if (i === compactPos) {
+          bar += `\x1b[0m\x1b[2m│\x1b[0m${fillColor}`; // dim threshold marker
+        } else if (i < filledPos) {
+          bar += '█';
+        } else {
+          bar += '\x1b[2m░\x1b[0m' + fillColor;
+        }
       }
-      parts.push(ctx);
+
+      let label;
+      if (used >= compactAt) {
+        label = `\x1b[31m${used}% ⚠ compact\x1b[0m`;
+      } else {
+        label = `${used}% \x1b[2m(${tillCompact}% left)\x1b[0m`;
+      }
+
+      parts.push(`${fillColor}${bar}\x1b[0m ${label}`);
     }
 
     // Fallback: just show directory if nothing else
