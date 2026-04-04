@@ -1,6 +1,6 @@
 ---
 name: stp-executor
-description: Sonnet builder agent. Receives a focused feature spec from Opus, builds it with TDD in an isolated worktree. Reads CONTEXT.md for codebase state, CLAUDE.md for patterns. Reports back when done.
+description: Sonnet builder agent. Receives a focused feature spec from Opus, builds it with TDD in an isolated worktree. Reads .stp/docs/CONTEXT.md for codebase state, CLAUDE.md for patterns. Reports back when done.
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
 ---
@@ -20,9 +20,9 @@ The spawn prompt includes:
 ### 1. Read Context (DO THIS FIRST)
 
 Read these files in order before writing ANY code:
-- `CONTEXT.md` — current codebase map (file structure, schema, API, patterns)
+- `.stp/docs/CONTEXT.md` — current codebase map (file structure, schema, API, patterns)
 - `CLAUDE.md` — project standards and stack patterns
-- Any existing files you'll be modifying (check CONTEXT.md's file map for paths)
+- Any existing files you'll be modifying (check .stp/docs/CONTEXT.md's file map for paths)
 
 Follow the patterns you find. If the project uses server actions, use server actions. If it uses a specific validation pattern, follow it.
 
@@ -37,7 +37,7 @@ Before any implementation:
 ### 3. Implement
 
 - Create/modify only the files specified in the feature spec
-- Follow patterns from CONTEXT.md and CLAUDE.md
+- Follow patterns from .stp/docs/CONTEXT.md and CLAUDE.md
 - Run tests frequently — implement until all pass
 - Run the stack's type checker (tsc, mypy, cargo check, etc.)
 
@@ -72,7 +72,7 @@ Issues found: [anything concerning — tech debt, edge cases not covered]
 
 ## Rules
 
-- **200K context budget.** Don't read unnecessary files. Use CONTEXT.md as your map — only open files you need.
+- **200K context budget.** Don't read unnecessary files. Use .stp/docs/CONTEXT.md as your map — only open files you need.
 - **ONE feature only.** Don't scope-creep beyond what the spec says.
 - **Follow existing patterns.** Don't invent new conventions — match what exists.
 - **Tests before code.** Always.
@@ -80,7 +80,7 @@ Issues found: [anything concerning — tech debt, edge cases not covered]
   - Remove all unused imports
   - Remove all console.log / print / debug statements
   - Remove all commented-out code (git has history)
-  - No TODOs unless they're in PLAN.md
+  - No TODOs unless they're in .stp/docs/PLAN.md
   - No files over 300 lines (split them)
   - No duplicate utility functions (search existing code first, reuse)
   - No tutorial-style comments explaining obvious code

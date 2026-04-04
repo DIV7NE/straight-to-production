@@ -1,6 +1,6 @@
 ---
-description: Build a feature autonomously. Opus makes all technical decisions, only asks product questions, and teaches key concepts along the way. Use before starting any non-trivial feature.
-argument-hint: What you want (e.g., "add Stripe payments" or "build the user dashboard")
+description: Build, fix, refactor, or update anything. Opus makes all technical decisions, only asks product questions, and teaches key concepts along the way. Use for new features, bug fixes, refactoring, and updates to existing code.
+argument-hint: What you want (e.g., "add Stripe payments", "fix the Sentry errors on /dashboard", "refactor auth middleware", "update invoice PDF export")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
 
@@ -8,9 +8,16 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Age
 
 
 
-# STP: Feature Builder
+# STP: Builder
 
-You are building a feature using test-driven development. Tests come BEFORE implementation. Make all technical decisions. Only interrupt the user for PRODUCT decisions. Teach key concepts along the way.
+You are building, fixing, refactoring, or updating code using test-driven development. Tests come BEFORE implementation. Make all technical decisions. Only interrupt the user for PRODUCT decisions. Teach key concepts along the way.
+
+**This command handles ALL work types:**
+- **New feature**: "add Stripe payments" → full research, TDD, architecture integration
+- **Bug fix**: "fix the Sentry errors on /dashboard" → reproduce first, write failing test, fix, verify
+- **Refactor**: "refactor auth middleware" → read ARCHITECTURE.md for dependency map, ensure nothing breaks
+- **Update**: "update invoice PDF export to use new template" → trace existing flow first, modify with tests
+- **Remediation**: "fix the 5 critical issues from AUDIT.md" → read AUDIT.md, prioritize, TDD each fix
 
 ## Task Tracking (MANDATORY)
 
@@ -39,19 +46,28 @@ TaskCreate("Version bump + docs update")
 
 ### Step 1: Context
 
-Read PLAN.md for this feature's requirements, test cases, and dependencies. Read CLAUDE.md for stack patterns. Check existing code for established patterns.
+Read .stp/docs/PLAN.md for this feature's requirements, test cases, and dependencies. Read CLAUDE.md for stack patterns AND the `## Project Conventions` section — these are the project-specific rules that MUST be followed. Every convention was earned through a decision or a bug. Violating them means repeating history.
 
-If PLAN.md exists and this feature is listed, use the plan's test cases and dependencies. If PLAN.md doesn't exist or this feature isn't in it, create the plan inline (but recommend running `/stp:plan` first for complex projects).
+If .stp/docs/PLAN.md exists and this feature is listed, use the plan's test cases and dependencies. If .stp/docs/PLAN.md doesn't exist or this feature isn't in it, create the plan inline (but recommend running `/stp:plan` first for complex projects).
 
-If `.stp/current-feature.md` already exists, use AskUserQuestion with options: "(Recommended) Finish [existing feature] first — picking up is faster than context-switching", "Abandon it, start [new feature] — mark old one incomplete", "Chat about this".
+If `.stp/state/current-feature.md` already exists, use AskUserQuestion with options: "(Recommended) Finish [existing feature] first — picking up is faster than context-switching", "Abandon it, start [new feature] — mark old one incomplete", "Chat about this".
 
 ### Step 2: Research (BEFORE building — comprehensive, not optional)
 
 This is the most important step. Skip this and you ship broken, insecure, disconnected code.
 
-**A. Codebase Research — understand what EXISTS**
+**A. Architecture Context — understand what EXISTS before touching anything**
 
-Read CONTEXT.md for the map, then deep-dive into the actual code:
+Read `.stp/docs/ARCHITECTURE.md` first (if it exists). This is the full codebase map. From it, identify:
+- What directories/files exist near the feature you're building
+- What models, routes, components are related to this feature
+- What external integrations might be affected
+- What patterns and conventions MUST be followed
+- What features DEPEND on the code you'll be touching (Feature Dependency Map)
+
+If ARCHITECTURE.md doesn't exist, read `.stp/docs/CONTEXT.md` for the concise version.
+
+Then deep-dive into the actual code:
 - Read 3-5 representative files in the area you'll be modifying — learn the ACTUAL patterns, don't assume
 - Trace the data flow: UI → API → database for related features
 - Find existing functions, types, utilities you should REUSE (don't duplicate)
@@ -60,24 +76,41 @@ Read CONTEXT.md for the map, then deep-dive into the actual code:
 
 **B. Impact Analysis — what does this feature touch?**
 
-Read PLAN.md's Feature Touchpoint Map:
+Read `.stp/docs/ARCHITECTURE.md`'s Feature Dependency Map + `.stp/docs/PLAN.md`'s Feature Touchpoint Map:
+- Which existing features DEPEND on code you'll modify? (these could break)
 - Which existing pages need to show data from this feature?
 - Which existing API endpoints need to return this feature's data?
 - Does the dashboard need updating? Navigation? Search? Notifications?
 - List EVERY file that needs modification to connect this feature
 - These become checklist items (backward integration)
 
-**C. Feature Research — how should this actually be done?**
+**C. Research — what's the RIGHT way to do this?**
 
-Research the RIGHT way to implement this feature. Trust hierarchy:
+Research the RIGHT approach for this type of work. Trust hierarchy:
 1. Context7 docs (HIGH trust) — query for the specific library/framework pattern
 2. Official documentation (HIGH trust) — read the docs, not training data
-3. Industry leaders (MEDIUM trust) — how do Stripe/Shopify/Notion implement this exact feature?
+3. Industry leaders (MEDIUM trust) — how do Stripe/Shopify/Notion solve this exact problem?
 4. AI training data (LOWEST trust) — only when nothing else is available
 
 For every significant pattern: verify it works with the CURRENT version of the framework. Your training data may be stale.
 
-**D. Security Research — what can go wrong?**
+**Adapt research to work type:**
+- **New feature**: How should this be implemented? What's the industry-standard pattern? What do production apps get wrong?
+- **Bug fix**: What's the ROOT CAUSE, not just the symptom? Is this a one-off or a pattern? Are there OTHER places with the same bug? (grep for similar code)
+- **Refactor**: What's the target pattern? Research the modern/idiomatic approach. Read the framework's migration guides. Check if the refactor aligns with the framework's direction.
+- **Update**: What changed in the external dependency/API? Read the changelog/migration guide. What else in the codebase uses the old pattern?
+
+**D. Learn from Past Bugs — don't repeat known mistakes**
+
+Read `.stp/docs/AUDIT.md` — specifically the `## Patterns & Lessons` and `## Bug Fixes` sections. For the area you're building in:
+- Are there KNOWN bug patterns that apply? (e.g., "server actions don't inherit auth context")
+- Were there past bugs in related code? What was the root cause?
+- What defense layers were added? Make sure your new code respects them.
+- Are there rules like "always scope queries by orgId" that apply to your new code?
+
+This is how the codebase learns. Past debugging work becomes a checklist for new development. If you're writing a new server action and AUDIT.md says "server actions need explicit orgId" — you add it from the start, not after a bug report.
+
+**E. Security Research — what can go wrong?**
 
 Read `.stp/references/security/ai-code-vulnerabilities.md` BEFORE writing code. Then for THIS specific feature:
 - What OWASP category does this feature touch? (auth → A01, user input → A03, etc.)
@@ -93,7 +126,7 @@ Read `.stp/references/security/ai-code-vulnerabilities.md` BEFORE writing code. 
 - **Error leakage:** Do error responses reveal internal state? Different messages for "not found" vs "wrong password"?
 - Read `.stp/references/security/` files relevant to this feature
 
-**E. Resilience Research — what if things fail?**
+**F. Resilience Research — what if things fail?**
 
 - What happens when the database is slow or down?
 - What happens when external services fail? (Stripe, email, storage)
@@ -102,7 +135,7 @@ Read `.stp/references/security/ai-code-vulnerabilities.md` BEFORE writing code. 
 - Can the app still function partially if a non-critical service is down? (graceful degradation)
 - What's the timeout for every external call? (never infinite — 10-30 seconds max)
 
-**F. Edge Cases + What Could Break**
+**G. Edge Cases + What Could Break**
 
 - What happens when the input is empty? Too large? Malformed?
 - What happens during network failure? Database timeout? External service down?
@@ -110,14 +143,18 @@ Read `.stp/references/security/ai-code-vulnerabilities.md` BEFORE writing code. 
 - Which existing tests might fail after this change?
 - What are the 3 most likely failure modes for this feature?
 
-**G. Backward Integration + Improvement Opportunities**
+**H. Scope Expansion + Improvement Opportunities**
 
-- Which existing features could BENEFIT from this new feature?
-- What existing code is currently incomplete that this feature completes?
-- Are there gaps in existing features this could fill? (e.g., adding search to a list that had none)
-- Present improvements to the user: "While building Purchase Orders, I noticed the Supplier page has no order history. I'll add that too — it makes the app feel connected."
+The user doesn't know what they don't know. YOUR job is to find what they missed:
 
-**H. Anti-Hallucination Verification**
+- **New feature**: Which existing features could BENEFIT from this? What existing code is incomplete that this feature completes? Present improvements: "While building Purchase Orders, I noticed the Supplier page has no order history. I'll add that too — it makes the app feel connected."
+- **Bug fix**: Are there OTHER instances of this same bug? (grep for the pattern). Is the bug a symptom of a deeper architectural issue? If so, recommend the structural fix, not a band-aid. Check AUDIT.md — are there related Sentry errors that share the same root cause?
+- **Refactor**: What ELSE uses the old pattern? Should the refactor extend to all instances? What downstream code needs updating? Read ARCHITECTURE.md's Feature Dependency Map — what depends on what you're changing?
+- **Update**: What other code uses the same dependency/API? Should the update be applied project-wide? Are there deprecated patterns that should be cleaned up while you're here?
+
+Always present scope expansions to the user — don't just silently add work. Explain why it matters.
+
+**I. Anti-Hallucination Verification**
 
 Before finalizing the feature plan:
 - Verify every import/package you plan to use actually EXISTS in the registry
@@ -131,37 +168,43 @@ Teach: "I'm doing thorough research before writing any code. I'm checking what a
 
 Based on ALL the research above, identify what the user DIDN'T think of. Read relevant `.stp/references/` files.
 
-**If the user's approach is wrong, say so.** You are the CTO — if the user asked for "a simple password field" but the industry standard is OAuth, recommend OAuth and explain why. Don't blindly implement bad ideas. Present the researched, proven approach.
+**If the user's approach is wrong, say so.** You are the CTO — don't blindly implement bad ideas. Present the researched, proven approach.
 
-"You asked for X, but based on my research, Y is how this is actually done in production. Here's why: [Stripe/Shopify/Notion do it this way because...]. The downside of X is [security risk / scalability issue / user experience problem]."
+**Examples by work type:**
+- **Feature**: "You asked for a simple password field, but the industry standard is OAuth. Here's why: [Stripe/Shopify do it this way because...]. The downside of passwords is [security risk]."
+- **Bug fix**: "You asked me to fix the undefined constant on /dashboard. But this is actually 6 related errors across 3 routes, all caused by the same missing export. I'll fix the root cause — not just the one you noticed."
+- **Refactor**: "You asked to refactor auth middleware. Looking at ARCHITECTURE.md, the current pattern is used in 47 routes. But 12 of them have a slightly different pattern that's actually better. I recommend migrating everything to that pattern instead."
+- **Update**: "You asked to update the PDF export. But the current implementation has 3 issues beyond what you mentioned: [no error handling, no loading state, hardcoded styles]. I'll fix all of them while I'm in there — cheaper now than as separate tasks."
 
 Ask at most ONE product question if a real product decision is needed. If no product decision is needed, skip to the plan.
 
 For significant technical decisions, briefly note them with industry backing.
 
-### Step 4: Present Feature Plan
+### Step 4: Present Plan
 
 ```
-## Feature: [Name]
+## [Work Type]: [Name]
+(e.g., "Feature: Invoice PDF Export" or "Fix: Dashboard ReferenceErrors" or "Refactor: Auth Middleware")
 
 ### What you asked for
 [1-2 sentences restating their request in plain language]
 
-### What I'm adding (things you'd miss)
-- [ ] [Concern — why it matters to your USERS, one line]
-- [ ] [Concern — why it matters to your USERS, one line]
+### What I'm actually doing (things you'd miss)
+- [ ] [What research revealed — why it matters to your USERS, one line]
+- [ ] [Related issue discovered — why fixing it now saves time]
+- [ ] [Scope expansion — why this makes the app better]
 
-### Impact on existing features (backward integration)
-- [ ] [Update: existing page/component — what changes]
-- [ ] [Update: existing page/component — what changes]
-(These are just as important as the new feature itself.)
+### Impact on existing code (what could break)
+- [ ] [Existing page/component — what changes, from ARCHITECTURE.md dependency map]
+- [ ] [Existing page/component — what changes]
+(For refactors: list EVERY dependent. For fixes: list related code with the same pattern.)
 
 ### Key decisions
 [Brief note on any significant tech choices, with who uses it and why.
 Skip this section if no notable decisions beyond what's in CLAUDE.md.]
 
 ### Tests to write FIRST
-- [ ] [Test case 1 from PLAN.md or identified during enrichment]
+- [ ] [Test case 1 from .stp/docs/PLAN.md or identified during enrichment]
 - [ ] [Test case 2]
 - [ ] [Test case 3]
 
@@ -175,7 +218,7 @@ Skip this section if no notable decisions beyond what's in CLAUDE.md.]
 7. [Backward integration — update existing features to connect]
 8. [Polish — accessibility, /simplify, verify acceptance criteria from PRD]
 
-### Acceptance criteria (from PRD.md)
+### Acceptance criteria (from .stp/docs/PRD.md)
 - [ ] [AC 1 — testable condition that defines "done"]
 - [ ] [AC 2 — testable condition]
 
@@ -189,7 +232,7 @@ Keep the plan UNDER 30 lines. This is a checklist, not a document.
 
 When the user says go:
 
-1. Save the checklist to `.stp/current-feature.md`
+1. Save the checklist to `.stp/state/current-feature.md`
 
 2. **ALWAYS delegate to Sonnet executor.** This is NOT optional. You are the CTO — you plan, review, and merge. You do NOT write implementation code yourself.
 
@@ -214,7 +257,7 @@ When the user says go:
 
    Use Agent Teams for maximum parallelism. Each team member is a Sonnet executor working in an isolated worktree.
 
-   **Wave analysis first** (from PLAN.md's dependency graph):
+   **Wave analysis first** (from .stp/docs/PLAN.md's dependency graph):
    - Read each feature's "Create" and "Modify" file lists
    - INDEPENDENT features (zero shared files) → same wave (parallel)
    - DEPENDENT features → later wave (sequential)
@@ -252,15 +295,15 @@ When the user says go:
 
    Each executor prompt must be under 3K tokens. Include ONLY:
    - Feature name + 1-line summary
-   - Exact files to CREATE (from PLAN.md)
+   - Exact files to CREATE (from .stp/docs/PLAN.md)
    - Exact files to MODIFY (including backward integration)
    - Test cases to write FIRST
-   - Acceptance criteria (from PRD.md)
-   - 2-3 key patterns to follow (extracted from CONTEXT.md — NOT the whole file)
+   - Acceptance criteria (from .stp/docs/PRD.md)
+   - 2-3 key patterns to follow (extracted from .stp/docs/CONTEXT.md — NOT the whole file)
 
    Do NOT include in the prompt:
-   - Full CONTEXT.md (the agent reads it itself — it loads with CLAUDE.md automatically)
-   - Full PLAN.md (only the relevant feature spec)
+   - Full .stp/docs/CONTEXT.md (the agent reads it itself — it loads with CLAUDE.md automatically)
+   - Full .stp/docs/PLAN.md (only the relevant feature spec)
    - Reference files (the agent reads .stp/references/ only if needed)
    - Any MCP tool instructions (executors don't use Context7, Tavily, or research tools)
    - Any plugin/skill context (executors just build — Read, Write, Edit, Bash, Glob, Grep only)
@@ -284,9 +327,9 @@ When the user says go:
    TeamDelete(name="wave-1-build")
    ```
 
-   **Merge Wave 1** → verify (type check + ALL tests) → update CONTEXT.md → **then create Wave 2 team.**
+   **Merge Wave 1** → verify (type check + ALL tests) → update .stp/docs/CONTEXT.md → **then create Wave 2 team.**
 
-   Wave 2 features DEPEND on Wave 1 — they MUST wait. Never spawn a dependent feature in parallel with its dependency. The dependency chain from PLAN.md is the law.
+   Wave 2 features DEPEND on Wave 1 — they MUST wait. Never spawn a dependent feature in parallel with its dependency. The dependency chain from .stp/docs/PLAN.md is the law.
 
 5. **Review the executor's work.**
 
@@ -316,10 +359,10 @@ When the user says go:
    - Remove any unused imports, variables, functions
    - Remove any console.log / print / debug statements
    - Remove any commented-out code blocks (git has the history)
-   - Remove any TODO/FIXME that aren't in PLAN.md
+   - Remove any TODO/FIXME that aren't in .stp/docs/PLAN.md
    - Check for God files over 300 lines — split them
    - Check for duplicate utility functions — consolidate
-   - Verify no .md files were scattered in random places (plans go in PLAN.md only)
+   - Verify no .md files were scattered in random places (plans go in .stp/docs/PLAN.md only)
    - Verify .gitignore covers build output, deps, OS files, env files
    - Remove any empty placeholder files
    
@@ -363,7 +406,7 @@ When the user says go:
      prompt="QA test this feature:
        Feature: [name]
        URL: [where to find it]
-       Acceptance criteria (from PRD.md):
+       Acceptance criteria (from .stp/docs/PRD.md):
        - AC1: [testable condition]
        - AC2: [testable condition]
        Test: happy path, empty state, validation, error handling, auth, mobile, keyboard.
@@ -438,7 +481,7 @@ When the user says go:
 
 1. **Bump patch version.** Read `VERSION` file (e.g., `0.1.2`), increment patch → `0.1.3`, write back.
 
-2. **Add CHANGELOG entry.** Prepend to CHANGELOG.md (newest first, below header):
+2. **Add CHANGELOG entry.** Prepend to .stp/docs/CHANGELOG.md (newest first, below header):
    ```markdown
    ## [0.1.3] — [DATE] — Feature: [Feature Name]
    
@@ -459,13 +502,13 @@ When the user says go:
    - Type check: clean
    ```
 
-3. **Update PLAN.md:**
+3. **Update .stp/docs/PLAN.md:**
    - Mark this feature `[x]` with version: `- [x] 3. Ingredient CRUD (v0.1.3)`
-   - If this feature was NOT in the original plan (unplanned work), ADD it to the appropriate milestone with `[x]` already checked, and update the Feature Touchpoint Map to include it. PLAN.md must reflect ALL features that exist, not just originally planned ones.
+   - If this feature was NOT in the original plan (unplanned work), ADD it to the appropriate milestone with `[x]` already checked, and update the Feature Touchpoint Map to include it. .stp/docs/PLAN.md must reflect ALL features that exist, not just originally planned ones.
 
-4. Update PRD.md Technical Decisions Log if significant decisions were made.
+4. Update .stp/docs/PRD.md Technical Decisions Log if significant decisions were made.
 
-5. **Update CONTEXT.md** — reflect the current state of the codebase after this feature:
+5. **Update .stp/docs/CONTEXT.md** — reflect the current state of the codebase after this feature:
    - Add new files to the file map (with 1-line purpose each)
    - Update data schema if new tables/columns were added
    - Update API endpoints if new routes were created
@@ -473,9 +516,39 @@ When the user says go:
    - Update environment variables if new ones are required
    - **Add any deferred issues to Known Issues / Tech Debt** — if /simplify flagged something unfixable, if you noticed something suboptimal but out of scope, or if the Critic previously flagged something the user said "fix later" — record it here so it's not forgotten.
    
-   CONTEXT.md is a SNAPSHOT of what exists NOW — not history. Replace outdated info, don't append. Keep it under 150 lines.
+   .stp/docs/CONTEXT.md is a SNAPSHOT of what exists NOW — not history. Replace outdated info, don't append. Keep it under 150 lines.
 
-6. **Update README.md — MANDATORY after EVERY feature.** The project README must always reflect the current state. Update:
+6. **Update .stp/docs/ARCHITECTURE.md** (if it exists) — incremental update:
+   - Add new models/tables to the Data Models section
+   - Add new routes to the API/Page Routes section
+   - Add new components to the Components section
+   - Update the Feature Dependency Map if this feature creates new dependencies
+   - If a bug was fixed that was tracked in AUDIT.md, mark it resolved there too
+
+   Don't rewrite the whole file — just add/update the sections affected by this feature.
+
+7. **Capture project conventions in CLAUDE.md.** After building, ask yourself: did this feature establish a pattern that future development must follow?
+
+   If YES, append to the `## Project Conventions` section:
+   ```markdown
+   - **[Rule name]**: [What to always/never do]
+     - Why: [The reason — a decision, a bug prevention, a pattern that works]
+     - Applies when: [When a developer should think of this rule]
+     - Added: [DATE] via /stp:build [feature name]
+   ```
+
+   Examples of conventions worth capturing:
+   - "All API routes use `withOrgAuth()` wrapper — never raw `auth()`" (pattern established)
+   - "Invoice calculations go through `calcEngine.ts` — never inline math" (centralization decision)
+   - "React Query keys follow `[entity, action, params]` format" (naming convention)
+   - "File uploads validate MIME type server-side, not just extension" (security pattern)
+
+   NOT every feature creates a convention. Only add rules that are:
+   - **Generalizable** — applies beyond this one feature
+   - **Non-obvious** — someone new wouldn't know this without being told
+   - **Important** — violating it would cause bugs, inconsistency, or security issues
+
+8. **Update README.md — MANDATORY after EVERY feature.** The project README must always reflect the current state. Update:
    - Feature list / what the app does (if this feature adds visible capability)
    - Setup/install instructions (if dependencies or steps changed)
    - Usage instructions (if new commands, endpoints, or workflows were added)
@@ -491,12 +564,12 @@ When the user says go:
    
    A README that doesn't match the code is WORSE than no README — it wastes the user's time with wrong instructions.
 
-7. Delete `.stp/current-feature.md` and `.stp/handoff.md` if they exist.
+7. Delete `.stp/state/current-feature.md` and `.stp/state/handoff.md` if they exist.
 8. Commit: `feat: [feature name] (v0.1.3)`
 
 ### Step 7: Milestone Check (Automatic)
 
-After completing a feature, check PLAN.md: **is this the last feature in the current milestone?**
+After completing a feature, check .stp/docs/PLAN.md: **is this the last feature in the current milestone?**
 
 If YES — this milestone is complete:
 
@@ -508,7 +581,7 @@ Test that features within this milestone work TOGETHER, not just individually.
 Write and run integration/E2E tests for the milestone's primary workflow. Commit them.
 
 **3. Automatic Critic Evaluation**
-Spawn the `stp-critic` agent automatically. Grade against PRD.md + PLAN.md + 7 criteria. Present results.
+Spawn the `stp-critic` agent automatically. Grade against .stp/docs/PRD.md + .stp/docs/PLAN.md + 7 criteria. Present results.
 
 **4. Milestone CHANGELOG entry.** Add a milestone summary entry:
    ```markdown
@@ -537,7 +610,7 @@ Spawn the `stp-critic` agent automatically. Grade against PRD.md + PLAN.md + 7 c
    - [Decision — why]
    ```
 
-5. **Full CONTEXT.md refresh.** At milestone boundaries, do a complete rewrite of CONTEXT.md — don't just incrementally update. Re-read the entire codebase and regenerate:
+5. **Full .stp/docs/CONTEXT.md refresh.** At milestone boundaries, do a complete rewrite of .stp/docs/CONTEXT.md — don't just incrementally update. Re-read the entire codebase and regenerate:
    - Full file map (every significant file with purpose)
    - Current data schema (all tables/models as they exist NOW)
    - All API endpoints (with auth requirements)
@@ -545,9 +618,21 @@ Spawn the `stp-critic` agent automatically. Grade against PRD.md + PLAN.md + 7 c
    - All environment variables
    - Update version number in the header
    
-   This ensures CONTEXT.md stays accurate as the codebase grows. Incremental updates during features can miss renames, deletions, or structural changes. The milestone refresh catches everything.
+   This ensures .stp/docs/CONTEXT.md stays accurate as the codebase grows. Incremental updates during features can miss renames, deletions, or structural changes. The milestone refresh catches everything.
 
-6. Commit: `milestone: [milestone name] (v0.2.0)`
+6. **Full .stp/docs/ARCHITECTURE.md refresh** (if it exists). Same principle as CONTEXT.md — complete rewrite at milestones:
+   - Re-scan all models, routes, pages, components
+   - Rebuild the Feature Dependency Map
+   - Update integrations and state management sections
+   - Verify accuracy with spot-checks (same as onboarding Step 4)
+
+7. **Refresh .stp/docs/AUDIT.md** (if MCP services available). Pull fresh production data:
+   - Sentry: current unresolved issues (mark previously-tracked issues as fixed if resolved)
+   - Vercel: deployment status, recent builds
+   - Stripe: subscription/product changes
+   - Add a `## Milestone [N] Refresh — [DATE]` entry
+
+8. Commit: `milestone: [milestone name] (v0.2.0)`
 7. Git tag: `git tag v0.2.0`
 
 Then:
@@ -600,7 +685,7 @@ ALWAYS fill in specific names.
 ## Gotchas
 
 - Do NOT ask technical questions. You decide.
-- ALWAYS save the checklist to `.stp/current-feature.md` — this survives compaction.
+- ALWAYS save the checklist to `.stp/state/current-feature.md` — this survives compaction.
 - Do NOT over-scope. "Add a settings page" doesn't mean also add admin tools, themes, and notifications.
 - DO check if patterns already exist in the codebase. Follow established patterns.
 - DO read reference files before implementing security, accessibility, or performance-sensitive code.

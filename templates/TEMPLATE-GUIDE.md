@@ -1,6 +1,6 @@
 # How to Add a Stack Template
 
-Pilot uses one CLAUDE.md template per stack. Adding a new stack means creating one markdown file.
+STP uses one CLAUDE.md template per stack. Adding a new stack means creating one markdown file.
 
 ## Quick Start
 
@@ -47,6 +47,20 @@ Every template must contain these sections in this order:
 [2-3 key code examples showing THE RIGHT WAY to do common things in this stack.
 Examples: auth middleware, input validation, error handling, database queries.
 These should be the patterns a non-expert would get wrong without guidance.]
+
+## Project Conventions (living section — grows during development)
+[This section starts empty. STP adds rules here as the project develops:
+- /stp:build adds patterns discovered during feature development
+- /stp:debug adds lessons learned from bug fixes
+- /stp:onboard-existing detects conventions from existing code
+- /stp:review adds rules from Critic findings
+
+Format for each convention:
+- **[Rule name]**: [What to do / what not to do]
+  - Why: [Brief reason — a bug, a decision, a pattern that works]
+  - Applies when: [When to think of this rule]
+  - Added: [DATE] via [command that discovered it]
+]
 
 ## STP Standards Index
 [Include the full content of _standards-index.md here verbatim.

@@ -12,7 +12,7 @@ Write a handoff note for your future self (who has ZERO memory of this conversat
 
 ### Step 0: Check If There's Anything to Pause
 
-Run `git status --short` and check if `.stp/current-feature.md` exists.
+Run `git status --short` and check if `.stp/state/current-feature.md` exists.
 
 If there are NO uncommitted changes AND no active feature:
 ```
@@ -31,11 +31,11 @@ If changes exist: `git add -A && git commit -m "wip: [specific description]"`
 
 ### Step 2: Update Feature Checklist
 
-If `.stp/current-feature.md` exists, mark completed items `[x]`.
+If `.stp/state/current-feature.md` exists, mark completed items `[x]`.
 
 ### Step 3: Write Handoff
 
-Create `.stp/handoff.md` with ALL of:
+Create `.stp/state/handoff.md` with ALL of:
 
 ```markdown
 # Handoff — [timestamp]
@@ -74,9 +74,8 @@ Handoff saved. All work committed.
 1. Run this now:
    /clear
 
-2. Then paste this in the new session:
-   Continue working on [FEATURE NAME]. Read .stp/handoff.md for context.
-   Next task: [EXACT NEXT TASK from the handoff].
+2. Then resume:
+   /stp:continue
 ```
 
 ALWAYS fill in specific names and tasks. NEVER use generic placeholders.

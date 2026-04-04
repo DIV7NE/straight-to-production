@@ -27,14 +27,14 @@ python3 --version 2>/dev/null | head -1
 
 # Existing project state
 [ -f "CLAUDE.md" ] && echo "claude_md: exists" || echo "claude_md: none"
-[ -f "PRD.md" ] && echo "prd: exists" || echo "prd: none"
+[ -f ".stp/docs/PRD.md" ] && echo "prd: exists" || echo "prd: none"
 [ -d ".stp" ] && echo "stp_dir: exists" || echo "stp_dir: none"
 [ -d ".git" ] && echo "git_repo: yes" || echo "git_repo: no"
 ls *.json 2>/dev/null | head -3
 ```
 
 **Based on findings:**
-- If `.stp/` already exists → "This project already has Pilot. Did you mean `/stp:build` or `/stp:onboard-existing`?"
+- If `.stp/` already exists → "This project already has STP. Did you mean `/stp:build` or `/stp:onboard-existing`?"
 - If no `git` → init git automatically during setup
 - If existing code files detected → "This folder has existing code. Did you mean `/stp:onboard-existing`?"
 - Note which runtimes are available — this informs stack recommendations (don't recommend Python if only Node is installed)
@@ -68,8 +68,8 @@ TaskCreate("Product discovery questions")
 TaskCreate("Propose approaches")
 TaskCreate("Architecture proposal")
 TaskCreate("Surface what they didn't think of")
-TaskCreate("Generate PRD.md")
-TaskCreate("Generate CONTEXT.md + VERSION + CHANGELOG")
+TaskCreate("Generate .stp/docs/PRD.md")
+TaskCreate("Generate .stp/docs/CONTEXT.md + VERSION + CHANGELOG")
 TaskCreate("Scaffold project")
 ```
 
@@ -380,7 +380,7 @@ Query Context7 before implementing patterns you haven't verified.
 
 ### Step 5: Write the PRD
 
-Save the architecture proposal and enriched spec to `PRD.md` at the project root. This is the human-readable document that captures everything decided during this conversation. It survives /clear, compaction, and session breaks. The Critic evaluates against it.
+Save the architecture proposal and enriched spec to `.stp/docs/PRD.md` at the project root. This is the human-readable document that captures everything decided during this conversation. It survives /clear, compaction, and session breaks. The Critic evaluates against it.
 
 Format:
 
@@ -458,7 +458,7 @@ why, and what alternatives were considered.]
    Teach: "This CI pipeline runs the same checks as the hooks, but on GitHub's servers. Even if you bypass the local hooks, the CI catches it before it reaches production."
 6. Initialize version tracking:
    - Create `VERSION` file containing `0.1.0`
-   - Create `CHANGELOG.md` with the initial entry:
+   - Create `.stp/docs/CHANGELOG.md` with the initial entry:
      ```markdown
      # Changelog
      
@@ -476,15 +476,15 @@ why, and what alternatives were considered.]
      - [Decision 2 — why, alternatives considered]
      
      ### Documents Created
-     - PRD.md — product requirements
+     - .stp/docs/PRD.md — product requirements
      - CLAUDE.md — standards + patterns
      - .stp/references/ — [N] production standards
      - .github/workflows/ci.yml — CI pipeline
      ```
    
-   Teach: "VERSION and CHANGELOG.md track your project's evolution. Every time I complete a feature, the version bumps and the changelog records what was built, what tests were added, and what decisions were made. If I start a fresh session months from now, I read the changelog to understand the full history of your project."
+   Teach: "VERSION and .stp/docs/CHANGELOG.md track your project's evolution. Every time I complete a feature, the version bumps and the changelog records what was built, what tests were added, and what decisions were made. If I start a fresh session months from now, I read the changelog to understand the full history of your project."
 
-7. Create `CONTEXT.md` — a live snapshot of the codebase that the AI reads to understand what exists RIGHT NOW:
+7. Create `.stp/docs/CONTEXT.md` — a live snapshot of the codebase that the AI reads to understand what exists RIGHT NOW:
    ```markdown
    # Project Context — [Project Name] v0.1.0
    Updated: [DATE] after project initialization
@@ -532,9 +532,9 @@ why, and what alternatives were considered.]
    Each entry: what the issue is, why it was deferred, when to address it.]
    ```
    
-   CONTEXT.md is the AI's map of the codebase. CHANGELOG tells it what happened. CONTEXT tells it what exists. Keep it under 150 lines — a snapshot, not documentation.
+   .stp/docs/CONTEXT.md is the AI's map of the codebase. CHANGELOG tells it what happened. CONTEXT tells it what exists. Keep it under 150 lines — a snapshot, not documentation.
    
-   Teach: "CONTEXT.md is like a building's floor plan. If I start a fresh session, I read it to know where everything is — which files exist, what the database looks like, what API endpoints are available, what patterns to follow. I update it every time I add something new."
+   Teach: ".stp/docs/CONTEXT.md is like a building's floor plan. If I start a fresh session, I read it to know where everything is — which files exist, what the database looks like, what API endpoints are available, what patterns to follow. I update it every time I add something new."
 
 8. Initialize git if needed, first commit: `chore: initialize project with STP standards (v0.1.0)`
 
@@ -544,11 +544,11 @@ why, and what alternatives were considered.]
 Project ready.
 
 What was created:
-- PRD.md — your project's requirements (for you to read and share)
+- .stp/docs/PRD.md — your project's requirements (for you to read and share)
 - CLAUDE.md — project brain (spec + standards + patterns for Claude)
-- CONTEXT.md — live codebase map (updated as we build)
+- .stp/docs/CONTEXT.md — live codebase map (updated as we build)
 - VERSION — version tracking (0.1.0)
-- CHANGELOG.md — project history (updated every feature)
+- .stp/docs/CHANGELOG.md — project history (updated every feature)
 - .stp/references/ — production standards I'll check against
 - .github/workflows/ci.yml — CI pipeline (runs on every push)
 - Hooks active: type checking + test enforcement + secret detection

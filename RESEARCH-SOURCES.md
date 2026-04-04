@@ -75,7 +75,7 @@ All research that shaped this plugin's design. Read this to understand WHY every
 - "One Task, One Chat" golden rule
 - Opus 4.6 1M: accurate to ~400K, fuzzy above 600K
 
-## Design Decisions (Why Pilot Works This Way)
+## Design Decisions (Why STP Works This Way)
 
 1. **Opus plans, Sonnet builds** — 1.2 point SWE-bench gap, 40% cheaper
 2. **Always-on context > skills** — 100% vs 53% (Vercel)

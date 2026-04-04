@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Pilot Whiteboard Server — lightweight localhost server with live reload.
+"""STP Whiteboard Server — lightweight localhost server with live reload.
 
 Usage: python3 serve.py [port] [project_dir]
   port:        defaults to 3333
   project_dir: defaults to current directory
 
-Serves whiteboard/index.html and watches .pilot/whiteboard-data.json
+Serves whiteboard/index.html and watches .stp/whiteboard-data.json
 for changes. The HTML page polls /data.json every 2 seconds.
 """
 
@@ -19,8 +19,8 @@ PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 3333
 PROJECT_DIR = sys.argv[2] if len(sys.argv) > 2 else os.getcwd()
 
 PLUGIN_DIR = os.path.dirname(os.path.abspath(__file__))
-PILOT_DIR = os.path.join(PROJECT_DIR, '.pilot')
-DATA_FILE = os.path.join(PILOT_DIR, 'whiteboard-data.json')
+STP_DIR = os.path.join(PROJECT_DIR, '.stp')
+DATA_FILE = os.path.join(STP_DIR, 'whiteboard-data.json')
 
 
 class WhiteboardHandler(http.server.SimpleHTTPRequestHandler):
@@ -66,16 +66,16 @@ class WhiteboardHandler(http.server.SimpleHTTPRequestHandler):
 
 
 def main():
-    os.makedirs(PILOT_DIR, exist_ok=True)
+    os.makedirs(STP_DIR, exist_ok=True)
 
     print(f"""
   ╔══════════════════════════════════════╗
-  ║       Pilot Whiteboard Server        ║
+  ║        STP Whiteboard Server         ║
   ╠══════════════════════════════════════╣
   ║                                      ║
   ║   http://localhost:{PORT:<17}  ║
   ║                                      ║
-  ║   Watching: .pilot/whiteboard-data   ║
+  ║   Watching: .stp/whiteboard-data     ║
   ║   Press Ctrl+C to stop               ║
   ║                                      ║
   ╚══════════════════════════════════════╝

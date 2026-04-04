@@ -22,14 +22,16 @@
 
 # Backward compatible: .stp/ or legacy .pilot/
 if [ -d ".stp" ]; then STATE_DIR=".stp"; elif [ -d ".pilot" ]; then STATE_DIR=".pilot"; else STATE_DIR=".stp"; fi
-FEATURE_FILE="$STATE_DIR/current-feature.md"
-RETRY_FILE="$STATE_DIR/.stop-retry-count"
+DOCS_DIR="$STATE_DIR/docs"
+RUNTIME_DIR="$STATE_DIR/state"
+FEATURE_FILE="$RUNTIME_DIR/current-feature.md"
+RETRY_FILE="$RUNTIME_DIR/.stop-retry-count"
 
 # ── Pause bypass: if handoff.md was JUST written, allow stop ─────
 # /stp:pause writes handoff.md before stopping. TDD red phase may have
 # intentionally failing tests. The handoff means the user CHOSE to pause.
-if [ -f "$STATE_DIR/handoff.md" ]; then
-  HANDOFF_AGE=$(( $(date +%s) - $(stat -c %Y "$STATE_DIR/handoff.md" 2>/dev/null || echo "0") ))
+if [ -f "$RUNTIME_DIR/handoff.md" ]; then
+  HANDOFF_AGE=$(( $(date +%s) - $(stat -c %Y "$RUNTIME_DIR/handoff.md" 2>/dev/null || echo "0") ))
   if [ "$HANDOFF_AGE" -lt 30 ]; then
     # Handoff written in last 30 seconds = /stp:pause in progress, allow stop
     exit 0
@@ -37,7 +39,7 @@ if [ -f "$STATE_DIR/handoff.md" ]; then
 fi
 
 # ── Max-retry guard ──────────────────────────────────────────────
-mkdir -p "$STATE_DIR" 2>/dev/null
+mkdir -p "$RUNTIME_DIR" 2>/dev/null
 
 RETRY_COUNT=0
 if [ -f "$RETRY_FILE" ]; then
@@ -76,7 +78,7 @@ if [ -f "$FEATURE_FILE" ]; then
 fi
 
 # ── Gate 2: PLAN.md should exist if building features (warn only) ─
-if [ -f "$FEATURE_FILE" ] && [ ! -f "PLAN.md" ]; then
+if [ -f "$FEATURE_FILE" ] && [ ! -f "$DOCS_DIR/PLAN.md" ]; then
   echo "WARNING: Building features without PLAN.md. Run /stp:plan for better results." >&2
 fi
 

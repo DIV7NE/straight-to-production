@@ -6,7 +6,7 @@
 
 MAX_ITERATIONS=${1:-30}
 ITERATION=0
-FEATURE_FILE=".stp/current-feature.md"
+FEATURE_FILE=".stp/state/current-feature.md"
 
 if [ ! -f "CLAUDE.md" ]; then
   echo "Error: No CLAUDE.md found. Run /stp:new-project first."
@@ -14,7 +14,7 @@ if [ ! -f "CLAUDE.md" ]; then
 fi
 
 if [ ! -f "$FEATURE_FILE" ]; then
-  echo "Error: No .stp/current-feature.md found. Run /stp:build first."
+  echo "Error: No .stp/state/current-feature.md found. Run /stp:build first."
   exit 1
 fi
 
@@ -137,10 +137,10 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
 
   OUTPUT=$(claude -p --model sonnet --effort medium "
 You are working on: $FEATURE_TITLE
-Read CONTEXT.md for the current codebase state (file map, schema, API, patterns).
+Read .stp/docs/CONTEXT.md for the current codebase state (file map, schema, API, patterns).
 Read CLAUDE.md for project context and standards.
-Read PLAN.md for the technical blueprint (data models, API design, test cases).
-Read .stp/current-feature.md for the checklist.
+Read .stp/docs/PLAN.md for the technical blueprint (data models, API design, test cases).
+Read .stp/state/current-feature.md for the checklist.
 
 YOUR TASK:
 ${NEXT_TASK:-Fix all type, compile, and test errors.}
@@ -151,7 +151,7 @@ RULES:
 3. Implement to make the tests pass.
 4. Run the type checker AND tests for this project. Fix any errors.
 5. Run /simplify on the changes (3-agent code review: reuse, quality, efficiency).
-6. Update .stp/current-feature.md — mark completed item [x]
+6. Update .stp/state/current-feature.md — mark completed item [x]
 7. Commit tests: git add -A && git commit -m 'test: add tests for [description]'
 8. Commit implementation: git add -A && git commit -m 'feat: [description]'
 9. If stuck after 3 attempts, add a note and move on.

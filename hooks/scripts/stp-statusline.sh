@@ -22,10 +22,10 @@ if [ -f "VERSION" ]; then
 fi
 
 # Active feature + progress
-if [ -f ".stp/current-feature.md" ]; then
-  TITLE=$(head -1 ".stp/current-feature.md" | sed 's/^#* *//' | cut -c1-25)
-  DONE=$(grep -c '\[x\]' ".stp/current-feature.md" 2>/dev/null || echo "0")
-  TOTAL=$(grep -c '\[.\]' ".stp/current-feature.md" 2>/dev/null || echo "0")
+if [ -f ".stp/state/current-feature.md" ]; then
+  TITLE=$(head -1 ".stp/state/current-feature.md" | sed 's/^#* *//' | cut -c1-25)
+  DONE=$(grep -c '\[x\]' ".stp/state/current-feature.md" 2>/dev/null || echo "0")
+  TOTAL=$(grep -c '\[.\]' ".stp/state/current-feature.md" 2>/dev/null || echo "0")
 
   # Progress color: green if >50%, yellow if >0%, dim if 0%
   if [ "$TOTAL" -gt 0 ] && [ "$DONE" -gt 0 ]; then
@@ -40,17 +40,17 @@ if [ -f ".stp/current-feature.md" ]; then
   fi
 
   OUTPUT="${OUTPUT} ${DIM}│${RESET} ${BOLD}${WHITE}${TITLE}${RESET} ${PCOLOR}[${DONE}/${TOTAL}]${RESET}"
-elif [ -f "PLAN.md" ]; then
-  DONE=$(grep -c '\[x\]' "PLAN.md" 2>/dev/null || echo "0")
-  TOTAL=$(grep -c '\[.\]' "PLAN.md" 2>/dev/null || echo "0")
+elif [ -f ".stp/docs/PLAN.md" ]; then
+  DONE=$(grep -c '\[x\]' ".stp/docs/PLAN.md" 2>/dev/null || echo "0")
+  TOTAL=$(grep -c '\[.\]' ".stp/docs/PLAN.md" 2>/dev/null || echo "0")
   if [ "$TOTAL" -gt 0 ]; then
     OUTPUT="${OUTPUT} ${DIM}│${RESET} ${DIM}Plan ${GREEN}${DONE}${DIM}/${TOTAL}${RESET}"
   fi
 fi
 
 # Current milestone (cyan)
-if [ -f "PLAN.md" ]; then
-  MILESTONE=$(grep -B1 '\[ \]' "PLAN.md" 2>/dev/null | grep "^### Milestone" | head -1 | sed 's/^### Milestone [0-9]*: //' | cut -c1-20)
+if [ -f ".stp/docs/PLAN.md" ]; then
+  MILESTONE=$(grep -B1 '\[ \]' ".stp/docs/PLAN.md" 2>/dev/null | grep "^### Milestone" | head -1 | sed 's/^### Milestone [0-9]*: //' | cut -c1-20)
   if [ -n "$MILESTONE" ]; then
     OUTPUT="${OUTPUT} ${DIM}│${RESET} ${CYAN}${MILESTONE}${RESET}"
   fi
@@ -115,7 +115,7 @@ fi
 
 # Fallback
 if [ -z "$OUTPUT" ]; then
-  echo -e "${BLUE}Pilot${RESET}"
+  echo -e "${BLUE}STP${RESET}"
   exit 0
 fi
 

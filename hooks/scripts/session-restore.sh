@@ -15,19 +15,21 @@ else
   exit 0
 fi
 
-HANDOFF_FILE="$STATE_DIR/handoff.md"
-STATE_FILE="$STATE_DIR/state.json"
-FEATURE_FILE="$STATE_DIR/current-feature.md"
+DOCS_DIR="$STATE_DIR/docs"
+RUNTIME_DIR="$STATE_DIR/state"
+HANDOFF_FILE="$RUNTIME_DIR/handoff.md"
+STATE_FILE="$RUNTIME_DIR/state.json"
+FEATURE_FILE="$RUNTIME_DIR/current-feature.md"
 
 # Priority 1: Handoff note (intentional pause via /stp:pause)
 if [ -f "$HANDOFF_FILE" ]; then
-  echo "[STP] Handoff note from previous session. READ .stp/handoff.md FIRST:" >&2
+  echo "[STP] Handoff note found. Run /stp:continue to resume, or read .stp/state/handoff.md:" >&2
   echo "" >&2
   grep "^## " "$HANDOFF_FILE" | while read -r line; do
     echo "  $line" >&2
   done
   echo "" >&2
-  echo "Read the handoff, verify state, then continue from 'What's Next'." >&2
+  echo "Run /stp:continue to pick up where you left off." >&2
   exit 0
 fi
 
@@ -54,7 +56,7 @@ if [ -f "$FEATURE_FILE" ]; then
   DONE=$(grep -c '\[x\]' "$FEATURE_FILE" 2>/dev/null || echo "0")
   TOTAL=$(grep -c '\[.\]' "$FEATURE_FILE" 2>/dev/null || echo "0")
   echo "[STP] Active feature: $FEATURE_TITLE ($DONE/$TOTAL complete)" >&2
-  echo "  Read .stp/current-feature.md for the checklist." >&2
+  echo "  Read .stp/state/current-feature.md for the checklist." >&2
   echo "" >&2
 fi
 
@@ -66,14 +68,14 @@ if [ -f "VERSION" ]; then
   echo "  Version: $(cat VERSION 2>/dev/null)" >&2
 fi
 
-if [ -f "PLAN.md" ]; then
-  PLAN_DONE=$(grep -c '\[x\]' PLAN.md 2>/dev/null || echo "0")
-  PLAN_TOTAL=$(grep -c '\[.\]' PLAN.md 2>/dev/null || echo "0")
+if [ -f "$DOCS_DIR/PLAN.md" ]; then
+  PLAN_DONE=$(grep -c '\[x\]' "$DOCS_DIR/PLAN.md" 2>/dev/null || echo "0")
+  PLAN_TOTAL=$(grep -c '\[.\]' "$DOCS_DIR/PLAN.md" 2>/dev/null || echo "0")
   echo "  Plan progress: $PLAN_DONE/$PLAN_TOTAL features complete" >&2
 fi
 
-if [ -f "CHANGELOG.md" ]; then
-  LAST_ENTRY=$(grep -m1 "^## \[" CHANGELOG.md 2>/dev/null | sed 's/^## //')
+if [ -f "$DOCS_DIR/CHANGELOG.md" ]; then
+  LAST_ENTRY=$(grep -m1 "^## \[" "$DOCS_DIR/CHANGELOG.md" 2>/dev/null | sed 's/^## //')
   if [ -n "$LAST_ENTRY" ]; then
     echo "  Last change: $LAST_ENTRY" >&2
   fi
@@ -81,15 +83,15 @@ fi
 
 echo "" >&2
 echo "[STP] Recovery — read these in order:" >&2
-echo "  1. CONTEXT.md (what exists now — file map, schema, API, patterns)" >&2
-echo "  2. CHANGELOG.md (what was built, when, and why)" >&2
-echo "  3. PLAN.md (milestones + what's done vs remaining)" >&2
+echo "  1. .stp/docs/CONTEXT.md (what exists now — file map, schema, API, patterns)" >&2
+echo "  2. .stp/docs/CHANGELOG.md (what was built, when, and why)" >&2
+echo "  3. .stp/docs/PLAN.md (milestones + what's done vs remaining)" >&2
 if [ -f "$FEATURE_FILE" ]; then
-  echo "  4. .stp/current-feature.md (active feature checklist)" >&2
+  echo "  4. .stp/state/current-feature.md (active feature checklist)" >&2
 fi
-if [ -f "$STATE_DIR/handoff.md" ]; then
-  echo "  4. .stp/handoff.md (detailed context from last session)" >&2
+if [ -f "$HANDOFF_FILE" ]; then
+  echo "  4. .stp/state/handoff.md (detailed context from last session)" >&2
 fi
-echo "  Then continue from where you left off." >&2
+echo "  Or just run /stp:continue to resume automatically." >&2
 
 exit 0

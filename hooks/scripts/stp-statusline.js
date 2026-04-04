@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Pilot Statusline
+// STP Statusline
 // Shows: model | active feature [progress] | milestone | context bar
 
 const fs = require('fs');
@@ -32,8 +32,8 @@ process.stdin.on('end', () => {
     } catch (e) {}
 
     // Active feature + progress OR plan progress
-    const featureFile = '.stp/current-feature.md';
-    const planFile = 'PLAN.md';
+    const featureFile = '.stp/state/current-feature.md';
+    const planFile = '.stp/docs/PLAN.md';
 
     if (fs.existsSync(featureFile)) {
       try {
@@ -133,6 +133,6 @@ process.stdin.on('end', () => {
 
     process.stdout.write(parts.join(' \x1b[2m│\x1b[0m '));
   } catch (e) {
-    process.stdout.write('\x1b[34mPilot\x1b[0m');
+    process.stdout.write('\x1b[34mSTP\x1b[0m');
   }
 });

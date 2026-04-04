@@ -72,18 +72,18 @@ The data format:
 
 Update the file AFTER EACH PHASE completes — the user sees diagrams appear live as you work. Add sections incrementally, don't rewrite the whole file each time.
 
-If the user declined the whiteboard, still include Mermaid diagrams in PLAN.md (they render in GitHub/VS Code preview).
+If the user declined the whiteboard, still include Mermaid diagrams in .stp/docs/PLAN.md (they render in GitHub/VS Code preview).
 
 ## Prerequisites
 
-Check that PRD.md exists. If it doesn't:
+Check that .stp/docs/PRD.md exists. If it doesn't:
 ```
-No PRD.md found. Run /stp:new-project first to define what you're building.
+No .stp/docs/PRD.md found. Run /stp:new-project first to define what you're building.
 The plan needs a PRD to design against.
 ```
 Stop here — do not proceed without a PRD.
 
-If PRD.md exists, read it along with CLAUDE.md for context.
+If .stp/docs/PRD.md exists, read it along with CLAUDE.md for context.
 
 ## Process
 
@@ -149,7 +149,7 @@ Before designing the architecture, research the CURRENT state of every major tec
 **For testing** (Vitest, pytest, etc.):
 - Query Context7: latest configuration, best practices
 
-Record findings in PLAN.md under a `## Technical Research` section:
+Record findings in .stp/docs/PLAN.md under a `## Technical Research` section:
 ```
 ## Technical Research
 
@@ -175,7 +175,7 @@ Teach: "I'm researching the current state of every technology we're using — fr
 
 Design the system components, how they connect, and how data flows.
 
-**Diagrams to produce** (add to PLAN.md as Mermaid blocks AND push to whiteboard):
+**Diagrams to produce** (add to .stp/docs/PLAN.md as Mermaid blocks AND push to whiteboard):
 
 1. **User Flow** — flowchart showing how users move through the app (signup → dashboard → primary action → outcome)
 2. **System Architecture** — component diagram showing frontend, backend, database, external services and how they connect
@@ -326,7 +326,7 @@ For each feature, list every place in the app it should appear:
 
 This map prevents the #1 solo-dev mistake: building a feature in isolation but forgetting to connect it everywhere. When "Purchase Orders" is added later, this map tells you to also update: dashboard (order count), supplier page (order history), ingredient page (link to orders), search (orders searchable), notifications (order confirmed).
 
-**Flow domain research back to PRD:** If Phase 1 research discovered features or requirements not in PRD.md, update PRD.md now with the new features and acceptance criteria. The PRD must stay the source of truth for "what should exist."
+**Flow domain research back to PRD:** If Phase 1 research discovered features or requirements not in .stp/docs/PRD.md, update .stp/docs/PRD.md now with the new features and acceptance criteria. The PRD must stay the source of truth for "what should exist."
 
 ### Phase 5: Feature Breakdown + Milestones
 
@@ -363,7 +363,7 @@ Examples of borderline features that should be asked about:
 
 Essential features are NEVER asked about — auth, core CRUD, error handling, loading states. Those are always v1. Only ask about features where deferring is a REAL option that doesn't break the product.
 
-Features the user defers go into a `## Deferred to v2` section in PLAN.md and PRD.md's "Out of Scope."
+Features the user defers go into a `## Deferred to v2` section in .stp/docs/PLAN.md and .stp/docs/PRD.md's "Out of Scope."
 
 For each milestone, produce a **Wave Execution Plan**:
 
@@ -387,7 +387,7 @@ Wave 2 (after Wave 1 merges — depends on Wave 1):
 - Two features sharing ANY modified file → different waves
 - A feature depending on another feature's output → later wave
 - Within a wave, all features are independent → parallel
-- Mark the wave assignment in PLAN.md — this is the execution blueprint
+- Mark the wave assignment in .stp/docs/PLAN.md — this is the execution blueprint
 
 **Diagram to produce:** Push a dependency graph to the whiteboard showing which features can run in parallel and which must wait:
 
@@ -535,7 +535,7 @@ This prevents drift during implementation — Opus follows the blueprint, not im
 
 ### Phase 6: Save the Plan
 
-Write everything to `PLAN.md` at the project root. This is the technical blueprint that `/stp:build` executes against.
+Write everything to `.stp/docs/PLAN.md` at the project root. This is the technical blueprint that `/stp:build` executes against.
 
 Structure:
 ```markdown
@@ -579,10 +579,10 @@ Spawn the `stp-critic` agent to verify the plan BEFORE any code is written. Find
 Prompt the Critic:
 
 ```
-Verify PLAN.md against PRD.md. You are reviewing a PLAN, not code. Check:
+Verify .stp/docs/PLAN.md against .stp/docs/PRD.md. You are reviewing a PLAN, not code. Check:
 
-1. **PRD coverage** — Does every feature in PRD.md have a corresponding
-   milestone/feature in PLAN.md? List any gaps.
+1. **PRD coverage** — Does every feature in .stp/docs/PRD.md have a corresponding
+   milestone/feature in .stp/docs/PLAN.md? List any gaps.
 
 2. **Data model integrity** — Are all relationships valid? Are foreign keys
    pointing to tables that exist? Are there missing indexes for common queries?
@@ -606,7 +606,7 @@ Verify PLAN.md against PRD.md. You are reviewing a PLAN, not code. Check:
 Report: PASS / ISSUES FOUND with specific findings.
 ```
 
-If the Critic finds issues, fix them in PLAN.md and re-run verification. Iterate until PASS.
+If the Critic finds issues, fix them in .stp/docs/PLAN.md and re-run verification. Iterate until PASS.
 
 ### Phase 9: User Reviews the Written Plan
 
@@ -615,7 +615,7 @@ After verification passes, ask the user to review:
 ```
 ━━━ Plan ready (verified) ━━━
 
-PLAN.md saved and verified by the Critic:
+.stp/docs/PLAN.md saved and verified by the Critic:
 - [N] milestones, [N] features, [N] files to create
 - Milestone 1 (Foundation): [brief]
 - Milestone 2 (Core): [brief]

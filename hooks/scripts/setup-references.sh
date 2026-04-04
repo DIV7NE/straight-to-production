@@ -8,6 +8,8 @@ PROJECT_ROOT="${2:-.}"
 
 echo "Setting up STP references..."
 
+mkdir -p "$PROJECT_ROOT/.stp/docs"
+mkdir -p "$PROJECT_ROOT/.stp/state"
 mkdir -p "$PROJECT_ROOT/.stp/references/security"
 mkdir -p "$PROJECT_ROOT/.stp/references/accessibility"
 mkdir -p "$PROJECT_ROOT/.stp/references/performance"

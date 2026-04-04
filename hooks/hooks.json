@@ -37,7 +37,7 @@
           },
           {
             "type": "prompt",
-            "prompt": "Context compaction is about to fire. Commit any uncommitted work now. State saved to .stp/state.json. After compaction, read .stp/current-feature.md and .stp/handoff.md to resume."
+            "prompt": "Context compaction is about to fire. Commit any uncommitted work now. State saved to .stp/state/state.json. After compaction, run /stp:continue to resume."
           }
         ],
         "description": "Save state to disk before compaction destroys conversation context"
@@ -49,11 +49,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-restore.sh\"",
-            "timeout": 10
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/migrate-layout.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-restore.sh\"",
+            "timeout": 15
           }
         ],
-        "description": "Restore context from disk after /clear or compaction"
+        "description": "Auto-migrate old layout + restore context from disk after /clear or compaction"
       }
     ]
   },

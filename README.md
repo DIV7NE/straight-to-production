@@ -10,18 +10,18 @@ Every existing Claude Code harness was built by expert developers, for expert de
 
 If you're a solo developer who doesn't know what you don't know, those tools add process without adding knowledge.
 
-## How Pilot Works
+## How STP Works
 
-You describe what you want to build. Pilot makes every technical decision, presents each one with alternatives and honest tradeoffs, surfaces everything you'd miss, and builds it. You make product decisions. Opus handles everything else.
+You describe what you want to build. STP makes every technical decision, presents each one with alternatives and honest tradeoffs, surfaces everything you'd miss, and builds it. You make product decisions. Opus handles everything else.
 
 ```
 YOU: "I want an app where freelancers track invoices"
 
-PILOT:
+STP:
 ├── Decides the entire stack (with alternatives + honest downsides)
 ├── Asks PRODUCT questions only (one at a time, never technical)
 ├── Surfaces what you didn't think of (auth, security, empty states...)
-├── Creates: PRD.md, PLAN.md (verified), CONTEXT.md, CHANGELOG.md
+├── Creates: .stp/docs/PRD.md, .stp/docs/PLAN.md (verified), .stp/docs/CONTEXT.md, .stp/docs/CHANGELOG.md
 ├── Visual whiteboard: live diagrams in your browser (localhost)
 ├── Impact analysis: checks what existing features each new feature touches
 ├── TDD: writes tests before code, /simplify polishes after
@@ -33,14 +33,17 @@ PILOT:
 ## Architecture
 
 ```
-pilot/
-├── commands/           # 9 commands
+stp/
+├── commands/           # 12 commands
 │   ├── whiteboard.md      # /stp:whiteboard — Explore ideas + research
 │   ├── new-project.md     # /stp:new-project — Start a new project
 │   ├── plan.md            # /stp:plan — Design the architecture
 │   ├── build.md           # /stp:build — Build a feature (TDD)
 │   ├── review.md          # /stp:review — Quality evaluation (7 criteria)
 │   ├── autopilot.md       # /stp:autopilot — Overnight autonomous
+│   ├── debug.md           # /stp:debug — Systematic debugging (one-shot)
+│   ├── progress.md        # /stp:progress — Check project status
+│   ├── continue.md        # /stp:continue — Resume where you left off
 │   ├── pause.md           # /stp:pause — Save progress, take a break
 │   ├── onboard-existing.md # /stp:onboard-existing — Take over existing project
 │   └── upgrade.md         # /stp:upgrade — Pull latest from GitHub
@@ -48,13 +51,19 @@ pilot/
 │   ├── executor.md     # Builder — TDD in isolated worktrees
 │   ├── qa.md           # QA tester — tests running app against PRD
 │   └── critic.md       # Reviewer — grades code against 7 criteria
-├── hooks/              # 7 scripts (4 hook-triggered + 3 utilities)
+├── hooks/              # 10 scripts (5 hook-triggered + 3 utilities + 2 statusline)
 │   ├── hooks.json
 │   └── scripts/
 │       ├── stop-verify.sh      # Quality gate (stack-aware, 3-attempt max)
 │       ├── post-edit-check.sh  # Type check after edits (stack-aware)
 │       ├── pre-compact-save.sh # State save before compaction
-│       └── session-restore.sh  # State restore on session start
+│       ├── session-restore.sh  # State restore on session start
+│       ├── migrate-layout.sh   # Auto-migrate old flat layout → organized
+│       ├── setup-references.sh # Copy reference files into project
+│       ├── start-whiteboard.sh # Launch whiteboard server
+│       ├── stp-auto.sh         # Autonomous loop (overnight mode)
+│       ├── stp-statusline.js   # Node.js statusline (primary)
+│       └── stp-statusline.sh   # Bash statusline (fallback)
 ├── references/         # Universal production standards (25 files)
 │   ├── security/       # OWASP, env handling, auth, validation, API
 │   ├── accessibility/  # WCAG AA, keyboard, screen reader, contrast
@@ -71,6 +80,33 @@ pilot/
     ├── ... (18 total)
     └── TEMPLATE-GUIDE.md
 ```
+
+### What STP Creates in Your Project
+
+```
+your-project/
+├── CLAUDE.md                # Standards + patterns (Claude auto-reads from root)
+├── VERSION                  # Current version (e.g., 0.1.3)
+└── .stp/
+    ├── docs/                # Project documents
+    │   ├── ARCHITECTURE.md  # Full codebase map (models, routes, deps)
+    │   ├── AUDIT.md         # Production health (Sentry, deploy, billing)
+    │   ├── PRD.md           # Requirements + acceptance criteria
+    │   ├── PLAN.md          # Architecture blueprint + feature waves
+    │   ├── CONTEXT.md       # Concise AI reference (<150 lines)
+    │   └── CHANGELOG.md     # Versioned history
+    ├── state/               # Runtime state (survives /clear + compaction)
+    │   ├── current-feature.md  # Active feature checklist
+    │   ├── handoff.md       # Pause context for next session
+    │   └── state.json       # Auto-save before compaction
+    └── references/          # Production standards (read before coding)
+        ├── security/        # OWASP, auth, secrets, API security
+        ├── accessibility/   # WCAG AA, keyboard, screen reader
+        ├── performance/     # Web Vitals, bundles, queries
+        └── production/      # Errors, deploy, monitoring, edge cases
+```
+
+Existing projects using the old flat layout (docs at root, state files in `.stp/`) are auto-migrated on first session start after upgrade.
 
 ## Supported Stacks
 
@@ -111,19 +147,22 @@ Explore ideas, research approaches, compare options with industry backing. No co
 ```
 /stp:new-project an app where freelancers track invoices and expenses
 ```
-Opus asks product questions (one at a time), proposes the full stack with alternatives and honest downsides, surfaces what you'd miss. Creates **PRD.md** (with acceptance criteria), **CONTEXT.md** (codebase map), **CHANGELOG.md**, **VERSION**, CI pipeline, and scaffolds the foundation.
+Opus asks product questions (one at a time), proposes the full stack with alternatives and honest downsides, surfaces what you'd miss. Creates **.stp/docs/PRD.md** (with acceptance criteria), **.stp/docs/CONTEXT.md** (codebase map), **.stp/docs/CHANGELOG.md**, **VERSION**, CI pipeline, and scaffolds the foundation.
 
 ### 2. Plan the architecture
 ```
 /stp:plan
 ```
-Researches the domain, designs system architecture, data models, API routes, auth model, error strategy, Feature Touchpoint Map (where each feature appears across the app). Visual whiteboard renders diagrams live. Critic verifies the plan. Writes **PLAN.md**. No code — just the verified blueprint.
+Researches the domain, designs system architecture, data models, API routes, auth model, error strategy, Feature Touchpoint Map (where each feature appears across the app). Visual whiteboard renders diagrams live. Critic verifies the plan. Writes **.stp/docs/PLAN.md**. No code — just the verified blueprint.
 
-### 3. Build (TDD)
+### 3. Build / Fix / Refactor (TDD)
 ```
-/stp:build database setup and user model
+/stp:build add Stripe payments
+/stp:build fix the 5 critical Sentry errors from AUDIT.md
+/stp:build refactor auth middleware to use centralized pattern
+/stp:build update invoice PDF export to use new template
 ```
-Impact analysis first (what existing features does this touch?). Writes tests FIRST. Implements to make tests pass. `/simplify` polishes code. Checkpoints every 3 items. Backward integration updates existing features. Auto-Critic + integration tests at milestone boundaries. Teaches you concepts along the way.
+One command for ALL work types. Reads ARCHITECTURE.md first (what exists, what could break). Impact analysis, writes tests FIRST, implements, `/simplify` polishes. Backward integration updates existing features. Auto-Critic + integration tests at milestone boundaries. Teaches you concepts along the way.
 
 ### 4. Review quality
 ```
@@ -137,17 +176,58 @@ A separate Sonnet AI grades your app against PRD + PLAN + 7 quality criteria wit
 ```
 Works through the feature checklist unattended. TDD per task. Critic evaluates when done.
 
+### 6. Check progress
+```
+/stp:progress
+```
+Shows project version, milestone progress (done/total), active feature status, recent activity, uncommitted work, and the exact next command to run. Read-only — doesn't modify anything.
+
+### 7. Resume work
+```
+/stp:continue
+```
+Reads all state files (handoff, feature checklist, plan) and immediately picks up where you left off. No questions — just starts working on the next task. Use after `/clear`, compaction, or starting a new session.
+
 ### The full flow
 ```
 /stp:whiteboard        → Shape ideas, research approaches (optional, anytime)
-/stp:new-project       → PRD.md (what we're building)
-/stp:plan              → PLAN.md (how we're building it — verified by Critic)
+/stp:new-project       → .stp/docs/PRD.md (what we're building)
+/stp:plan              → .stp/docs/PLAN.md (how we're building it — verified by Critic)
 /stp:build             → Research → TDD → /simplify → checkpoint → milestone auto-eval
 /stp:review            → Separate AI grades against PRD + PLAN + 7 criteria
+/stp:debug             → Systematic debugging (auto-gather → diagnose → fix → learn)
+/stp:progress          → Check what's done, in progress, and next
+/stp:continue          → Resume exactly where you left off (after /clear or new session)
 /stp:pause             → Save state → /clear → resume next session
 /stp:autopilot         → Overnight TDD autonomous with Critic at completion
 /stp:onboard-existing  → Take over an existing project → analyze → document → plan
-/stp:upgrade           → Pull latest Pilot version from GitHub
+/stp:upgrade           → Pull latest STP version from GitHub
+```
+
+### Working on an existing project
+
+```
+Day 1:
+  /stp:onboard-existing              → Maps everything, writes ARCHITECTURE.md + AUDIT.md
+                                        Connects MCP services (Sentry, Stripe, Vercel)
+                                        Creates remediation PLAN.md from findings
+
+Day 1+:
+  /stp:progress                      → See what's planned, what's next
+  /stp:build fix critical Sentry errors → Reads ARCHITECTURE.md, knows what could break
+  /stp:build add new feature          → Impact analysis against full codebase map
+  /stp:build refactor auth module     → Dependency map shows what depends on it
+  /stp:review                        → Refreshes AUDIT.md with latest Sentry/Vercel data
+
+Session breaks:
+  /stp:pause                         → Saves context + failed approaches
+  (next session)
+  /stp:continue                      → Reads handoff, preserves lessons to CHANGELOG, resumes
+
+Everything persisted:
+  .stp/docs/ARCHITECTURE.md          → Full codebase map (updated per feature + milestone)
+  .stp/docs/AUDIT.md                 → Production health (refreshed by /stp:review)
+  .stp/docs/CHANGELOG.md             → Full history + decisions + failed approaches
 ```
 
 ## Quality Enforcement (Hook Gates — Cannot Be Bypassed)
@@ -159,7 +239,7 @@ Works through the feature checklist unattended. TDD per task. Critic evaluates w
 | Tests must exist | Source files without any test files | 100% — hook exit 2 |
 | No hardcoded secrets | Stripe keys, AWS keys, passwords in source | 100% — hook exit 2 |
 | Unchecked items | Stopping with work remaining | 100% — hook exit 2 |
-| PLAN.md missing | Building features without a plan | Warning (non-blocking) |
+| .stp/docs/PLAN.md missing | Building features without a plan | Warning (non-blocking) |
 
 3-attempt safety valve prevents session bricking if an issue is truly unfixable.
 
@@ -167,10 +247,12 @@ Works through the feature checklist unattended. TDD per task. Critic evaluates w
 
 | Document | Created By | Updated By | Purpose |
 |----------|-----------|------------|---------|
-| PRD.md | /stp:new-project | /stp:build (decisions log) | What we're building + acceptance criteria |
-| PLAN.md | /stp:plan | /stp:build (mark [x] + version) | How we're building it (verified blueprint) |
-| CONTEXT.md | /stp:new-project | /stp:build (incremental), milestone (full refresh) | What exists RIGHT NOW (codebase map) |
-| CHANGELOG.md | /stp:new-project | /stp:build (per feature + milestone) | What happened (versioned history) |
+| .stp/docs/ARCHITECTURE.md | /stp:onboard-existing | milestone refresh | Full codebase map (models, routes, components, integrations, dependencies) |
+| .stp/docs/AUDIT.md | /stp:onboard-existing | /stp:review | Production health (Sentry errors, deploy status, billing, performance) |
+| .stp/docs/PRD.md | /stp:new-project | /stp:build (decisions log) | What we're building + acceptance criteria |
+| .stp/docs/PLAN.md | /stp:plan | /stp:build (mark [x] + version) | How we're building it (verified blueprint) |
+| .stp/docs/CONTEXT.md | /stp:new-project | /stp:build (incremental), milestone (full refresh) | Concise AI reference (<150 lines, links to ARCHITECTURE.md) |
+| .stp/docs/CHANGELOG.md | /stp:new-project | /stp:build (per feature + milestone) | What happened (versioned history) |
 | VERSION | /stp:new-project | /stp:build (patch bump), milestone (minor bump) | Current version number |
 | CLAUDE.md | /stp:new-project | — | Standards + patterns for Claude |
 

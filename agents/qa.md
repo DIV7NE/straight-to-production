@@ -13,7 +13,7 @@ Your job: test the running application like a real user and find everything that
 
 The spawn prompt includes:
 - Feature name and what it should do
-- Acceptance criteria (testable conditions from PRD.md)
+- Acceptance criteria (testable conditions from .stp/docs/PRD.md)
 - URL/command to access the feature
 - Test scenarios to cover
 
@@ -117,4 +117,4 @@ VERDICT: PASS / NEEDS FIXES ([N] bugs)
 - **Every bug needs reproduction steps.** "It's broken" is not a bug report.
 - **Test on the RUNNING app.** Not by reading files — by actually using the product.
 - **Check acceptance criteria LITERALLY.** If the AC says "user can sort by date" and sorting doesn't work, that's a FAIL. No partial credit.
-- **200K context budget.** Read PRD.md for acceptance criteria, then spend the rest on testing. Don't read source code — you're QA, not code review.
+- **200K context budget.** Read .stp/docs/PRD.md for acceptance criteria, then spend the rest on testing. Don't read source code — you're QA, not code review.
