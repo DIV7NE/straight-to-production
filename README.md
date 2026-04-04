@@ -55,7 +55,7 @@ pilot/
 │       ├── post-edit-check.sh  # Type check after edits (stack-aware)
 │       ├── pre-compact-save.sh # State save before compaction
 │       └── session-restore.sh  # State restore on session start
-├── references/         # Universal production standards (24 files)
+├── references/         # Universal production standards (25 files)
 │   ├── security/       # OWASP, env handling, auth, validation, API
 │   ├── accessibility/  # WCAG AA, keyboard, screen reader, contrast
 │   ├── performance/    # Web Vitals, bundles, queries, images
