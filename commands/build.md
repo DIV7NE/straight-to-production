@@ -199,77 +199,94 @@ When the user says go:
 
    Why: Sonnet 4.6 is 40% cheaper with near-identical code quality (79.6% vs 80.8% SWE-bench). You burn tokens on THINKING work (research, architecture, review). Implementation is Sonnet's job.
 
-   **For each feature:** Spawn `pilot-executor` (Sonnet) subagent with worktree isolation.
-   **For multiple independent features:** Spawn multiple executors in parallel (wave plan from PLAN.md).
+   **Exceptions where Opus builds directly (foundation work):**
+   - Database setup, migrations, schema changes (shapes everything downstream)
+   - Auth/middleware integration (security-critical, must be right)
+   - Core project configuration (CI, deployment, env setup)
+   - One-line fixes (typo, config change, version bump)
 
-3. **For delegated builds — spawn the executor:**
+   These are foundational — every executor depends on them being correct. Opus builds these, then delegates features on top.
 
-   Compose a focused prompt for the `pilot-executor` agent. Include:
-   - Feature name and 1-line summary
-   - Exact files to create (from the checklist's 8-layer build order)
-   - Exact files to modify (including backward integration)
-   - Test cases to write FIRST
-   - Acceptance criteria
-   - Key patterns to follow (from CONTEXT.md — don't paste the whole file, just the relevant patterns)
+   **For each feature ON TOP of foundation:** Spawn Sonnet executor with worktree isolation.
+   **For multiple independent features:** Create an Agent Team and spawn all in parallel.
 
+3. **Create a build team for the wave.**
+
+   Use Agent Teams for maximum parallelism. Each team member is a Sonnet executor working in an isolated worktree.
+
+   **Wave analysis first** (from PLAN.md's dependency graph):
+   - Read each feature's "Create" and "Modify" file lists
+   - INDEPENDENT features (zero shared files) → same wave (parallel)
+   - DEPENDENT features → later wave (sequential)
+   - Features modifying shared files → separate waves
+
+   **Present the wave plan to the user via AskUserQuestion:**
    ```
-   Agent(
-     subagent_type="pilot-executor" or just use the general-purpose agent,
-     model="sonnet",
-     isolation="worktree",
-     run_in_background=false (for single feature) or true (for parallel),
-     prompt="[the focused spec above]"
+   AskUserQuestion(
+     question: "Wave 1: [N] features can build in parallel. Wave 2: [N] depend on Wave 1. Launch?",
+     options: [
+       "(Recommended) Launch Wave 1 — [N] parallel agents",
+       "Build one at a time instead",
+       "Chat about this"
+     ]
    )
    ```
 
-   **200K context budget for Sonnet.** Keep the prompt under 3K tokens. The executor reads CONTEXT.md + CLAUDE.md itself (they load automatically). Don't paste full file contents — just tell it which files to read.
-
-   Teach: "I'm handing this to a builder agent — it works in its own isolated copy of the code so nothing interferes. It'll write the tests first, then implement, then report back. I'll review its work before merging it into the project."
-
-4. **For parallel builds — maximize safe parallelism.**
-
-   Analyze the milestone's remaining features using PLAN.md's Feature Touchpoint Map and dependency graph. Group them into **waves**:
-
-   **Wave analysis:**
-   - Read each feature's "Create" and "Modify" file lists from PLAN.md
-   - Two features are INDEPENDENT if they share ZERO files to create or modify
-   - Features that depend on each other go in LATER waves
-   - Features that modify shared files (e.g., both update the dashboard) go in separate waves
-
-   **Spawn ALL independent features in the wave simultaneously:**
+   **Create the team and spawn:**
    ```
-   # Wave 1: all independent features (no limit — spawn as many as are safe)
-   Agent("pilot-executor", model="sonnet", isolation="worktree", run_in_background=true, name="feature-4")
-   Agent("pilot-executor", model="sonnet", isolation="worktree", run_in_background=true, name="feature-5")
-   Agent("pilot-executor", model="sonnet", isolation="worktree", run_in_background=true, name="feature-6")
-   Agent("pilot-executor", model="sonnet", isolation="worktree", run_in_background=true, name="feature-7")
-   Agent("pilot-executor", model="sonnet", isolation="worktree", run_in_background=true, name="feature-8")
-   # ... as many as are truly independent
+   TeamCreate(name="wave-1-build", description="Milestone [N] Wave 1 parallel build")
+
+   # Spawn ALL independent features simultaneously
+   Agent(
+     name="build-[feature-name]",
+     model="sonnet",
+     isolation="worktree",
+     team_name="wave-1-build",
+     run_in_background=true,
+     prompt="[focused spec — see below]"
+   )
+   # ... repeat for every feature in the wave
    ```
 
-   Wait for all to complete. Each works on its own git branch.
+   **200K context budget — keep each agent LEAN:**
 
-   **Then merge Wave 1** → verify → update CONTEXT.md → **then spawn Wave 2.**
-   
-   Wave 2 features DEPEND on Wave 1 — they MUST wait. Never spawn a dependent feature in parallel with its dependency. The dependency chain from PLAN.md is the law. If Feature 7 depends on Feature 4, Feature 7 cannot start until Feature 4 is merged and verified.
+   Each executor prompt must be under 3K tokens. Include ONLY:
+   - Feature name + 1-line summary
+   - Exact files to CREATE (from PLAN.md)
+   - Exact files to MODIFY (including backward integration)
+   - Test cases to write FIRST
+   - Acceptance criteria (from PRD.md)
+   - 2-3 key patterns to follow (extracted from CONTEXT.md — NOT the whole file)
 
-   **Present the wave plan to the user:**
+   Do NOT include in the prompt:
+   - Full CONTEXT.md (the agent reads it itself — it loads with CLAUDE.md automatically)
+   - Full PLAN.md (only the relevant feature spec)
+   - Reference files (the agent reads .pilot/references/ only if needed)
+   - Any MCP tool instructions (executors don't use Context7, Tavily, or research tools)
+   - Any plugin/skill context (executors just build — Read, Write, Edit, Bash, Glob, Grep only)
+
+   **Agent isolation — keep them clean:**
+   - Executors do NOT use MCP servers (no Context7, no Tavily, no Neon, no Stripe)
+   - Executors do NOT invoke skills or plugins
+   - Executors do NOT spawn sub-agents of their own
+   - Executors use ONLY: Read, Write, Edit, Bash, Glob, Grep
+   - This keeps their 200K context free for actual code work
+
+   Teach: "I'm launching a team of builder agents — each works in its own isolated copy of the code. They can't interfere with each other. Each one has just the tools it needs to build (read, write, run tests) and nothing else. I'll review and merge their work when they're done."
+
+   **Wait for all team members to complete.** As each reports back:
+   - Read their structured report (files, tests, decisions, issues)
+   - TaskUpdate the corresponding task to `completed`
+
+   **Then shut down the team:**
    ```
-   ━━━ Parallel Build Plan ━━━
-
-   Wave 1 (parallel — [N] agents):
-   - Feature 4: [name] — [files it touches]
-   - Feature 5: [name] — [files it touches]
-   - Feature 6: [name] — [files it touches]
-
-   Wave 2 (after Wave 1 merges — depends on Wave 1):
-   - Feature 7: [name] — depends on Feature 4
-   - Feature 8: [name] — depends on Feature 5
-
-   Launching Wave 1...
+   SendMessage(to="build-[name]", type="shutdown_request") // for each member
+   TeamDelete(name="wave-1-build")
    ```
 
-   Teach: "I'm building [N] features simultaneously — each agent works in its own isolated copy of the code. They can't interfere with each other because they each have their own branch. I'll merge them one by one and verify after each merge that everything still works together."
+   **Merge Wave 1** → verify (type check + ALL tests) → update CONTEXT.md → **then create Wave 2 team.**
+
+   Wave 2 features DEPEND on Wave 1 — they MUST wait. Never spawn a dependent feature in parallel with its dependency. The dependency chain from PLAN.md is the law.
 
 5. **Review the executor's work.**
 
