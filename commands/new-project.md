@@ -197,9 +197,47 @@ After parsing the description + asking questions, check this list. Every item mu
 - Once ALL items are KNOWN or DECIDED → proceed to architecture
 - Maximum 5 questions total — if you still need info after 5, make your best judgment and note the assumption
 
-NEVER ask about tech stack, database choice, architecture, or development tools. You decide those — but PRESENT your decisions interactively in Step 2.
+NEVER ask about tech stack, database choice, architecture, or development tools. You decide those — but PRESENT your decisions interactively in Step 3.
 
-### Step 2: Architecture Proposal (Interactive)
+### Step 2: Propose 2-3 Approaches
+
+Before diving into specific tech decisions, step back and present 2-3 HIGH-LEVEL approaches to the WHOLE product. This shapes everything that follows.
+
+Based on what you learned in Step 1, generate 2-3 genuinely different ways to build this product. Each approach should be viable — not one good option and two strawmen.
+
+Use AskUserQuestion:
+```
+AskUserQuestion(
+  question: "Here are 3 ways we could build [product]. Each shapes the architecture differently.",
+  options: [
+    "(Recommended) [Approach A name]\n[1-2 sentences: what this looks like, who it's best for, key tradeoff]",
+    "[Approach B name]\n[1-2 sentences: different direction, different tradeoff]",
+    "[Approach C name]\n[1-2 sentences: third option, different tradeoff]",
+    "Type something.",
+    "Chat about this"
+  ]
+)
+Why recommended: [Why Approach A fits THIS user's situation, constraints, and goals best]
+```
+
+**Examples of approach differences:**
+
+| Project Type | Approach A | Approach B | Approach C |
+|---|---|---|---|
+| Invoice app | Full SaaS (web, subscriptions) | Desktop-first (offline, one-time purchase) | Hybrid (web + desktop sync) |
+| Recipe app | Social platform (users share, discover) | Personal tool (private cookbook) | Content site (curated, editorial) |
+| Diagnostic tool | Cloud-connected (telemetry, updates) | Fully offline (portable .exe) | Hybrid (offline with optional sync) |
+| API service | Managed SaaS API | Open-source self-hosted | Developer toolkit (SDK/library) |
+
+**What makes a good approach:**
+- Each is a fundamentally different PRODUCT direction, not just a different tech stack
+- Each has a real tradeoff the user understands (cost vs features, speed vs flexibility, simple vs powerful)
+- The recommended one aligns with what you learned about their PURPOSE, CONSTRAINTS, and SUCCESS CRITERIA
+- YAGNI: every approach should be the SIMPLEST version that serves the user's actual need
+
+The chosen approach determines the tech stack. Don't pick tech before the approach is set.
+
+### Step 3: Architecture Proposal (Interactive)
 
 For EACH major technical decision, use `AskUserQuestion` to present your recommendation with alternatives. The CTO recommends, the user approves or pushes back. This is NOT asking them to decide — it's presenting YOUR decision for sign-off.
 
