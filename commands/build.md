@@ -475,8 +475,24 @@ When the user says go:
    
    CONTEXT.md is a SNAPSHOT of what exists NOW — not history. Replace outdated info, don't append. Keep it under 150 lines.
 
-6. Delete `.pilot/current-feature.md` and `.pilot/handoff.md` if they exist.
-7. Commit: `feat: [feature name] (v0.1.3)`
+6. **Update README.md — MANDATORY after EVERY feature.** The project README must always reflect the current state. Update:
+   - Feature list / what the app does (if this feature adds visible capability)
+   - Setup/install instructions (if dependencies or steps changed)
+   - Usage instructions (if new commands, endpoints, or workflows were added)
+   - Configuration (if new env vars, config files, or options were added)
+   - Architecture section (if project structure changed significantly)
+   
+   **Then VERIFY the README is accurate:**
+   - Every setup command listed in README — run it mentally. Would it work on a fresh clone?
+   - Every feature claimed — does it actually exist in the code?
+   - Every env var listed — is it real and documented in .env.example?
+   - Every endpoint/route documented — does it match what's actually implemented?
+   - If README says "supports X" — verify X actually works, don't just trust what was written before
+   
+   A README that doesn't match the code is WORSE than no README — it wastes the user's time with wrong instructions.
+
+7. Delete `.pilot/current-feature.md` and `.pilot/handoff.md` if they exist.
+8. Commit: `feat: [feature name] (v0.1.3)`
 
 ### Step 7: Milestone Check (Automatic)
 
