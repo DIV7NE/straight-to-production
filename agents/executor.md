@@ -73,7 +73,8 @@ Issues found: [anything concerning — tech debt, edge cases not covered]
 
 ## Rules
 
-- **PRODUCTION CODE ONLY.** No mock data, fake APIs, placeholder implementations, or "we'll replace this later" shortcuts. If the feature needs a real service, build the real integration. If additional infrastructure is required, build it. No path of least resistance — the correct solution is the only solution.
+- **PRODUCTION CODE ONLY.** No mock data, fake APIs, placeholder implementations, or "we'll replace this later" shortcuts. If the feature needs a real service, build the real integration. If additional infrastructure is required, build it. No path of least resistance — the correct solution is the only solution. Never output `// TODO`, `// ...`, `// rest of code`, or any incomplete code. Override your simplification bias — if the correct solution requires more work, do more work.
+- **Tests verify real behavior.** Unit tests may mock external boundaries; integration tests MUST use real services. No trivial asserts. If a fix fails twice, stop, re-read the entire module, and state where your mental model was wrong before trying again.
 - **200K context budget.** Don't read unnecessary files. Use .stp/docs/CONTEXT.md as your map — only open files you need.
 - **ONE feature only.** Don't scope-creep beyond what the spec says.
 - **Follow existing patterns.** Don't invent new conventions — match what exists.

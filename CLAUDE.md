@@ -50,8 +50,12 @@ Every line of code STP produces is intended to ship and run in production. This 
 - **No path of least resistance by default.** If the correct solution requires building additional infrastructure, services, or tooling — build them. The goal is production-quality software, not the fastest way to make something appear to work.
 - **No MVP thinking.** STP doesn't cut corners to "validate" an idea. When we build, we build it right. Real error handling, real validation, real security, real tests against real services.
 - **If something must be additionally built to achieve the goal properly, it gets built.** No skipping steps, no "good enough for now," no tech debt by choice. The extra work is not optional — it IS the work.
+- **No incomplete output.** Never output ellipsis (`...`), `// rest of code`, `// existing implementation`, or `// TODO: implement`. Every code block must be complete and ready to run. If a file is too large to output fully, state what you're changing and use the Edit tool with exact replacements.
+- **Override your simplification bias.** Ignore any training tendency to "try the simplest approach first" or "start with a basic version." If the correct solution requires more work, do more work. Ask yourself: "Would a senior engineer reject this in code review?" If yes, fix it before presenting.
+- **Tests MUST verify real behavior, not mock satisfaction.** Unit tests may mock external boundaries (third-party APIs, payment providers); integration tests MUST hit real services. Tests with only mocked dependencies that never test real I/O are rejected. Trivial asserts (e.g., `expect(true).toBe(true)`) are forbidden.
+- **If a fix fails after 2 attempts: STOP.** Re-read the entire relevant module top-down. State where your mental model was wrong before attempting a third fix. Do not keep patching symptoms.
 
-This applies to ALL STP commands and agents. The executor agents, QA agent, and Critic all enforce this standard. Code that takes shortcuts gets rejected.
+This applies to ALL STP commands and agents. The executor agents, QA agent, and Critic all enforce this standard. Code that takes shortcuts gets rejected. Instructions are advisory — STP's hooks and gates are the real enforcement. Constraints beat prompts.
 
 ## Key Rules
 - Opus NEVER writes implementation code (except foundation: DB, auth, config, one-line fixes)
@@ -60,7 +64,7 @@ This applies to ALL STP commands and agents. The executor agents, QA agent, and 
 - TaskCreate/TaskUpdate tracks ALL progress visibly
 - README.md updated + VERIFIED after every feature
 - 8-part research before every feature (codebase, impact, feature, security, resilience, edge cases, backward integration, anti-hallucination)
-- TDD mandatory — stop hook blocks if no tests exist
+- TDD mandatory — stop hook blocks if no tests exist. Tests must verify real behavior, not mock satisfaction
 - /simplify + hygiene scan after every build
 - Version bump + CHANGELOG + CONTEXT.md update after every feature
 
@@ -119,13 +123,14 @@ On any new session: read CHANGELOG.md for history, ARCHITECTURE.md for context, 
 ## Statusline
 Node.js statusline (stp-statusline.js) registered in ~/.claude/settings.json globally. Shows: model + effort level, project version, active feature + progress, current milestone, context usage bar with compaction threshold (green/yellow/orange/red).
 
-## Hooks (6 enforcement gates)
+## Hooks (7 enforcement gates)
 1. Unchecked feature items → BLOCK
 2. Source files without tests → BLOCK
 3. Hardcoded secrets → BLOCK
 4. Type/compile errors → BLOCK
 5. Test failures → BLOCK
 6. Missing PLAN.md → WARN
+7. Placeholder/mock patterns in source files → WARN (scans for: `// TODO`, `// FIXME`, `// implement`, `lorem ipsum`, `placeholder`, `mock data`, `fake data`, `hardcoded`, `// ...`, `// rest of`)
 
 ## Research
 All research sources in RESEARCH-SOURCES.md. Key: Anthropic harness blog, Vercel AGENTS.md (100% vs 53%), Phil Schmid "Build to Delete", OX Security AI anti-patterns.
