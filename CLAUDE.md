@@ -26,7 +26,7 @@ A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 12 commands, 3 agen
 ## Key Rules
 - Opus NEVER writes implementation code (except foundation: DB, auth, config, one-line fixes)
 - ALL features delegate to Sonnet executor via Agent Teams with worktree isolation
-- AskUserQuestion for ALL user interactions (except manual QA freetext)
+- AskUserQuestion tool is MANDATORY for ALL user decisions — NEVER print options as text, NEVER skip, NEVER decide for the user. Only exception: freeform input where structured options don't make sense (bug descriptions, QA feedback, feature requests)
 - TaskCreate/TaskUpdate tracks ALL progress visibly
 - README.md updated + VERIFIED after every feature
 - 8-part research before every feature (codebase, impact, feature, security, resilience, edge cases, backward integration, anti-hallucination)

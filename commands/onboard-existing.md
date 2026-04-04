@@ -117,7 +117,16 @@ Key findings:
 What's your goal for this project?
 ```
 
-Use AskUserQuestion with options: "(Recommended) Production quality — fix issues, harden security, clean up debt", "New features — add functionality", "Both — fix critical issues then build new features", "Just explore — help me understand this codebase", "Chat about this".
+AskUserQuestion(
+  question: "What's your goal for this project?",
+  options: [
+    "(Recommended) Production quality — fix issues, harden security, clean up debt",
+    "New features — add functionality",
+    "Both — fix critical issues then build new features",
+    "Just explore — help me understand this codebase",
+    "Chat about this"
+  ]
+)
 
 **If MCP servers are available** (Sentry, Stripe, Vercel, etc.), ask the user:
 

@@ -284,7 +284,6 @@ Before diving into specific tech decisions, step back and present 2-3 HIGH-LEVEL
 
 Based on what you learned in Step 1, generate 2-3 genuinely different ways to build this product. Each approach should be viable — not one good option and two strawmen.
 
-Use AskUserQuestion:
 ```
 AskUserQuestion(
   question: "Here are 3 ways we could build [product]. Each shapes the architecture differently.",
@@ -320,7 +319,7 @@ The chosen approach determines the tech stack. Don't pick tech before the approa
 
 For EACH major technical decision, use `AskUserQuestion` to present your recommendation with alternatives. The CTO recommends, the user approves or pushes back. This is NOT asking them to decide — it's presenting YOUR decision for sign-off.
 
-**Use AskUserQuestion for each decision:**
+**Each decision MUST use the AskUserQuestion tool:**
 ```
 AskUserQuestion(
   question: "Framework: I'm going with [X]. Here's why and what else I considered.",
@@ -340,25 +339,25 @@ Why recommended: [Specific reasoning for THIS project, citing industry examples]
 
 Section 1: **Core Stack** (framework + database + deployment)
 - Present 2-3 decisions together since they're tightly coupled
-- Use AskUserQuestion for the overall stack choice
+- AskUserQuestion for the overall stack choice (MUST use the tool)
 - Teach WHY these go together
 
 Section 2: **Auth & Users** (auth provider + user model)
 - Present separately — auth choice has business implications (cost, limits, features)
-- Use AskUserQuestion
+- AskUserQuestion (MUST use the tool)
 
 Section 3: **UI & Styling** (component library + CSS approach)
 - Present separately — visual identity matters to the user even if they're not technical
-- Use AskUserQuestion
+- AskUserQuestion (MUST use the tool)
 
 Section 4: **Key Libraries** (ORM, state management, MVVM, testing framework, etc.)
 - Only present choices that SHAPE the architecture (not every dependency)
 - Skip obvious ones (linter, formatter — you just pick those)
-- Use AskUserQuestion for each significant choice
+- AskUserQuestion for each significant choice (MUST use the tool)
 
 Section 5: **Integrations** (payments, email, storage, etc.)
 - Only relevant integrations identified from product questions
-- Use AskUserQuestion for each
+- AskUserQuestion for each (MUST use the tool)
 
 **After each section:** Ask "Does this look right so far?" via AskUserQuestion before moving to the next section. If they push back, adjust before continuing. This is INCREMENTAL VALIDATION — catching wrong decisions early, not after the whole proposal.
 

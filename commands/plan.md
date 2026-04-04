@@ -622,7 +622,15 @@ After verification passes, ask the user to review:
 - Milestone 3 (Polish): [brief]
 - Verification: PASS — [any notes]
 
-Use AskUserQuestion: "(Recommended) Looks good — start building", "I want to change something — let me explain", "Show me the whiteboard diagrams first", "Chat about this".
+AskUserQuestion(
+  question: "Architecture plan complete. Ready to start building?",
+  options: [
+    "(Recommended) Looks good — start building",
+    "I want to change something — let me explain",
+    "Show me the whiteboard diagrams first",
+    "Chat about this"
+  ]
+)
 
 
 When ready:

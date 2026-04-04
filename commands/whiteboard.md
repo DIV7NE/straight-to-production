@@ -97,7 +97,16 @@ Teach along the way. If they don't know what WebSockets are, explain: "WebSocket
 
 Present your recommendation but let the user choose. They might have constraints you don't know about.
 
-"Use AskUserQuestion with the options you presented: "(Recommended) Option [X] — [your reasoning]", "Option [Y] — [when this makes sense]", "Option [Z] — [when this makes sense]", "Type something.", "Chat about this". Add Why recommended: with your specific reasoning."
+AskUserQuestion(
+  question: "[Your analysis summary + which option you recommend and why]",
+  options: [
+    "(Recommended) Option [X] — [your reasoning]. Why recommended: [specific rationale]",
+    "Option [Y] — [when this makes sense]",
+    "Option [Z] — [when this makes sense]",
+    "Something else — let me describe",
+    "Chat about this"
+  ]
+)
 
 ONE question. Wait.
 

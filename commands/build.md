@@ -383,7 +383,14 @@ When the user says go:
    Tests: [N] new, [N] total, all passing
    Type check: clean
 
-   Use AskUserQuestion: "(Recommended) Looks good, continue", "Something is off — let me explain", "Chat about this".
+   AskUserQuestion(
+     question: "Feature checkpoint — review what was built. Continue or flag issues?",
+     options: [
+       "(Recommended) Looks good, continue",
+       "Something is off — let me explain",
+       "Chat about this"
+     ]
+   )
    ```
 
    If the user flags issues, fix them before proceeding.
@@ -462,7 +469,16 @@ When the user says go:
    - Does it feel right? (trust your gut — if something feels off, it is)
 
    Report anything that doesn't look right — I'll fix it.
-   Use AskUserQuestion: "(Recommended) Approved — everything works", "Found an issue — here's what's wrong", "Need to test more", "Chat about this".
+
+   AskUserQuestion(
+     question: "Manual QA complete — does everything look right?",
+     options: [
+       "(Recommended) Approved — everything works",
+       "Found an issue — here's what's wrong",
+       "Need to test more",
+       "Chat about this"
+     ]
+   )
    ```
 
    This is NOT optional. The user must test and approve before the feature is marked done.

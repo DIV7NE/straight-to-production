@@ -1,7 +1,7 @@
 ---
 description: Run the STP Critic — a separate AI that evaluates your app against 7 quality criteria. Use when you think a feature is done or want a quality check.
 argument-hint: Optional focus area (e.g., "security only" or "just check accessibility")
-allowed-tools: ["Read", "Bash", "Grep", "Glob", "Agent"]
+allowed-tools: ["Read", "Write", "Bash", "Grep", "Glob", "Agent", "AskUserQuestion"]
 ---
 
 > **Recommended effort: `/effort high`** — Standard thinking depth for orchestration and review.
@@ -62,25 +62,25 @@ Focus area: $ARGUMENTS (if provided, go deeper on this but still check everythin
 7. End with explicit next step:
 
 If FAIL/PARTIAL issues exist:
-```
-━━━ Next step ━━━
 
-Use AskUserQuestion with options:
-   yes
-
-Or skip to next feature:
-   /stp:build [NEXT FEATURE]
-```
+AskUserQuestion(
+  question: "Critic found issues. Fix them now or continue to next feature?",
+  options: [
+    "(Recommended) Fix issues now — work through them in severity order",
+    "Skip to next feature — /stp:build [NEXT FEATURE]",
+    "Fix only critical/security issues, skip the rest",
+    "Chat about this"
+  ]
+)
 
 If everything PASSED:
 ```
-━━━ Next step ━━━
+━━━ All 7 criteria passed ━━━
 
-All 7 criteria passed. Next feature:
-   /stp:build [NEXT FEATURE]
+Next feature: /stp:build [NEXT FEATURE]
 ```
 
-5. If the user says yes to fixes, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.
+8. If the user says yes to fixes, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.
 
 ## Focus Areas
 
