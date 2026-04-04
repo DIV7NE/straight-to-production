@@ -34,13 +34,14 @@ STP:
 
 ```
 stp/
-├── commands/           # 13 commands
+├── commands/           # 14 commands
 │   ├── whiteboard.md      # /stp:whiteboard — Explore ideas + research
 │   ├── new-project.md     # /stp:new-project — Start a new project
 │   ├── plan.md            # /stp:plan — Design the architecture
 │   ├── build.md           # /stp:build — Build a feature (TDD)
 │   ├── review.md          # /stp:review — Quality evaluation (7 criteria)
 │   ├── autopilot.md       # /stp:autopilot — Overnight autonomous
+│   ├── develop.md         # /stp:develop — Full cycle (understand → tools → research → plan → build)
 │   ├── propose.md         # /stp:propose — Discuss + plan before building
 │   ├── debug.md           # /stp:debug — Systematic debugging (one-shot)
 │   ├── progress.md        # /stp:progress — Check project status
@@ -156,7 +157,15 @@ Opus asks product questions (one at a time), proposes the full stack with altern
 ```
 Researches the domain, designs system architecture, data models, API routes, auth model, error strategy, Feature Touchpoint Map (where each feature appears across the app). Visual whiteboard renders diagrams live. Critic verifies the plan. Writes **.stp/docs/PLAN.md**. No code — just the verified blueprint.
 
-### 3. Propose work (discuss before building)
+### 3. Develop (full cycle — idea to delivery)
+```
+/stp:develop update stripe payments and the entire pricing plan
+/stp:develop add real-time notifications with WebSockets
+/stp:develop rebuild the auth system with role-based access
+```
+The command you use when you mean business. Asks you product questions to understand requirements, discovers and installs needed tools (Stripe MCP, CLIs), researches deeply (Context7, Tavily, industry standards), explores approaches, creates a verified plan, then builds with TDD. One command, full cycle. For autopilot: `/stp:autopilot add payment processing` — same flow, AI makes all decisions automatically.
+
+### 3b. Propose work (discuss before building)
 ```
 /stp:propose add payment processing
 /stp:propose refactor the auth system
@@ -202,7 +211,8 @@ Reads all state files (handoff, feature checklist, plan) and immediately picks u
 /stp:whiteboard        → Shape ideas, research approaches (optional, anytime)
 /stp:new-project       → .stp/docs/PRD.md (what we're building)
 /stp:plan              → .stp/docs/PLAN.md (how we're building it — verified by Critic)
-/stp:propose           → Research → approaches → architecture fit → impact → saved plan
+/stp:develop           → Full cycle: understand → tools → research → plan → TDD build (one command)
+/stp:propose           → Research → approaches → architecture fit → impact → saved plan (stops before building)
 /stp:build             → Executes plan (from /stp:propose or its own research) → TDD → milestone auto-eval
 /stp:review            → Separate AI grades against PRD + PLAN + 7 criteria
 /stp:debug             → Systematic debugging (auto-gather → diagnose → fix → learn)
