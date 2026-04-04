@@ -86,11 +86,37 @@ Why recommended: [specific reasoning for THIS project]
 
 If NO conflicts detected → skip this step silently, proceed to questions.
 
-### Step 1: Product Questions (2-4 max)
+### Step 1: Understand the Product (Conversational Discovery)
 
-Parse the user's description. If it's fewer than 20 words or vague ("an app", "a tool", "something for"), ask ONE clarifying question FIRST: "Tell me more — who uses this and what problem does it solve?" Do NOT proceed to architecture until you understand the product.
+**Step 1a: Scope check (FIRST — before any questions)**
 
-Ask ONLY business/product questions. **ONE question at a time** using the `AskUserQuestion` tool. Wait for the answer before asking the next.
+Read the description. If it describes multiple independent subsystems (e.g., "a platform with chat, file storage, billing, and analytics"), flag this IMMEDIATELY using AskUserQuestion:
+
+```
+AskUserQuestion(
+  question: "This covers a lot of ground — [list subsystems]. Should we tackle it all at once or focus?",
+  options: [
+    "(Recommended) Start with [core subsystem] only\nGet the foundation right, add the rest incrementally",
+    "Build everything in the spec\nMore work upfront, but it's all been thought through",
+    "Let me reprioritize\nI'll tell you what matters most for v1",
+    "Chat about this"
+  ]
+)
+Why recommended: Shipping one thing well beats shipping five things poorly.
+[Similar product] started with just [core feature] and added the rest after launch.
+```
+
+If it's a focused single-product description → skip this, proceed to questions.
+
+**Step 1b: Clarifying questions — one at a time**
+
+Ask questions along THREE axes. Each question should target one of these:
+
+1. **PURPOSE** — Why does this exist? What problem does it solve? Who suffers without it?
+2. **CONSTRAINTS** — Budget, timeline, platforms, must-have integrations, regulatory requirements?
+3. **SUCCESS CRITERIA** — What makes v1 "done"? What does the user need to accomplish on day one?
+
+Parse the description and identify which axes are UNRESOLVED. Ask about those only. Use `AskUserQuestion` for EVERY question — never ask inline. **ONE question per message.** Wait for the answer before asking the next.
 
 **How to ask questions (FOLLOW THIS EXACTLY):**
 - Use `AskUserQuestion` for EVERY question — never ask inline in a text response
@@ -193,17 +219,33 @@ Why recommended: [Specific reasoning for THIS project, citing industry examples]
 ⚠️ Honest downside: [The real risk/limitation of your pick]
 ```
 
-**Decisions to present interactively (one at a time):**
-- Framework (the foundation)
-- Database (where data lives)
-- Auth provider (how users log in)
-- Styling/UI toolkit (how it looks)
-- Deployment platform (how it reaches users)
-- Key library choices that shape architecture (ORM, state management, MVVM framework, etc.)
+**Present in SECTIONS — get approval after each, not all at once:**
 
-For each: present YOUR recommendation as the first option, 2-3 alternatives below it, honest downside, and "Chat about this" for discussion. The user picks or accepts the recommended.
+Section 1: **Core Stack** (framework + database + deployment)
+- Present 2-3 decisions together since they're tightly coupled
+- Use AskUserQuestion for the overall stack choice
+- Teach WHY these go together
 
-If the user just wants to move fast, they can say "accept all" — in that case, briefly list all decisions and proceed.
+Section 2: **Auth & Users** (auth provider + user model)
+- Present separately — auth choice has business implications (cost, limits, features)
+- Use AskUserQuestion
+
+Section 3: **UI & Styling** (component library + CSS approach)
+- Present separately — visual identity matters to the user even if they're not technical
+- Use AskUserQuestion
+
+Section 4: **Key Libraries** (ORM, state management, MVVM, testing framework, etc.)
+- Only present choices that SHAPE the architecture (not every dependency)
+- Skip obvious ones (linter, formatter — you just pick those)
+- Use AskUserQuestion for each significant choice
+
+Section 5: **Integrations** (payments, email, storage, etc.)
+- Only relevant integrations identified from product questions
+- Use AskUserQuestion for each
+
+**After each section:** Ask "Does this look right so far?" via AskUserQuestion before moving to the next section. If they push back, adjust before continuing. This is INCREMENTAL VALIDATION — catching wrong decisions early, not after the whole proposal.
+
+**Speed option:** If at any point the user says "just pick everything" or "I trust you" — briefly list remaining decisions with one-line rationale each and proceed. Don't force the interactive flow on someone who wants to move fast.
 
 ```
 DECISION: [Technology Name]
