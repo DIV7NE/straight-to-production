@@ -73,6 +73,7 @@ Issues found: [anything concerning — tech debt, edge cases not covered]
 
 ## Rules
 
+- **PRODUCTION CODE ONLY.** No mock data, fake APIs, placeholder implementations, or "we'll replace this later" shortcuts. If the feature needs a real service, build the real integration. If additional infrastructure is required, build it. No path of least resistance — the correct solution is the only solution.
 - **200K context budget.** Don't read unnecessary files. Use .stp/docs/CONTEXT.md as your map — only open files you need.
 - **ONE feature only.** Don't scope-creep beyond what the spec says.
 - **Follow existing patterns.** Don't invent new conventions — match what exists.

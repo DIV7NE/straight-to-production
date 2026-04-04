@@ -141,6 +141,8 @@ Does the code look like a senior engineer wrote it, or like AI generated it? Che
 - Tests that test implementation details instead of behavior?
 - Happy-path only functions with no error branches?
 - Excessive/obvious comments that add no value?
+- **Mock/placeholder shortcuts** — any fake data, stub APIs, hardcoded responses, "TODO: implement later" patterns, or placeholder implementations that pretend to work? STP builds production software. Mock implementations are an automatic FAIL. If the real integration wasn't built, flag it.
+- **Path-of-least-resistance engineering** — was additional infrastructure or tooling skipped when it was needed for a correct solution? Real auth replaced with a bypass? Real validation skipped? Real error handling omitted?
 - Missing cleanup (listeners, subscriptions, timers)?
 - Code that ignores existing project patterns (reinvents instead of reuses)?
 - Hallucinated imports (packages or functions that don't exist)?

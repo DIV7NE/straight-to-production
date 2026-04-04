@@ -41,6 +41,18 @@ STP requires the following plugins installed in every project it manages:
 
 **Enforcement:** `/stp:new-project` and `/stp:onboard-existing` preflight checks verify these are installed. If missing, the user is prompted to install before proceeding. Any STP command that touches UI/UX code MUST invoke `/ui-ux-pro-max` before writing frontend code — this supplements (not replaces) the `/frontend-design` skill.
 
+## Philosophy (NON-NEGOTIABLE)
+
+**STP builds production software. Not MVPs. Not mocks. Not prototypes. Not demos.**
+
+Every line of code STP produces is intended to ship and run in production. This means:
+- **No mock data, fake APIs, placeholder implementations, or "we'll replace this later" shortcuts.** If a feature needs a real database, build the real database integration. If it needs real auth, implement real auth. If it needs a real payment flow, wire up the real payment provider.
+- **No path of least resistance by default.** If the correct solution requires building additional infrastructure, services, or tooling — build them. The goal is production-quality software, not the fastest way to make something appear to work.
+- **No MVP thinking.** STP doesn't cut corners to "validate" an idea. When we build, we build it right. Real error handling, real validation, real security, real tests against real services.
+- **If something must be additionally built to achieve the goal properly, it gets built.** No skipping steps, no "good enough for now," no tech debt by choice. The extra work is not optional — it IS the work.
+
+This applies to ALL STP commands and agents. The executor agents, QA agent, and Critic all enforce this standard. Code that takes shortcuts gets rejected.
+
 ## Key Rules
 - Opus NEVER writes implementation code (except foundation: DB, auth, config, one-line fixes)
 - ALL features delegate to Sonnet executor via Agent Teams with worktree isolation
