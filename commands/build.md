@@ -50,7 +50,22 @@ Read .stp/docs/PLAN.md for this feature's requirements, test cases, and dependen
 
 If .stp/docs/PLAN.md exists and this feature is listed, use the plan's test cases and dependencies. If .stp/docs/PLAN.md doesn't exist or this feature isn't in it, create the plan inline (but recommend running `/stp:plan` first for complex projects).
 
-If `.stp/state/current-feature.md` already exists, use AskUserQuestion with options: "(Recommended) Finish [existing feature] first — picking up is faster than context-switching", "Abandon it, start [new feature] — mark old one incomplete", "Chat about this".
+If `.stp/state/current-feature.md` already exists, check if it was created by `/stp:propose`:
+
+**If it has research findings + approach + build order (from /stp:propose):**
+The plan is already done — research, approaches, architecture fit, impact analysis are complete. Skip straight to Step 5 (Build). Tell the user: "Found a plan from /stp:propose — picking up where the discussion left off."
+
+**If it's a feature in progress (has [x] checked items):**
+```
+AskUserQuestion(
+  question: "There's an active feature in progress: [name] ([done]/[total] items). What do you want to do?",
+  options: [
+    "(Recommended) Finish [existing feature] first — picking up is faster than context-switching",
+    "Abandon it, start [new feature] — mark old one incomplete",
+    "Chat about this"
+  ]
+)
+```
 
 ### Step 2: Research (BEFORE building — comprehensive, not optional)
 

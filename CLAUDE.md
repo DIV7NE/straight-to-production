@@ -1,7 +1,7 @@
 # STP — Ship To Production — Claude Code Plugin
 
 ## What This Is
-A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 12 commands, 3 agents, 25 reference files, 20 templates, visual whiteboard, wave-based parallel building.
+A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 13 commands, 3 agents, 25 reference files, 20 templates, visual whiteboard, wave-based parallel building.
 
 ## Architecture
 - **Opus** = CTO (plans, researches, reviews, merges, teaches). Builds foundation work directly (DB, auth, config).
@@ -13,7 +13,8 @@ A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 12 commands, 3 agen
 - `/stp:whiteboard` — explore ideas
 - `/stp:new-project` — start from scratch (pre-flight → constraint detection → 3-axis questions → 2-3 approaches → sectioned architecture → PRD.md)
 - `/stp:plan` — architecture blueprint (9 phases → Critic verifies → whiteboard diagrams → PLAN.md)
-- `/stp:build` — TDD feature building (8-part research → Sonnet executor → QA agent → user QA → hygiene → version bump)
+- `/stp:propose` — discuss, research, and plan work before building (explore approaches → architecture fit → impact analysis → saved plan)
+- `/stp:build` — build, fix, refactor, or update (picks up /stp:propose plan if exists, or does its own research)
 - `/stp:review` — 7-criteria evaluation
 - `/stp:autopilot` — overnight autonomous (Sonnet, --model sonnet --effort medium)
 - `/stp:debug` — systematic debugging (auto-gather → reproduce → diagnose → fix → verify)
@@ -97,6 +98,7 @@ All research sources in RESEARCH-SOURCES.md. Key: Anthropic harness blog, Vercel
 
 ## Effort Levels
 - /stp:new-project, /stp:plan, /stp:debug → max
+- /stp:propose → max
 - /stp:whiteboard, /stp:build, /stp:review, /stp:continue → high
 - /stp:onboard-existing → max
 - /stp:autopilot → medium

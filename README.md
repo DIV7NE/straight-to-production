@@ -34,13 +34,14 @@ STP:
 
 ```
 stp/
-├── commands/           # 12 commands
+├── commands/           # 13 commands
 │   ├── whiteboard.md      # /stp:whiteboard — Explore ideas + research
 │   ├── new-project.md     # /stp:new-project — Start a new project
 │   ├── plan.md            # /stp:plan — Design the architecture
 │   ├── build.md           # /stp:build — Build a feature (TDD)
 │   ├── review.md          # /stp:review — Quality evaluation (7 criteria)
 │   ├── autopilot.md       # /stp:autopilot — Overnight autonomous
+│   ├── propose.md         # /stp:propose — Discuss + plan before building
 │   ├── debug.md           # /stp:debug — Systematic debugging (one-shot)
 │   ├── progress.md        # /stp:progress — Check project status
 │   ├── continue.md        # /stp:continue — Resume where you left off
@@ -155,7 +156,15 @@ Opus asks product questions (one at a time), proposes the full stack with altern
 ```
 Researches the domain, designs system architecture, data models, API routes, auth model, error strategy, Feature Touchpoint Map (where each feature appears across the app). Visual whiteboard renders diagrams live. Critic verifies the plan. Writes **.stp/docs/PLAN.md**. No code — just the verified blueprint.
 
-### 3. Build / Fix / Refactor (TDD)
+### 3. Propose work (discuss before building)
+```
+/stp:propose add payment processing
+/stp:propose refactor the auth system
+/stp:propose should we migrate to server actions?
+```
+Full investigation before committing to code. Researches the domain, explores 2-3 approaches with tradeoffs, maps how it fits YOUR codebase (from ARCHITECTURE.md), surfaces risks and what you didn't think of. Saves the plan — `/stp:build` picks it up when you're ready. No code written.
+
+### 4. Build / Fix / Refactor (TDD)
 ```
 /stp:build add Stripe payments
 /stp:build fix the 5 critical Sentry errors from AUDIT.md
@@ -193,7 +202,8 @@ Reads all state files (handoff, feature checklist, plan) and immediately picks u
 /stp:whiteboard        → Shape ideas, research approaches (optional, anytime)
 /stp:new-project       → .stp/docs/PRD.md (what we're building)
 /stp:plan              → .stp/docs/PLAN.md (how we're building it — verified by Critic)
-/stp:build             → Research → TDD → /simplify → checkpoint → milestone auto-eval
+/stp:propose           → Research → approaches → architecture fit → impact → saved plan
+/stp:build             → Executes plan (from /stp:propose or its own research) → TDD → milestone auto-eval
 /stp:review            → Separate AI grades against PRD + PLAN + 7 criteria
 /stp:debug             → Systematic debugging (auto-gather → diagnose → fix → learn)
 /stp:progress          → Check what's done, in progress, and next
