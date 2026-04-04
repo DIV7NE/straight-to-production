@@ -38,11 +38,11 @@ stp/
 │   ├── whiteboard.md      # /stp:whiteboard — Explore ideas + research
 │   ├── new-project.md     # /stp:new-project — Start a new project
 │   ├── plan.md            # /stp:plan — Design the architecture
-│   ├── build.md           # /stp:build — Build a feature (TDD)
-│   ├── review.md          # /stp:review — Quality evaluation (7 criteria)
-│   ├── autopilot.md       # /stp:autopilot — Overnight autonomous
-│   ├── develop.md         # /stp:develop — Full cycle (understand → tools → research → plan → build)
-│   ├── propose.md         # /stp:propose — Discuss + plan before building
+│   ├── work.md            # /stp:work — "I have serious work" (full cycle)
+│   ├── research.md        # /stp:research — "I need to think first" (no code)
+│   ├── quick.md           # /stp:quick — "Just do it" (small tasks, fixes)
+│   ├── review.md          # /stp:review — "Grade my work" (7 criteria)
+│   ├── autopilot.md       # /stp:autopilot — "Build overnight" (AI decides)
 │   ├── debug.md           # /stp:debug — Systematic debugging (one-shot)
 │   ├── progress.md        # /stp:progress — Check project status
 │   ├── continue.md        # /stp:continue — Resume where you left off
@@ -143,7 +143,7 @@ Existing projects using the old flat layout (docs at root, state files in `.stp/
 /stp:whiteboard should we use WebSockets or SSE for real-time?
 /stp:whiteboard this payment feature is complex, what's the best approach?
 ```
-Explore ideas, research approaches, compare options with industry backing. No code — just thinking. Decisions are saved to disk so they survive /clear. Use before /stp:new-project to shape a vague idea, before /stp:build for complex decisions, or standalone for any technical question.
+Explore ideas, research approaches, compare options with industry backing. No code — just thinking. Decisions are saved to disk so they survive /clear. Use before /stp:new-project to shape a vague idea, before /stp:quick for complex decisions, or standalone for any technical question.
 
 ### 1. Start a new project
 ```
@@ -159,26 +159,26 @@ Researches the domain, designs system architecture, data models, API routes, aut
 
 ### 3. Develop (full cycle — idea to delivery)
 ```
-/stp:develop update stripe payments and the entire pricing plan
-/stp:develop add real-time notifications with WebSockets
-/stp:develop rebuild the auth system with role-based access
+/stp:work update stripe payments and the entire pricing plan
+/stp:work add real-time notifications with WebSockets
+/stp:work rebuild the auth system with role-based access
 ```
 The command you use when you mean business. Asks you product questions to understand requirements, discovers and installs needed tools (Stripe MCP, CLIs), researches deeply (Context7, Tavily, industry standards), explores approaches, creates a verified plan, then builds with TDD. One command, full cycle. For autopilot: `/stp:autopilot add payment processing` — same flow, AI makes all decisions automatically.
 
 ### 3b. Propose work (discuss before building)
 ```
-/stp:propose add payment processing
-/stp:propose refactor the auth system
-/stp:propose should we migrate to server actions?
+/stp:research add payment processing
+/stp:research refactor the auth system
+/stp:research should we migrate to server actions?
 ```
-Full investigation before committing to code. Researches the domain, explores 2-3 approaches with tradeoffs, maps how it fits YOUR codebase (from ARCHITECTURE.md), surfaces risks and what you didn't think of. Saves the plan — `/stp:build` picks it up when you're ready. No code written.
+Full investigation before committing to code. Researches the domain, explores 2-3 approaches with tradeoffs, maps how it fits YOUR codebase (from ARCHITECTURE.md), surfaces risks and what you didn't think of. Saves the plan — `/stp:quick` picks it up when you're ready. No code written.
 
 ### 4. Build / Fix / Refactor (TDD)
 ```
-/stp:build add Stripe payments
-/stp:build fix the 5 critical Sentry errors from AUDIT.md
-/stp:build refactor auth middleware to use centralized pattern
-/stp:build update invoice PDF export to use new template
+/stp:quick add Stripe payments
+/stp:quick fix the 5 critical Sentry errors from AUDIT.md
+/stp:quick refactor auth middleware to use centralized pattern
+/stp:quick update invoice PDF export to use new template
 ```
 One command for ALL work types. Reads ARCHITECTURE.md first (what exists, what could break). Impact analysis, writes tests FIRST, implements, `/simplify` polishes. Backward integration updates existing features. Auto-Critic + integration tests at milestone boundaries. Teaches you concepts along the way.
 
@@ -211,9 +211,9 @@ Reads all state files (handoff, feature checklist, plan) and immediately picks u
 /stp:whiteboard        → Shape ideas, research approaches (optional, anytime)
 /stp:new-project       → .stp/docs/PRD.md (what we're building)
 /stp:plan              → .stp/docs/PLAN.md (how we're building it — verified by Critic)
-/stp:develop           → Full cycle: understand → tools → research → plan → TDD build (one command)
-/stp:propose           → Research → approaches → architecture fit → impact → saved plan (stops before building)
-/stp:build             → Executes plan (from /stp:propose or its own research) → TDD → milestone auto-eval
+/stp:work           → Full cycle: understand → tools → research → plan → TDD build (one command)
+/stp:research           → Research → approaches → architecture fit → impact → saved plan (stops before building)
+/stp:quick             → Executes plan (from /stp:research or its own research) → TDD → milestone auto-eval
 /stp:review            → Separate AI grades against PRD + PLAN + 7 criteria
 /stp:debug             → Systematic debugging (auto-gather → diagnose → fix → learn)
 /stp:progress          → Check what's done, in progress, and next
@@ -234,9 +234,9 @@ Day 1:
 
 Day 1+:
   /stp:progress                      → See what's planned, what's next
-  /stp:build fix critical Sentry errors → Reads ARCHITECTURE.md, knows what could break
-  /stp:build add new feature          → Impact analysis against full codebase map
-  /stp:build refactor auth module     → Dependency map shows what depends on it
+  /stp:quick fix critical Sentry errors → Reads ARCHITECTURE.md, knows what could break
+  /stp:quick add new feature          → Impact analysis against full codebase map
+  /stp:quick refactor auth module     → Dependency map shows what depends on it
   /stp:review                        → Refreshes AUDIT.md with latest Sentry/Vercel data
 
 Session breaks:
@@ -269,11 +269,11 @@ Everything persisted:
 |----------|-----------|------------|---------|
 | .stp/docs/ARCHITECTURE.md | /stp:onboard-existing | milestone refresh | Full codebase map (models, routes, components, integrations, dependencies) |
 | .stp/docs/AUDIT.md | /stp:onboard-existing | /stp:review | Production health (Sentry errors, deploy status, billing, performance) |
-| .stp/docs/PRD.md | /stp:new-project | /stp:build (decisions log) | What we're building + acceptance criteria |
-| .stp/docs/PLAN.md | /stp:plan | /stp:build (mark [x] + version) | How we're building it (verified blueprint) |
-| .stp/docs/CONTEXT.md | /stp:new-project | /stp:build (incremental), milestone (full refresh) | Concise AI reference (<150 lines, links to ARCHITECTURE.md) |
-| .stp/docs/CHANGELOG.md | /stp:new-project | /stp:build (per feature + milestone) | What happened (versioned history) |
-| VERSION | /stp:new-project | /stp:build (patch bump), milestone (minor bump) | Current version number |
+| .stp/docs/PRD.md | /stp:new-project | /stp:quick (decisions log) | What we're building + acceptance criteria |
+| .stp/docs/PLAN.md | /stp:plan | /stp:quick (mark [x] + version) | How we're building it (verified blueprint) |
+| .stp/docs/CONTEXT.md | /stp:new-project | /stp:quick (incremental), milestone (full refresh) | Concise AI reference (<150 lines, links to ARCHITECTURE.md) |
+| .stp/docs/CHANGELOG.md | /stp:new-project | /stp:quick (per feature + milestone) | What happened (versioned history) |
+| VERSION | /stp:new-project | /stp:quick (patch bump), milestone (minor bump) | Current version number |
 | CLAUDE.md | /stp:new-project | — | Standards + patterns for Claude |
 
 ## Design Principles

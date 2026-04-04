@@ -1,5 +1,5 @@
 ---
-description: Systematic debugging — finds and fixes bugs in one shot. Auto-gathers context (Sentry, architecture, git history), diagnoses with evidence, then fixes with TDD + defense-in-depth. Use for any bug, error, or unexpected behavior.
+description: "Something is broken." Finds the root cause and fixes it in one shot. Auto-gathers everything (Sentry, code, git, architecture) before asking you anything, diagnoses with evidence using the scientific method, then fixes with TDD + defense-in-depth so the bug never comes back. Use when something is broken, erroring, or behaving unexpectedly.
 argument-hint: What's broken (e.g., "dashboard shows wrong totals", "Sentry error on /api/invoices", "tests failing after merge")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
@@ -375,7 +375,7 @@ After 3 disproven hypotheses: **this is architectural, not a bug.** Tell the use
 AskUserQuestion(
   question: "After investigating 3 different root cause theories, I believe this is a structural issue, not a simple bug. [Explain the architectural problem]. This needs a design change, not a fix. How should we proceed?",
   options: [
-    "(Recommended) Redesign this area — /stp:build refactor [area]",
+    "(Recommended) Redesign this area — /stp:quick refactor [area]",
     "Apply a workaround for now and plan the redesign",
     "Let me provide more context that might help",
     "Chat about this"

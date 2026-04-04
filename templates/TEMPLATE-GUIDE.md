@@ -50,7 +50,7 @@ These should be the patterns a non-expert would get wrong without guidance.]
 
 ## Project Conventions (living section — grows during development)
 [This section starts empty. STP adds rules here as the project develops:
-- /stp:build adds patterns discovered during feature development
+- /stp:quick adds patterns discovered during feature development
 - /stp:debug adds lessons learned from bug fixes
 - /stp:onboard-existing detects conventions from existing code
 - /stp:review adds rules from Critic findings

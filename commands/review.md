@@ -67,7 +67,7 @@ AskUserQuestion(
   question: "Critic found issues. Fix them now or continue to next feature?",
   options: [
     "(Recommended) Fix issues now — work through them in severity order",
-    "Skip to next feature — /stp:build [NEXT FEATURE]",
+    "Skip to next feature — /stp:quick [NEXT FEATURE]",
     "Fix only critical/security issues, skip the rest",
     "Chat about this"
   ]
@@ -77,7 +77,7 @@ If everything PASSED:
 ```
 ━━━ All 7 criteria passed ━━━
 
-Next feature: /stp:build [NEXT FEATURE]
+Next feature: /stp:quick [NEXT FEATURE]
 ```
 
 8. If the user says yes to fixes, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.

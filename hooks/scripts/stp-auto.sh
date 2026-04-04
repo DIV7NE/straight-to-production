@@ -14,7 +14,7 @@ if [ ! -f "CLAUDE.md" ]; then
 fi
 
 if [ ! -f "$FEATURE_FILE" ]; then
-  echo "Error: No .stp/state/current-feature.md found. Run /stp:build first."
+  echo "Error: No .stp/state/current-feature.md found. Run /stp:quick first."
   exit 1
 fi
 

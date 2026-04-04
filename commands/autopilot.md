@@ -16,7 +16,7 @@ Autonomous development. Same quality as interactive mode — full research, TDD,
 ```
 /stp:autopilot add payment processing with Stripe
 ```
-Runs the FULL `/stp:develop` cycle autonomously:
+Runs the FULL `/stp:work` cycle autonomously:
 - Phase 1 (Understand): AI interprets requirements from the description
 - Phase 2 (Context): reads ARCHITECTURE.md, AUDIT.md, codebase
 - Phase 3 (Tools): auto-installs recommended tools (skips if interactive auth needed)
@@ -29,7 +29,7 @@ Runs the FULL `/stp:develop` cycle autonomously:
 /stp:autopilot
 /stp:autopilot continue
 ```
-Requires `.stp/state/current-feature.md` to already exist (from `/stp:propose`, `/stp:develop`, or `/stp:build`). Works through the checklist item by item.
+Requires `.stp/state/current-feature.md` to already exist (from `/stp:research`, `/stp:work`, or `/stp:quick`). Works through the checklist item by item.
 
 ## How It Works
 
@@ -37,7 +37,7 @@ Each checklist item runs in a fresh Claude Code session (headless `-p` mode) for
 
 ```
 Mode 1: Full cycle
-  Session 0: Opus -p --effort high → runs /stp:develop phases 1-5 → creates plan + checklist
+  Session 0: Opus -p --effort high → runs /stp:work phases 1-5 → creates plan + checklist
   Session 1: Sonnet -p --effort medium → reads checklist → task 1 → TDD → commit
   Session 2: Sonnet -p → task 2 → TDD → commit
   ...

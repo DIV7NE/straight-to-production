@@ -10,20 +10,27 @@ A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 14 commands, 3 agen
 - **Sonnet Critic** = code reviewer (7 criteria including AI slop detection)
 
 ## Commands
-- `/stp:whiteboard` — explore ideas
-- `/stp:new-project` — start from scratch (pre-flight → constraint detection → 3-axis questions → 2-3 approaches → sectioned architecture → PRD.md)
-- `/stp:plan` — architecture blueprint (9 phases → Critic verifies → whiteboard diagrams → PLAN.md)
-- `/stp:develop` — full development cycle (understand → tools → research → plan → build) in one flow
-- `/stp:propose` — discuss, research, and plan work before building (stops before execution)
-- `/stp:build` — build, fix, refactor, or update (picks up existing plan if exists, or does its own research)
-- `/stp:review` — 7-criteria evaluation
-- `/stp:autopilot` — overnight autonomous (full cycle OR checklist, AI picks recommended choices)
-- `/stp:debug` — systematic debugging (auto-gather → reproduce → diagnose → fix → verify)
-- `/stp:progress` — check project status (what's done, in progress, next)
-- `/stp:continue` — resume exactly where you left off after /clear or new session
-- `/stp:pause` — handoff for /clear
-- `/stp:onboard-existing` — take over existing codebase
-- `/stp:upgrade` — pull latest from GitHub
+**Getting started:**
+- `/stp:new-project` — "I'm starting from scratch." Pre-flight → questions → stack → PRD.md
+- `/stp:onboard-existing` — "I have an existing codebase." Full analysis → architecture map → plan
+- `/stp:plan` — "Design the architecture." 9-phase blueprint → Critic verifies → PLAN.md
+
+**Doing work:**
+- `/stp:work` — "I have serious work to do." Full cycle: understand → tools → research → plan → build
+- `/stp:research` — "I need to think first." Investigate approaches, create plan. No code written.
+- `/stp:quick` — "Just do it." Jumps into building. For small tasks, fixes, refactors.
+- `/stp:debug` — "Something is broken." Root cause analysis → evidence-based fix → defense-in-depth
+
+**Quality + operations:**
+- `/stp:review` — "Grade my work." Separate AI evaluates against 7 criteria
+- `/stp:autopilot` — "Build overnight." Same as /stp:work but AI decides everything
+- `/stp:whiteboard` — "I need to think." Explore ideas, compare options, no commitment
+
+**Session management:**
+- `/stp:progress` — "Where are we?" Status dashboard — what's done, next, warnings
+- `/stp:continue` — "Pick up where I left off." Reads state files, starts working immediately
+- `/stp:pause` — "I'm done for now." Saves context for next session
+- `/stp:upgrade` — "Update STP." Pulls latest + migrates
 
 ## Key Rules
 - Opus NEVER writes implementation code (except foundation: DB, auth, config, one-line fixes)
@@ -43,15 +50,15 @@ A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 14 commands, 3 agen
 |------|------|-------------|------------|
 | ARCHITECTURE.md | Full codebase map (models, routes, components, integrations, dependencies) | Before ANY code change — check what exists and what could break | /stp:onboard-existing, milestone refresh |
 | AUDIT.md | Production health (Sentry errors, deploy status, billing, performance) | Before fixing bugs, planning remediation | /stp:onboard-existing, /stp:review |
-| PRD.md | Requirements + acceptance criteria | Starting features, QA, reviewing | /stp:new-project, /stp:build |
-| PLAN.md | Architecture + feature waves | Planning builds, dependency checks | /stp:plan, /stp:build |
-| CONTEXT.md | Concise AI reference (<150 lines) | Quick lookup, links to ARCHITECTURE.md for full detail | /stp:build (per feature + milestone refresh) |
-| CHANGELOG.md | Versioned history | Checking recent work | /stp:build (per feature + milestone) |
+| PRD.md | Requirements + acceptance criteria | Starting features, QA, reviewing | /stp:new-project, /stp:quick |
+| PLAN.md | Architecture + feature waves | Planning builds, dependency checks | /stp:plan, /stp:quick |
+| CONTEXT.md | Concise AI reference (<150 lines) | Quick lookup, links to ARCHITECTURE.md for full detail | /stp:quick (per feature + milestone refresh) |
+| CHANGELOG.md | Versioned history | Checking recent work | /stp:quick (per feature + milestone) |
 
 ### .stp/state/ — Runtime State (survives /clear + compaction)
 | File | Purpose | Created by |
 |------|---------|------------|
-| current-feature.md | Active feature checklist | /stp:build |
+| current-feature.md | Active feature checklist | /stp:quick |
 | handoff.md | Pause context for next session | /stp:pause (consumed by /stp:continue) |
 | state.json | Emergency auto-save | PreCompact hook |
 
@@ -98,9 +105,9 @@ Node.js statusline (stp-statusline.js) registered in ~/.claude/settings.json glo
 All research sources in RESEARCH-SOURCES.md. Key: Anthropic harness blog, Vercel AGENTS.md (100% vs 53%), Phil Schmid "Build to Delete", OX Security AI anti-patterns.
 
 ## Effort Levels
-- /stp:new-project, /stp:plan, /stp:debug, /stp:develop → max
-- /stp:propose → max
-- /stp:whiteboard, /stp:build, /stp:review, /stp:continue → high
+- /stp:new-project, /stp:plan, /stp:debug, /stp:work → max
+- /stp:research → max
+- /stp:whiteboard, /stp:quick, /stp:review, /stp:continue → high
 - /stp:onboard-existing → max
 - /stp:autopilot → medium
 - /stp:progress, /stp:pause, /stp:upgrade → low

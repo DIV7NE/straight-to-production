@@ -145,14 +145,14 @@ Now execute based on what the resume point requires:
 
 **If resuming mid-feature (active checklist):**
 - Pick up from the first unchecked `[ ]` item in `.stp/state/current-feature.md`
-- Follow the same build process as `/stp:build` Step 5 onward
+- Follow the same build process as `/stp:quick` Step 5 onward
 - Opus plans/reviews, Sonnet executes (delegation rules still apply)
 - TaskCreate for remaining items
 - Continue TDD, hygiene, QA flow as normal
 
 **If resuming between features (next feature in .stp/docs/PLAN.md):**
-- This is equivalent to `/stp:build [next feature]`
-- Follow the full `/stp:build` process from Step 1
+- This is equivalent to `/stp:quick [next feature]`
+- Follow the full `/stp:quick` process from Step 1
 - But skip the user's initial description — you already know from .stp/docs/PLAN.md
 
 **If resuming from handoff with specific instructions:**

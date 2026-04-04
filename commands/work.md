@@ -1,5 +1,5 @@
 ---
-description: Full development cycle — from idea to delivery in one flow. Understands requirements, discovers tools, researches deeply, plans with verification, then builds with TDD. The command you use when you mean business.
+description: "I have serious work to do." Full cycle from idea to finished code — asks you what you need, finds and installs tools, researches the best approach, creates a verified plan, then builds everything with TDD. Use when the task is big, complex, or you want the best possible outcome. This is the main command for getting real work done.
 argument-hint: What you want done (e.g., "update stripe payments and pricing", "add real-time notifications", "rebuild the entire auth system")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
@@ -223,7 +223,7 @@ AskUserQuestion(
 
 With the chosen approach, create a comprehensive plan.
 
-**For single features:** Create `.stp/state/current-feature.md` with the standard checklist format (compatible with /stp:build).
+**For single features:** Create `.stp/state/current-feature.md` with the standard checklist format (compatible with /stp:quick).
 
 **For multi-feature work:** Create or update `.stp/docs/PLAN.md` with milestones, features, and wave execution plans.
 
@@ -272,7 +272,7 @@ AskUserQuestion(
     "(Recommended) Approved — start building",
     "Modify — I want to adjust [something]",
     "More detail — show me the full plan",
-    "Save for later — I'll run /stp:build when ready",
+    "Save for later — I'll run /stp:quick when ready",
     "Discard — changed my mind",
     "Chat about this"
   ]
@@ -281,7 +281,7 @@ AskUserQuestion(
 
 ### Phase 6: EXECUTE — Build With TDD
 
-**This phase follows the exact same process as `/stp:build` Step 5 onward.**
+**This phase follows the exact same process as `/stp:quick` Step 5 onward.**
 
 For approved plans:
 1. Save checklist to `.stp/state/current-feature.md` (if not already)
@@ -333,7 +333,7 @@ The key rule for autopilot: **always pick the recommended option.** Every AskUse
 
 - This is the FULL cycle. Do NOT skip phases. Phase 3 (Tools) is new and critical — missing tools mid-build wastes time.
 - AskUserQuestion is MANDATORY for all decisions (use the tool, not text).
-- The plan from Phase 5 MUST be compatible with /stp:build's checklist format.
+- The plan from Phase 5 MUST be compatible with /stp:quick's checklist format.
 - If the user says "just build it" during Phase 1-4, redirect: "Let me finish the investigation — 10 more minutes of research prevents days of rework."
 - For multi-feature work, create milestones in .stp/docs/PLAN.md. For single features, use .stp/state/current-feature.md.
 - Phase 3 (Tools) should be FAST — check, suggest, install, move on. Don't spend 10 minutes researching tools.

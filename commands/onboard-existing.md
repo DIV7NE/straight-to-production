@@ -151,7 +151,7 @@ AskUserQuestion(
 
 ### Step 2: Map — Full Architecture → ARCHITECTURE.md
 
-**This is the most important step.** Map the ENTIRE codebase architecture and write it to `.stp/docs/ARCHITECTURE.md` IMMEDIATELY. This document is the AI's complete understanding of how the project works. Every future `/stp:build` reads this before touching code.
+**This is the most important step.** Map the ENTIRE codebase architecture and write it to `.stp/docs/ARCHITECTURE.md` IMMEDIATELY. This document is the AI's complete understanding of how the project works. Every future `/stp:quick` reads this before touching code.
 
 Write `.stp/docs/ARCHITECTURE.md` incrementally — one section at a time:
 
@@ -448,7 +448,7 @@ Documents created:
 Baseline: [Critic summary — 1 line per criterion]
 
 ━━━ Next step ━━━
-/stp:build [FIRST TASK from .stp/docs/PLAN.md]
+/stp:quick [FIRST TASK from .stp/docs/PLAN.md]
 ```
 
 ## Rules

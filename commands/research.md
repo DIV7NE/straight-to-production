@@ -1,5 +1,5 @@
 ---
-description: Discuss, research, and plan a piece of work before committing to building it. Full investigation cycle — research, approaches, architecture fit, impact analysis, plan. Saves the plan for /stp:build to execute.
+description: "I'm not ready to build yet — I need to think first." Researches the topic deeply, explores 2-3 approaches with honest tradeoffs, maps how it fits your codebase, surfaces risks you didn't think of, and saves a plan. No code is written. Use when you want to understand before committing, or when you're unsure which approach to take.
 argument-hint: What you're thinking about (e.g., "add payment processing", "refactor the auth system", "fix the N+1 query problem")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
@@ -285,8 +285,8 @@ Plan saved to .stp/state/current-feature.md
 AskUserQuestion(
   question: "Plan is ready. What do you want to do?",
   options: [
-    "(Recommended) Build it now — /stp:build will pick up this plan",
-    "Save for later — I'll run /stp:build when ready",
+    "(Recommended) Build it now — /stp:quick will pick up this plan",
+    "Save for later — I'll run /stp:quick when ready",
     "Modify the plan — let me adjust something",
     "Discard — I changed my mind",
     "Chat about this"
@@ -294,9 +294,9 @@ AskUserQuestion(
 )
 ```
 
-If "Build it now": tell the user to run `/stp:build`. The build command detects the existing `.stp/state/current-feature.md` and skips straight to execution (Step 5) since research and planning are already done.
+If "Build it now": tell the user to run `/stp:quick`. The build command detects the existing `.stp/state/current-feature.md` and skips straight to execution (Step 5) since research and planning are already done.
 
-If "Save for later": the plan persists in `.stp/state/current-feature.md`. `/stp:continue` or `/stp:build` will find it on the next session.
+If "Save for later": the plan persists in `.stp/state/current-feature.md`. `/stp:continue` or `/stp:quick` will find it on the next session.
 
 If "Discard": delete `.stp/state/current-feature.md`.
 
@@ -309,5 +309,5 @@ If "Discard": delete `.stp/state/current-feature.md`.
 - ALWAYS read ARCHITECTURE.md before proposing how work fits the codebase.
 - ALWAYS check AUDIT.md Patterns & Lessons for relevant past bugs.
 - ALWAYS surface what the user didn't think of. That's the CTO's job.
-- The plan saved to current-feature.md must be compatible with /stp:build's format — same checklist structure so build can execute it directly.
+- The plan saved to current-feature.md must be compatible with /stp:quick's format — same checklist structure so build can execute it directly.
 - If the user asks to "just build it" during discussion, redirect: "Let's finish the plan first — 5 more minutes of thinking saves hours of wrong implementation."

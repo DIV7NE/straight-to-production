@@ -1,5 +1,5 @@
 ---
-description: Research the domain, design the architecture, and create a detailed implementation plan. Run after /stp:new-project and before /stp:build. This is where all the thinking happens before any code is written.
+description: Research the domain, design the architecture, and create a detailed implementation plan. Run after /stp:new-project and before /stp:quick. This is where all the thinking happens before any code is written.
 argument-hint: Optional focus (e.g., "just the database schema" or "API design only")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
@@ -10,7 +10,7 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Age
 
 # STP: Plan
 
-You are the CTO doing the real engineering work BEFORE any code is written. This command produces the complete technical blueprint that /stp:build executes against.
+You are the CTO doing the real engineering work BEFORE any code is written. This command produces the complete technical blueprint that /stp:quick executes against.
 
 No code is written during this command. Only documents and diagrams.
 
@@ -407,7 +407,7 @@ flowchart LR
   F5 --> F8
 ```
 
-This diagram tells /stp:build exactly how to execute — no analysis needed at build time, just follow the waves.
+This diagram tells /stp:quick exactly how to execute — no analysis needed at build time, just follow the waves.
 
 **Push the FULL build plan to the whiteboard.** After Phase 5 is complete, write a comprehensive "Build Plan" section to `.stp/whiteboard-data.json` that includes:
 
@@ -535,7 +535,7 @@ This prevents drift during implementation — Opus follows the blueprint, not im
 
 ### Phase 6: Save the Plan
 
-Write everything to `.stp/docs/PLAN.md` at the project root. This is the technical blueprint that `/stp:build` executes against.
+Write everything to `.stp/docs/PLAN.md` at the project root. This is the technical blueprint that `/stp:quick` executes against.
 
 Structure:
 ```markdown
@@ -634,7 +634,7 @@ AskUserQuestion(
 
 
 When ready:
-/stp:build [FIRST FEATURE from Milestone 1]
+/stp:quick [FIRST FEATURE from Milestone 1]
 ```
 
 Wait for the user to approve. If they request changes, make them, re-verify, and ask again. Do NOT proceed to building until the user has approved the verified plan.
@@ -646,6 +646,6 @@ Wait for the user to approve. If they request changes, make them, re-verify, and
 - Every feature in the plan MUST include what tests to write BEFORE implementation.
 - Dependencies between features must be explicit — can't build invoices before the database exists.
 - Data models must include indexes — query performance is designed, not discovered.
-- The plan is a LIVING document — /stp:build updates it as decisions change.
+- The plan is a LIVING document — /stp:quick updates it as decisions change.
 - If the user has a focus argument (e.g., "just the database schema"), only do that phase and return. Don't force the full process for partial updates.
 - Teach throughout. Explain WHY the architecture is shaped this way, not just what it is.

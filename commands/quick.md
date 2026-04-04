@@ -1,5 +1,5 @@
 ---
-description: Build, fix, refactor, or update anything. Opus makes all technical decisions, only asks product questions, and teaches key concepts along the way. Use for new features, bug fixes, refactoring, and updates to existing code.
+description: "Just do it — skip the ceremony." Jumps straight into building with its own research. Use for small-to-medium tasks where you already know what you want and don't need a full investigation. Fixes, refactors, single features, updates. If a plan from /stp:research exists, picks it up and executes immediately.
 argument-hint: What you want (e.g., "add Stripe payments", "fix the Sentry errors on /dashboard", "refactor auth middleware", "update invoice PDF export")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
@@ -50,10 +50,10 @@ Read .stp/docs/PLAN.md for this feature's requirements, test cases, and dependen
 
 If .stp/docs/PLAN.md exists and this feature is listed, use the plan's test cases and dependencies. If .stp/docs/PLAN.md doesn't exist or this feature isn't in it, create the plan inline (but recommend running `/stp:plan` first for complex projects).
 
-If `.stp/state/current-feature.md` already exists, check if it was created by `/stp:propose`:
+If `.stp/state/current-feature.md` already exists, check if it was created by `/stp:research`:
 
-**If it has research findings + approach + build order (from /stp:propose):**
-The plan is already done — research, approaches, architecture fit, impact analysis are complete. Skip straight to Step 5 (Build). Tell the user: "Found a plan from /stp:propose — picking up where the discussion left off."
+**If it has research findings + approach + build order (from /stp:research):**
+The plan is already done — research, approaches, architecture fit, impact analysis are complete. Skip straight to Step 5 (Build). Tell the user: "Found a plan from /stp:research — picking up where the discussion left off."
 
 **If it's a feature in progress (has [x] checked items):**
 ```
@@ -565,7 +565,7 @@ When the user says go:
    - **[Rule name]**: [What to always/never do]
      - Why: [The reason — a decision, a bug prevention, a pattern that works]
      - Applies when: [When a developer should think of this rule]
-     - Added: [DATE] via /stp:build [feature name]
+     - Added: [DATE] via /stp:quick [feature name]
    ```
 
    Examples of conventions worth capturing:
@@ -681,7 +681,7 @@ Priority fixes (if any):
 2. [Second]
 
 Fix these now? Or continue to Milestone [N+1]:
-   /stp:build [FIRST FEATURE of next milestone]
+   /stp:quick [FIRST FEATURE of next milestone]
 ```
 
 If this is the **LAST milestone** (all milestones complete):
@@ -708,7 +708,7 @@ Feature complete: [NAME]
 [N] of [M] features done in Milestone [current].
 
 ━━━ Next ━━━
-/stp:build [NEXT FEATURE in this milestone]
+/stp:quick [NEXT FEATURE in this milestone]
 ```
 
 ALWAYS fill in specific names.
