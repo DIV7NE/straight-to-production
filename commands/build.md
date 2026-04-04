@@ -12,6 +12,29 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Age
 
 You are building a feature using test-driven development. Tests come BEFORE implementation. Make all technical decisions. Only interrupt the user for PRODUCT decisions. Teach key concepts along the way.
 
+## Task Tracking (MANDATORY)
+
+Use `TaskCreate` and `TaskUpdate` to track EVERY step visibly. The user sees real-time progress in their terminal.
+
+**At the START, create tasks from the feature checklist:**
+```
+TaskCreate("Research: codebase + impact + security + resilience")
+TaskCreate("Write tests (TDD)")
+TaskCreate("[Checklist item 1 from feature plan]")
+TaskCreate("[Checklist item 2]")
+TaskCreate("[Checklist item 3]")
+...
+TaskCreate("/simplify code review")
+TaskCreate("Hygiene scan")
+TaskCreate("QA Agent testing")
+TaskCreate("User QA approval")
+TaskCreate("Version bump + docs update")
+```
+
+**As you work:** `TaskUpdate` each to `in_progress` when starting, `completed` when done. If you discover additional work needed during building (backward integration, unexpected fix, tech debt), `TaskCreate` a new task for it immediately — don't let it slip through.
+
+**When spawning subagents (executor, QA):** The task should show the subagent's `activeForm` (e.g., "Building: Invoice CRUD via executor agent").
+
 ## Process
 
 ### Step 1: Context

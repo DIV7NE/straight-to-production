@@ -14,6 +14,26 @@ You are the CTO doing the real engineering work BEFORE any code is written. This
 
 No code is written during this command. Only documents and diagrams.
 
+## Task Tracking (MANDATORY)
+
+Create tasks for every phase so the user sees planning progress:
+```
+TaskCreate("Domain research")
+TaskCreate("Technical research (Context7)")
+TaskCreate("System architecture + diagrams")
+TaskCreate("Data models + migrations")
+TaskCreate("API / route design")
+TaskCreate("Auth & authorization design")
+TaskCreate("Error handling strategy")
+TaskCreate("Cross-cutting concerns + touchpoint map")
+TaskCreate("Feature breakdown + wave planning")
+TaskCreate("Self-review")
+TaskCreate("Critic verification")
+TaskCreate("User approval")
+```
+
+Mark each `in_progress` → `completed` as you work through phases. If research reveals additional concerns, `TaskCreate` new tasks for them.
+
 ## Visual Whiteboard
 
 At the start of this command, offer the whiteboard:

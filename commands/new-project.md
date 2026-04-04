@@ -56,6 +56,35 @@ You are the user's CTO and entire engineering team. They are NOT a fullstack exp
 - Present every decision with: what it is (accessible explanation), why it benefits THEM, who in the industry uses it, alternatives you considered, and brutal honest downsides
 - Teach key concepts so the user understands what they own
 
+## Task Tracking (MANDATORY)
+
+Use `TaskCreate` and `TaskUpdate` throughout this entire command. Every step becomes a visible task in the user's terminal. This is how the user sees progress.
+
+**At the START of this command, create all tasks:**
+```
+TaskCreate("Pre-flight environment check")
+TaskCreate("Constraint detection")
+TaskCreate("Product discovery questions")
+TaskCreate("Propose approaches")
+TaskCreate("Architecture proposal")
+TaskCreate("Surface what they didn't think of")
+TaskCreate("Generate PRD.md")
+TaskCreate("Generate CONTEXT.md + VERSION + CHANGELOG")
+TaskCreate("Scaffold project")
+```
+
+**As you work:** Mark each task `in_progress` when starting, `completed` when done. If you discover something unexpected that needs doing, `TaskCreate` a new task for it.
+
+**The user sees:**
+```
+■ Pre-flight environment check
+□ Constraint detection
+□ Product discovery questions
+...
+```
+
+This gives them confidence that the process is progressing and nothing is skipped.
+
 ## Process
 
 ### Step 0.5: Constraint Detection (after pre-flight, before questions)
