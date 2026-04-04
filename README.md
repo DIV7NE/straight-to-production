@@ -89,6 +89,9 @@ stp/
 your-project/
 ├── CLAUDE.md                # Standards + patterns (Claude auto-reads from root)
 ├── VERSION                  # Current version (e.g., 0.1.3)
+├── design-system/           # UI/UX design system (created for frontend projects)
+│   ├── MASTER.md            # Global design rules (style, colors, fonts, layout)
+│   └── pages/               # Page-specific overrides
 └── .stp/
     ├── docs/                # Project documents
     │   ├── ARCHITECTURE.md  # Full codebase map (models, routes, deps)
@@ -109,6 +112,20 @@ your-project/
 ```
 
 Existing projects using the old flat layout (docs at root, state files in `.stp/`) are auto-migrated on first session start after upgrade.
+
+## Required Companion Plugins
+
+STP auto-installs these during setup (`/stp:new-project`, `/stp:onboard-existing`). If you already have STP and are upgrading, install manually:
+
+| Plugin | Purpose | Install |
+|--------|---------|---------|
+| **[ui-ux-pro-max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill)** (v2.5+) | Design intelligence — 67 styles, 161 palettes, 57 font pairings. Generates `design-system/MASTER.md` that all build commands read before writing frontend code. | `npm i -g uipro-cli && uipro init --ai claude` |
+
+When any STP command detects UI/UX work, it:
+1. Generates a design system via ui-ux-pro-max
+2. Renders a live preview in the whiteboard (color swatches, font samples, layout wireframe)
+3. Asks you to approve before any frontend code is written
+4. Persists to `design-system/MASTER.md` — the executor agents follow it exactly
 
 ## Supported Stacks
 

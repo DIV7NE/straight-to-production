@@ -173,6 +173,46 @@ If restart needed:
    - "Resume from Phase 4: Research"
 2. Tell the user: "Run `/clear` then `/stp:continue`. The new tool will be active and I'll pick up from research."
 
+### Phase 3b: UI/UX DESIGN SYSTEM (when work involves ANY frontend/UI)
+
+If this work touches UI (components, pages, layouts, styling, themes, landing pages, dashboards, forms), this phase is MANDATORY before research:
+
+**Check for ui-ux-pro-max (required companion plugin):**
+```bash
+[ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ] && echo "ui-ux-pro-max: installed" || echo "ui-ux-pro-max: MISSING"
+```
+If MISSING → install automatically: `npm i -g uipro-cli && uipro init --ai claude`. Do NOT proceed with UI work without it.
+
+**Check for existing design system:**
+```bash
+[ -f "design-system/MASTER.md" ] && echo "design-system: exists" || echo "design-system: NONE"
+```
+
+**If design system exists** → Read `design-system/MASTER.md`. ALL UI code MUST follow its style, colors, typography, layout patterns, and anti-patterns. Check for page-specific overrides in `design-system/pages/`.
+
+**If NO design system exists** → Generate one:
+
+1. Run ui-ux-pro-max to generate recommendations:
+```bash
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<product_type> <industry> <keywords>" --design-system -p "<Project Name>"
+```
+
+2. Write the design preview to `.stp/explore-data.json` as a `designSystem` section (see whiteboard.md for the full JSON format) and start the whiteboard:
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
+```
+
+3. Ask the user to review the preview at localhost:3333 — color swatches, font previews, layout wireframe, style recommendation, and anti-patterns are all rendered live.
+
+4. After approval, persist:
+```bash
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system --persist -p "<Project Name>"
+```
+
+This creates `design-system/MASTER.md` which Phase 6 (Execute) reads before writing any frontend code.
+
+**If the work is NOT UI-related, skip this phase entirely.**
+
 ### Phase 4: RESEARCH — Deep Dive on Implementation
 
 With context gathered and tools ready, research the RIGHT way to do this work.

@@ -67,6 +67,38 @@ AskUserQuestion(
 )
 ```
 
+### Step 1b: UI/UX Design System (when building ANY frontend/UI work)
+
+If this feature touches UI (components, pages, layouts, styling, themes, landing pages, dashboards, forms), this step is MANDATORY:
+
+**Check for ui-ux-pro-max (required companion plugin):**
+```bash
+[ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ] && echo "ui-ux-pro-max: installed" || echo "ui-ux-pro-max: MISSING"
+```
+If MISSING → install automatically: `npm i -g uipro-cli && uipro init --ai claude`. Do NOT proceed with UI work without it.
+
+**Check for existing design system:**
+```bash
+[ -f "design-system/MASTER.md" ] && echo "design-system: exists" || echo "design-system: NONE"
+[ -f ".stp/explore-data.json" ] && grep -q "designSystem" .stp/explore-data.json 2>/dev/null && echo "whiteboard-preview: exists" || echo "whiteboard-preview: NONE"
+```
+
+**If design system exists** → Read `design-system/MASTER.md`. ALL UI code MUST follow its style, colors, typography, layout patterns, and anti-patterns. Check for page-specific overrides in `design-system/pages/`.
+
+**If NO design system exists** → Generate one BEFORE writing any frontend code:
+```bash
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<product_type> <industry> <keywords>" --design-system --persist -p "<Project Name>"
+```
+
+Then write a design preview section to `.stp/explore-data.json` (see whiteboard.md for the JSON format) and start the whiteboard so the user can review:
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
+```
+
+Ask the user to approve the design system at localhost:3333 before proceeding to build.
+
+**If the feature is NOT UI-related, skip this step entirely.**
+
 ### Step 2: Research (BEFORE building — comprehensive, not optional)
 
 This is the most important step. Skip this and you ship broken, insecure, disconnected code.

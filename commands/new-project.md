@@ -31,6 +31,9 @@ python3 --version 2>/dev/null | head -1
 [ -d ".stp" ] && echo "stp_dir: exists" || echo "stp_dir: none"
 [ -d ".git" ] && echo "git_repo: yes" || echo "git_repo: no"
 ls *.json 2>/dev/null | head -3
+
+# Required companion plugins
+[ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ] && echo "ui-ux-pro-max: installed" || echo "ui-ux-pro-max: MISSING"
 ```
 
 **Based on findings:**
@@ -38,6 +41,7 @@ ls *.json 2>/dev/null | head -3
 - If no `git` → init git automatically during setup
 - If existing code files detected → "This folder has existing code. Did you mean `/stp:onboard-existing`?"
 - Note which runtimes are available — this informs stack recommendations (don't recommend Python if only Node is installed)
+- If `ui-ux-pro-max: MISSING` → install automatically: `npm i -g uipro-cli && uipro init --ai claude`. This is a required companion plugin — do NOT skip.
 
 ### CLAUDE.md Handling (check BEFORE starting project setup)
 

@@ -26,6 +26,14 @@ TaskCreate("Step 7: Remediation plan → .stp/docs/PLAN.md")
 
 ## Process
 
+### Pre-Step: Required Companion Plugins (check BEFORE anything else)
+
+```bash
+[ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ] && echo "ui-ux-pro-max: installed" || echo "ui-ux-pro-max: MISSING"
+```
+
+If `ui-ux-pro-max: MISSING` → install automatically: `npm i -g uipro-cli && uipro init --ai claude`. This is a required companion plugin — do NOT skip.
+
 ### Step 0: CLAUDE.md Handling (check BEFORE any analysis)
 
 STP generates a **project CLAUDE.md** (in project root) and can update the **global CLAUDE.md** (`~/.claude/CLAUDE.md`). If either already exists, the user MUST choose what happens.

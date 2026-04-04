@@ -32,6 +32,15 @@ A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 14 commands, 3 agen
 - `/stp:pause` — "I'm done for now." Saves context for next session
 - `/stp:upgrade` — "Update STP." Pulls latest + migrates
 
+## Required Companion Plugins
+STP requires the following plugins installed in every project it manages:
+
+| Plugin | Purpose | Install |
+|--------|---------|---------|
+| **ui-ux-pro-max** (v2.5+) | Design intelligence — 67 styles, 161 palettes, 57 font pairings, product-type-aware recommendations. Generates persistent DESIGN-SYSTEM.md. | `npm i -g uipro-cli && uipro init --ai claude` |
+
+**Enforcement:** `/stp:new-project` and `/stp:onboard-existing` preflight checks verify these are installed. If missing, the user is prompted to install before proceeding. Any STP command that touches UI/UX code MUST invoke `/ui-ux-pro-max` before writing frontend code — this supplements (not replaces) the `/frontend-design` skill.
+
 ## Key Rules
 - Opus NEVER writes implementation code (except foundation: DB, auth, config, one-line fixes)
 - ALL features delegate to Sonnet executor via Agent Teams with worktree isolation
@@ -61,6 +70,11 @@ A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 14 commands, 3 agen
 | current-feature.md | Active feature checklist | /stp:quick |
 | handoff.md | Pause context for next session | /stp:pause (consumed by /stp:continue) |
 | state.json | Emergency auto-save | PreCompact hook |
+
+### .claude/skills/ — Required Companion Skills
+| Skill | What | Invoke when... |
+|-------|------|---------------|
+| ui-ux-pro-max/ | Design intelligence — styles, palettes, fonts, product-type reasoning, DESIGN-SYSTEM.md generation | ANY UI/UX work — invoke `/ui-ux-pro-max` BEFORE writing frontend code |
 
 ### .stp/references/ — Production Standards (read BEFORE writing code)
 | Directory | Read before touching... |

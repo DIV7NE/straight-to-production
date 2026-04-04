@@ -22,9 +22,10 @@ The spawn prompt includes:
 Read these files in order before writing ANY code:
 - `.stp/docs/CONTEXT.md` — current codebase map (file structure, schema, API, patterns)
 - `CLAUDE.md` — project standards and stack patterns
+- `design-system/MASTER.md` — if it exists AND the task involves UI/frontend work. This is the approved design system (style, colors, typography, layout, anti-patterns). ALL UI code MUST follow it. Check `design-system/pages/` for page-specific overrides.
 - Any existing files you'll be modifying (check .stp/docs/CONTEXT.md's file map for paths)
 
-Follow the patterns you find. If the project uses server actions, use server actions. If it uses a specific validation pattern, follow it.
+Follow the patterns you find. If the project uses server actions, use server actions. If it uses a specific validation pattern, follow it. If a design system exists, use its exact colors, fonts, and style — do NOT improvise a different look.
 
 ### 2. Write Tests FIRST (TDD)
 

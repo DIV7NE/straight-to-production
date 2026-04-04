@@ -200,6 +200,172 @@
 
     .feature-item.done { color: var(--text); }
 
+    /* Design System Preview */
+    .design-preview { display: grid; gap: 20px; }
+
+    .design-style-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .design-style-name {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .design-style-keywords {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .design-style-best {
+      font-size: 13px;
+      color: var(--accent);
+    }
+
+    .color-palette {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .color-swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .color-swatch-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .color-swatch-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .color-swatch-hex {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+
+    .typography-preview {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin-top: 12px;
+    }
+
+    .font-sample-heading {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+
+    .font-sample-body {
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      max-width: 600px;
+    }
+
+    .font-meta {
+      display: flex;
+      gap: 16px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .font-meta span { display: flex; align-items: center; gap: 4px; }
+
+    .layout-sections {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 12px;
+    }
+
+    .layout-section-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .layout-section-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .avoid-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .avoid-tag {
+      padding: 4px 10px;
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--red);
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .effects-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .effect-tag {
+      padding: 4px 10px;
+      background: rgba(34, 197, 94, 0.12);
+      color: var(--green);
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .design-subsection-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
     .empty-state {
       text-align: center;
       padding: 60px 20px;
@@ -374,6 +540,197 @@
       return table;
     }
 
+    function renderDesignSystem(ds) {
+      const preview = document.createElement('div');
+      preview.className = 'design-preview';
+
+      // Style card
+      if (ds.style) {
+        const styleCard = document.createElement('div');
+        styleCard.className = 'design-style-card';
+        const label = document.createElement('div');
+        label.className = 'design-subsection-title';
+        label.textContent = 'Recommended Style';
+        styleCard.appendChild(label);
+        const name = document.createElement('div');
+        name.className = 'design-style-name';
+        name.textContent = ds.style.name || '';
+        styleCard.appendChild(name);
+        if (ds.style.keywords) {
+          const kw = document.createElement('div');
+          kw.className = 'design-style-keywords';
+          kw.textContent = ds.style.keywords;
+          styleCard.appendChild(kw);
+        }
+        if (ds.style.bestFor) {
+          const bf = document.createElement('div');
+          bf.className = 'design-style-best';
+          bf.textContent = 'Best for: ' + ds.style.bestFor;
+          styleCard.appendChild(bf);
+        }
+        preview.appendChild(styleCard);
+      }
+
+      // Color palette
+      if (ds.colors && ds.colors.length) {
+        const colorCard = document.createElement('div');
+        colorCard.className = 'design-style-card';
+        const label = document.createElement('div');
+        label.className = 'design-subsection-title';
+        label.textContent = 'Color Palette';
+        colorCard.appendChild(label);
+        if (ds.colorNotes) {
+          const notes = document.createElement('div');
+          notes.style.cssText = 'font-size:13px;color:var(--text-muted);margin-bottom:12px';
+          notes.textContent = ds.colorNotes;
+          colorCard.appendChild(notes);
+        }
+        const palette = document.createElement('div');
+        palette.className = 'color-palette';
+        ds.colors.forEach(function(c) {
+          const swatch = document.createElement('div');
+          swatch.className = 'color-swatch';
+          const circle = document.createElement('div');
+          circle.className = 'color-swatch-circle';
+          circle.style.background = c.hex;
+          swatch.appendChild(circle);
+          const lbl = document.createElement('div');
+          lbl.className = 'color-swatch-label';
+          lbl.textContent = c.name;
+          swatch.appendChild(lbl);
+          const hex = document.createElement('div');
+          hex.className = 'color-swatch-hex';
+          hex.textContent = (c.hex || '') + (c.label ? ' \u00b7 ' + c.label : '');
+          swatch.appendChild(hex);
+          palette.appendChild(swatch);
+        });
+        colorCard.appendChild(palette);
+        preview.appendChild(colorCard);
+      }
+
+      // Typography
+      if (ds.typography) {
+        const typoCard = document.createElement('div');
+        typoCard.className = 'design-style-card';
+        const label = document.createElement('div');
+        label.className = 'design-subsection-title';
+        label.textContent = 'Typography';
+        typoCard.appendChild(label);
+        const typoPreview = document.createElement('div');
+        typoPreview.className = 'typography-preview';
+        if (ds.typography.heading) {
+          var link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = 'https://fonts.googleapis.com/css2?family=' +
+            encodeURIComponent(ds.typography.heading).replace(/%20/g, '+') + ':wght@400;700&family=' +
+            encodeURIComponent(ds.typography.body || ds.typography.heading).replace(/%20/g, '+') + ':wght@400;500&display=swap';
+          document.head.appendChild(link);
+        }
+        const heading = document.createElement('div');
+        heading.className = 'font-sample-heading';
+        heading.style.fontFamily = '"' + (ds.typography.heading || 'inherit') + '", serif';
+        heading.textContent = ds.projectName || 'Your Project Name';
+        typoPreview.appendChild(heading);
+        const body = document.createElement('div');
+        body.className = 'font-sample-body';
+        body.style.fontFamily = '"' + (ds.typography.body || 'inherit') + '", sans-serif';
+        body.textContent = 'The quick brown fox jumps over the lazy dog. This is how your body text will look across your application with the recommended font pairing.';
+        typoPreview.appendChild(body);
+        const meta = document.createElement('div');
+        meta.className = 'font-meta';
+        var headingSpan = document.createElement('span');
+        headingSpan.textContent = 'Heading: ' + (ds.typography.heading || '\u2014');
+        meta.appendChild(headingSpan);
+        var bodySpan = document.createElement('span');
+        bodySpan.textContent = 'Body: ' + (ds.typography.body || '\u2014');
+        meta.appendChild(bodySpan);
+        if (ds.typography.mood) {
+          var moodSpan = document.createElement('span');
+          moodSpan.textContent = 'Mood: ' + ds.typography.mood;
+          meta.appendChild(moodSpan);
+        }
+        typoPreview.appendChild(meta);
+        typoCard.appendChild(typoPreview);
+        preview.appendChild(typoCard);
+      }
+
+      // Layout pattern
+      if (ds.layout) {
+        const layoutCard = document.createElement('div');
+        layoutCard.className = 'design-style-card';
+        const label = document.createElement('div');
+        label.className = 'design-subsection-title';
+        label.textContent = 'Layout Pattern';
+        layoutCard.appendChild(label);
+        if (ds.layout.pattern) {
+          const patternName = document.createElement('div');
+          patternName.style.cssText = 'font-size:15px;font-weight:600;margin-bottom:8px';
+          patternName.textContent = ds.layout.pattern;
+          layoutCard.appendChild(patternName);
+        }
+        if (ds.layout.sections && ds.layout.sections.length) {
+          const list = document.createElement('div');
+          list.className = 'layout-sections';
+          ds.layout.sections.forEach(function(s, i) {
+            const item = document.createElement('div');
+            item.className = 'layout-section-item';
+            const num = document.createElement('div');
+            num.className = 'layout-section-num';
+            num.textContent = i + 1;
+            item.appendChild(num);
+            const nameSp = document.createElement('span');
+            nameSp.textContent = s;
+            item.appendChild(nameSp);
+            list.appendChild(item);
+          });
+          layoutCard.appendChild(list);
+        }
+        preview.appendChild(layoutCard);
+      }
+
+      // Effects
+      if (ds.effects && ds.effects.length) {
+        const effectCard = document.createElement('div');
+        effectCard.className = 'design-style-card';
+        const label = document.createElement('div');
+        label.className = 'design-subsection-title';
+        label.textContent = 'Key Effects';
+        effectCard.appendChild(label);
+        const list = document.createElement('div');
+        list.className = 'effects-list';
+        ds.effects.forEach(function(e) {
+          const tag = document.createElement('span');
+          tag.className = 'effect-tag';
+          tag.textContent = e;
+          list.appendChild(tag);
+        });
+        effectCard.appendChild(list);
+        preview.appendChild(effectCard);
+      }
+
+      // Anti-patterns
+      if (ds.avoid && ds.avoid.length) {
+        const avoidCard = document.createElement('div');
+        avoidCard.className = 'design-style-card';
+        const label = document.createElement('div');
+        label.className = 'design-subsection-title';
+        label.textContent = 'Avoid (Anti-patterns)';
+        avoidCard.appendChild(label);
+        const list = document.createElement('div');
+        list.className = 'avoid-list';
+        ds.avoid.forEach(function(a) {
+          const tag = document.createElement('span');
+          tag.className = 'avoid-tag';
+          tag.textContent = a;
+          list.appendChild(tag);
+        });
+        avoidCard.appendChild(list);
+        preview.appendChild(avoidCard);
+      }
+
+      return preview;
+    }
+
     function renderSection(section) {
       const card = document.createElement('div');
       card.className = 'card';
@@ -390,11 +747,21 @@
         card.appendChild(sub);
       }
 
+      if (section.designSystem) {
+        card.appendChild(renderDesignSystem(section.designSystem));
+      }
+
       if (section.content) {
         const contentDiv = document.createElement('div');
         contentDiv.className = 'card-text';
-        // Content may include safe HTML from the AI
-        contentDiv.innerHTML = sanitizeHtml(section.content);
+        contentDiv.appendChild(
+          new DOMParser().parseFromString(
+            '<div>' + DOMPurify.sanitize(section.content, {
+              ALLOWED_TAGS: ['b','i','em','strong','code','br','p','ul','ol','li','a','h3','h4'],
+              ALLOWED_ATTR: ['href']
+            }) + '</div>', 'text/html'
+          ).body.firstChild
+        );
         card.appendChild(contentDiv);
       }
 

@@ -85,7 +85,35 @@ Stop here — do not proceed without a PRD.
 
 If .stp/docs/PRD.md exists, read it along with CLAUDE.md for context.
 
+**Check for ui-ux-pro-max (required for UI features):**
+```bash
+[ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ] && echo "ui-ux-pro-max: installed" || echo "ui-ux-pro-max: MISSING"
+```
+If MISSING and the PRD describes any UI/frontend work → install: `npm i -g uipro-cli && uipro init --ai claude`. This is a required STP companion plugin.
+
 ## Process
+
+### Phase 0: Design System (when PRD includes ANY UI/frontend features)
+
+If the PRD describes pages, components, layouts, dashboards, or any visual work, generate a design system BEFORE architecture planning:
+
+1. Run ui-ux-pro-max:
+```bash
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<product_type> <industry> <keywords_from_PRD>" --design-system -p "<Project Name>"
+```
+
+2. Write the design preview to `.stp/explore-data.json` as a `designSystem` section (see whiteboard.md for the JSON format). If the whiteboard is running, the user sees it live.
+
+3. Ask the user to approve the design direction before proceeding.
+
+4. Persist the approved design system:
+```bash
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system --persist -p "<Project Name>"
+```
+
+This creates `design-system/MASTER.md` — the single source of truth for all UI decisions. The executor agents read this before writing any frontend code.
+
+**If the PRD has NO UI features, skip Phase 0.**
 
 ### Phase 1: Domain Research
 
