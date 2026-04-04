@@ -25,6 +25,17 @@ if [ -d ".stp" ]; then STATE_DIR=".stp"; elif [ -d ".pilot" ]; then STATE_DIR=".
 FEATURE_FILE="$STATE_DIR/current-feature.md"
 RETRY_FILE="$STATE_DIR/.stop-retry-count"
 
+# ── Pause bypass: if handoff.md was JUST written, allow stop ─────
+# /stp:pause writes handoff.md before stopping. TDD red phase may have
+# intentionally failing tests. The handoff means the user CHOSE to pause.
+if [ -f "$STATE_DIR/handoff.md" ]; then
+  HANDOFF_AGE=$(( $(date +%s) - $(stat -c %Y "$STATE_DIR/handoff.md" 2>/dev/null || echo "0") ))
+  if [ "$HANDOFF_AGE" -lt 30 ]; then
+    # Handoff written in last 30 seconds = /stp:pause in progress, allow stop
+    exit 0
+  fi
+fi
+
 # ── Max-retry guard ──────────────────────────────────────────────
 mkdir -p "$STATE_DIR" 2>/dev/null
 
