@@ -43,6 +43,8 @@ ls *.json 2>/dev/null | head -3
 
 STP generates both a **project CLAUDE.md** (in project root) and updates the **global CLAUDE.md** (`~/.claude/CLAUDE.md`). If either already exists, the user MUST choose what happens. This is NOT optional — silently overwriting loses their custom rules.
 
+**NON-NEGOTIABLE: You MUST use the AskUserQuestion tool for these questions. Do NOT print the options as text. Do NOT skip this step. Do NOT make the choice yourself. The user's existing CLAUDE.md may contain months of accumulated rules — only THEY decide what happens to it.**
+
 **Check project CLAUDE.md:**
 ```bash
 [ -f "CLAUDE.md" ] && echo "project_claude: exists" || echo "project_claude: none"

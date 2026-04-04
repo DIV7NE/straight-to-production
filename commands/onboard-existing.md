@@ -30,6 +30,8 @@ TaskCreate("Step 7: Remediation plan → .stp/docs/PLAN.md")
 
 STP generates a **project CLAUDE.md** (in project root) and can update the **global CLAUDE.md** (`~/.claude/CLAUDE.md`). If either already exists, the user MUST choose what happens.
 
+**NON-NEGOTIABLE: You MUST use the AskUserQuestion tool for these questions. Do NOT print the options as text. Do NOT skip this step. Do NOT make the choice yourself. The user's existing CLAUDE.md may contain months of accumulated rules — only THEY decide what happens to it.**
+
 ```bash
 [ -f "CLAUDE.md" ] && echo "project_claude: exists" || echo "project_claude: none"
 [ -f "$HOME/.claude/CLAUDE.md" ] && echo "global_claude: exists" || echo "global_claude: none"
