@@ -191,10 +191,16 @@ When the user says go:
 
 1. Save the checklist to `.pilot/current-feature.md`
 
-2. **Decide: build directly or delegate.**
-   - **Simple task** (1-2 files, quick fix, refactor): Opus builds directly. No subagent overhead.
-   - **Standard feature** (3+ files, new functionality): Spawn `pilot-executor` (Sonnet) subagent.
-   - **Multiple independent features** in same milestone: Spawn multiple executors in parallel.
+2. **ALWAYS delegate to Sonnet executor.** This is NOT optional. You are the CTO — you plan, review, and merge. You do NOT write implementation code yourself.
+
+   **The ONLY exception** where Opus builds directly:
+   - A one-line fix (typo, config change, version bump)
+   - That's it. Everything else goes to the executor.
+
+   Why: Sonnet 4.6 is 40% cheaper with near-identical code quality (79.6% vs 80.8% SWE-bench). You burn tokens on THINKING work (research, architecture, review). Implementation is Sonnet's job.
+
+   **For each feature:** Spawn `pilot-executor` (Sonnet) subagent with worktree isolation.
+   **For multiple independent features:** Spawn multiple executors in parallel (wave plan from PLAN.md).
 
 3. **For delegated builds — spawn the executor:**
 
