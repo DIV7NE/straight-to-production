@@ -89,6 +89,14 @@ AskUserQuestion(
 | **Append** | Keeps existing content, adds `## STP Standards Index`, `## Project Conventions`, `## Directory Map` sections at the bottom | Keeps existing content, adds STP command reference section |
 | **Skip** | No changes. User manages manually. | No changes. STP relies on project-level CLAUDE.md only. |
 
+**Version marker (MANDATORY when creating/updating CLAUDE.md):**
+
+When writing STP sections to ANY CLAUDE.md (project or global), include this HTML comment at the top of the STP content. This enables automatic staleness detection on session start:
+```
+<!-- STP v0.2.0 -->
+```
+Read the actual version from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. The session-restore hook compares this marker against the installed plugin version and warns the user if outdated.
+
 **Check available research tools (silently — don't show to user):**
 - Context7 MCP available? → enables live doc research during `/stp:plan`
 - Tavily MCP available? → enables deep web research

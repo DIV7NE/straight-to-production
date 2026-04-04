@@ -94,4 +94,22 @@ if [ -f "$HANDOFF_FILE" ]; then
 fi
 echo "  Or just run /stp:continue to resume automatically." >&2
 
+# ── Global CLAUDE.md STP version check ──────────────────────────
+GLOBAL_CLAUDE="$HOME/.claude/CLAUDE.md"
+if [ -f "$GLOBAL_CLAUDE" ]; then
+  # Check if STP sections exist
+  STP_VERSION_IN_GLOBAL=$(grep -oP '<!-- STP v\K[0-9.]+' "$GLOBAL_CLAUDE" 2>/dev/null | head -1)
+  PLUGIN_VERSION=$(grep -oP '"version":\s*"\K[0-9.]+' "${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json" 2>/dev/null | head -1)
+
+  if [ -z "$STP_VERSION_IN_GLOBAL" ]; then
+    # No STP marker found — global CLAUDE.md exists but has no STP sections
+    echo "" >&2
+    echo "[STP] Global CLAUDE.md has no STP sections. Run /stp:new-project or /stp:onboard-existing to set it up." >&2
+  elif [ -n "$PLUGIN_VERSION" ] && [ "$STP_VERSION_IN_GLOBAL" != "$PLUGIN_VERSION" ]; then
+    # STP marker found but version is outdated
+    echo "" >&2
+    echo "[STP] Global CLAUDE.md has STP v$STP_VERSION_IN_GLOBAL but plugin is v$PLUGIN_VERSION. Run /stp:upgrade to update." >&2
+  fi
+fi
+
 exit 0

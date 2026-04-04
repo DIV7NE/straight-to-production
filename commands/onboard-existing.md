@@ -73,6 +73,14 @@ AskUserQuestion(
 | **Append** | Existing content kept verbatim. STP sections (`## Project Conventions`, `## STP Standards Index`, `## Directory Map`) added at the bottom. May have conflicting rules if existing file overlaps. |
 | **Skip** | No changes. User manages manually. STP works but convention enforcement is weaker. |
 
+**Version marker (MANDATORY when creating/updating CLAUDE.md):**
+
+When writing STP sections to ANY CLAUDE.md (project or global), include this HTML comment at the top of the STP content:
+```
+<!-- STP v0.2.0 -->
+```
+Read the actual version from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. The session-restore hook compares this marker against the installed plugin version and warns if outdated.
+
 ### Step 1: Discover — Stack & Infrastructure
 
 Set up the directory structure first:
