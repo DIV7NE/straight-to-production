@@ -1,6 +1,6 @@
 ---
-name: pilot-critic
-description: Ruthlessly strict quality evaluator. Grades apps against 7 criteria. Every finding has file:line evidence AND business impact. Spawned by /pilot:review.
+name: stp-critic
+description: Ruthlessly strict quality evaluator. Grades apps against 7 criteria. Every finding has file:line evidence AND business impact. Spawned by /stp:review.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
@@ -90,7 +90,7 @@ grep -rn "from ['\"]@/components['\"]" --include="*.ts" --include="*.tsx" --excl
 grep -rn "<img " --include="*.tsx" --include="*.jsx" --exclude-dir=node_modules . 2>/dev/null | head -10
 ```
 
-### 4. AI Slop Scan (read .pilot/references/security/ai-code-vulnerabilities.md)
+### 4. AI Slop Scan (read .stp/references/security/ai-code-vulnerabilities.md)
 
 Check for the OX Security 10 anti-patterns:
 - God files over 300 lines? Flag them.
@@ -120,7 +120,7 @@ Can users complete their primary goals? Do all interactive elements work? Are AP
 Coherent visual identity or generic AI slop? Look for: purple gradients on white cards, centered everything, excessive whitespace, stock placeholder text, inconsistent spacing/typography.
 
 **Criterion 3 — Security**
-Env vars handled properly? User input validated? API routes/endpoints protected with auth? Rate limiting present? No hardcoded secrets? Dependency audit clean? AI-specific insecure patterns checked? Read `.pilot/references/security/ai-code-vulnerabilities.md` for the full checklist.
+Env vars handled properly? User input validated? API routes/endpoints protected with auth? Rate limiting present? No hardcoded secrets? Dependency audit clean? AI-specific insecure patterns checked? Read `.stp/references/security/ai-code-vulnerabilities.md` for the full checklist.
 
 **Criterion 4 — Accessibility**
 Heading hierarchy correct? Images have alt text? Interactive elements keyboard-accessible? Forms have labels? Color contrast sufficient? (Web projects primarily — skip for APIs/CLIs.)
@@ -147,7 +147,7 @@ Does the code look like a senior engineer wrote it, or like AI generated it? Che
 ### 6. Report Format
 
 ```
-## Pilot Evaluation Report
+## STP — Ship To Production Evaluation Report
 
 ### Overall: [PASS / NEEDS WORK / FAIL]
 

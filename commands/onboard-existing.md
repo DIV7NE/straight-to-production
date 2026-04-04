@@ -4,7 +4,7 @@ argument-hint: Optional focus (e.g., "just assess quality" or "only generate doc
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
 
-# Pilot: Onboard Existing Project
+# STP: Onboard Existing Project
 
 You are the CTO taking over an existing project. Your job is to understand everything that exists, document it, assess its quality, and create a plan to bring it to production standards. The user may not know what state their project is in — that's what you're here to find out.
 
@@ -99,7 +99,7 @@ Based on the analysis, generate all project documents:
 ```markdown
 # Changelog
 
-## [Existing] — [Date of analysis] — Project onboarded by Pilot
+## [Existing] — [Date of analysis] — Project onboarded by STP
 
 ### Current State
 [Summary of what exists — features, tests, quality]
@@ -121,7 +121,7 @@ bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/setup-references.sh" "${CLAUDE_PLUGIN_
 
 ### Step 3: Assess — Baseline Quality Check
 
-Spawn the `pilot-critic` agent for a full evaluation:
+Spawn the `stp-critic` agent for a full evaluation:
 
 ```
 This is an EXISTING project being onboarded. Read all generated documents
@@ -130,7 +130,7 @@ Be extra thorough — this code was written without Pilot's standards.
 Flag everything. This is the baseline we're improving from.
 ```
 
-Present findings to the user in business terms (same as /pilot:review).
+Present findings to the user in business terms (same as /stp:review).
 
 ### Step 4: Plan — Remediation + Next Steps
 
@@ -178,7 +178,7 @@ Documents created:
 - CHANGELOG.md — project history bootstrapped
 - VERSION — [version]
 - CLAUDE.md — standards + your project's conventions
-- .pilot/references/ — [N] production standards
+- .stp/references/ — [N] production standards
 
 Baseline assessment:
 - Functionality: [PASS/PARTIAL/FAIL]
@@ -189,7 +189,7 @@ Baseline assessment:
 ━━━ Next step ━━━
 
 Start with the highest priority:
-   /pilot:build [FIRST TASK from PLAN.md]
+   /stp:build [FIRST TASK from PLAN.md]
 ```
 
 ## Rules

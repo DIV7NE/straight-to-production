@@ -1,5 +1,5 @@
 ---
-description: Research the domain, design the architecture, and create a detailed implementation plan. Run after /pilot:new-project and before /pilot:build. This is where all the thinking happens before any code is written.
+description: Research the domain, design the architecture, and create a detailed implementation plan. Run after /stp:new-project and before /stp:build. This is where all the thinking happens before any code is written.
 argument-hint: Optional focus (e.g., "just the database schema" or "API design only")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
@@ -8,9 +8,9 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Age
 
 
 
-# Pilot: Plan
+# STP: Plan
 
-You are the CTO doing the real engineering work BEFORE any code is written. This command produces the complete technical blueprint that /pilot:build executes against.
+You are the CTO doing the real engineering work BEFORE any code is written. This command produces the complete technical blueprint that /stp:build executes against.
 
 No code is written during this command. Only documents and diagrams.
 
@@ -45,7 +45,7 @@ If they accept, start the whiteboard server:
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
 ```
 
-Then throughout this command, write diagram data to `.pilot/whiteboard-data.json` as you produce each phase. The whiteboard polls this file every 2 seconds and renders Mermaid diagrams live.
+Then throughout this command, write diagram data to `.stp/whiteboard-data.json` as you produce each phase. The whiteboard polls this file every 2 seconds and renders Mermaid diagrams live.
 
 The data format:
 ```json
@@ -78,7 +78,7 @@ If the user declined the whiteboard, still include Mermaid diagrams in PLAN.md (
 
 Check that PRD.md exists. If it doesn't:
 ```
-No PRD.md found. Run /pilot:new-project first to define what you're building.
+No PRD.md found. Run /stp:new-project first to define what you're building.
 The plan needs a PRD to design against.
 ```
 Stop here — do not proceed without a PRD.
@@ -89,7 +89,7 @@ If PRD.md exists, read it along with CLAUDE.md for context.
 
 ### Phase 1: Domain Research
 
-Research what a production version of this product actually needs. This is NOT about the tech stack (decided in /pilot:new-project) — it's about the DOMAIN.
+Research what a production version of this product actually needs. This is NOT about the tech stack (decided in /stp:new-project) — it's about the DOMAIN.
 
 For an invoicing app, research:
 - What do existing invoice tools do? (FreshBooks, Wave, Invoice Ninja)
@@ -407,9 +407,9 @@ flowchart LR
   F5 --> F8
 ```
 
-This diagram tells /pilot:build exactly how to execute — no analysis needed at build time, just follow the waves.
+This diagram tells /stp:build exactly how to execute — no analysis needed at build time, just follow the waves.
 
-**Push the FULL build plan to the whiteboard.** After Phase 5 is complete, write a comprehensive "Build Plan" section to `.pilot/whiteboard-data.json` that includes:
+**Push the FULL build plan to the whiteboard.** After Phase 5 is complete, write a comprehensive "Build Plan" section to `.stp/whiteboard-data.json` that includes:
 
 1. **Milestone overview** — card per milestone showing feature count, wave count, estimated complexity
 2. **Wave execution diagram** — the Mermaid dependency graph per milestone (above)
@@ -535,7 +535,7 @@ This prevents drift during implementation — Opus follows the blueprint, not im
 
 ### Phase 6: Save the Plan
 
-Write everything to `PLAN.md` at the project root. This is the technical blueprint that `/pilot:build` executes against.
+Write everything to `PLAN.md` at the project root. This is the technical blueprint that `/stp:build` executes against.
 
 Structure:
 ```markdown
@@ -574,7 +574,7 @@ Fix issues inline. Don't re-present — just fix and move on.
 
 ### Phase 8: Plan Verification (Separate Evaluator)
 
-Spawn the `pilot-critic` agent to verify the plan BEFORE any code is written. Finding an architecture mistake now saves 10x vs finding it after 5 features are built on top.
+Spawn the `stp-critic` agent to verify the plan BEFORE any code is written. Finding an architecture mistake now saves 10x vs finding it after 5 features are built on top.
 
 Prompt the Critic:
 
@@ -626,7 +626,7 @@ Use AskUserQuestion: "(Recommended) Looks good — start building", "I want to c
 
 
 When ready:
-/pilot:build [FIRST FEATURE from Milestone 1]
+/stp:build [FIRST FEATURE from Milestone 1]
 ```
 
 Wait for the user to approve. If they request changes, make them, re-verify, and ask again. Do NOT proceed to building until the user has approved the verified plan.
@@ -634,10 +634,10 @@ Wait for the user to approve. If they request changes, make them, re-verify, and
 
 ## Rules
 
-- NO CODE during /pilot:plan. Only documents.
+- NO CODE during /stp:plan. Only documents.
 - Every feature in the plan MUST include what tests to write BEFORE implementation.
 - Dependencies between features must be explicit — can't build invoices before the database exists.
 - Data models must include indexes — query performance is designed, not discovered.
-- The plan is a LIVING document — /pilot:build updates it as decisions change.
+- The plan is a LIVING document — /stp:build updates it as decisions change.
 - If the user has a focus argument (e.g., "just the database schema"), only do that phase and return. Don't force the full process for partial updates.
 - Teach throughout. Explain WHY the architecture is shaped this way, not just what it is.

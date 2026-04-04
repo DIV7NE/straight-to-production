@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pilot: Start the visual whiteboard server
+# STP: Start the visual whiteboard server
 # Usage: bash start-whiteboard.sh [plugin_root] [project_dir] [port]
 
 PLUGIN_ROOT="${1:-$(dirname "$(dirname "$(dirname "$0")")")}"
@@ -18,5 +18,5 @@ if ! command -v python3 &>/dev/null; then
   exit 1
 fi
 
-echo "Starting Pilot Whiteboard..."
+echo "Starting STP Whiteboard..."
 python3 "$SERVE_SCRIPT" "$PORT" "$PROJECT_DIR"

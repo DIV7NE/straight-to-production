@@ -8,20 +8,20 @@ allowed-tools: ["Read", "Bash", "Grep", "Glob", "Agent"]
 
 
 
-# Pilot: Evaluate
+# STP: Evaluate
 
-Dispatch the `pilot-critic` agent (Sonnet 4.6) to evaluate the project. Self-evaluation is broken — agents reliably skew positive when grading their own work. The Critic is a SEPARATE model that hasn't seen the building process.
+Dispatch the `stp-critic` agent (Sonnet 4.6) to evaluate the project. Self-evaluation is broken — agents reliably skew positive when grading their own work. The Critic is a SEPARATE model that hasn't seen the building process.
 
 ## Process
 
 1. Check which planning documents exist:
-   - PRD.md — if missing, note: "No PRD found. Evaluating code quality only, not spec compliance. Run /pilot:new-project for full evaluation."
-   - PLAN.md — if missing, note: "No PLAN found. Evaluating code quality only, not architectural compliance. Run /pilot:plan for full evaluation."
-   - CLAUDE.md — if missing, note: "No CLAUDE.md found. Run /pilot:new-project or /pilot:onboard-existing."
+   - PRD.md — if missing, note: "No PRD found. Evaluating code quality only, not spec compliance. Run /stp:new-project for full evaluation."
+   - PLAN.md — if missing, note: "No PLAN found. Evaluating code quality only, not architectural compliance. Run /stp:plan for full evaluation."
+   - CLAUDE.md — if missing, note: "No CLAUDE.md found. Run /stp:new-project or /stp:onboard-existing."
    
    Proceed with whatever documents exist. The Critic adapts — it grades what it can.
 
-2. Spawn the `pilot-critic` agent:
+2. Spawn the `stp-critic` agent:
 
 ```
 Evaluate this project against its requirements and technical plan.
@@ -56,7 +56,7 @@ Use AskUserQuestion with options:
    yes
 
 Or skip to next feature:
-   /pilot:build [NEXT FEATURE]
+   /stp:build [NEXT FEATURE]
 ```
 
 If everything PASSED:
@@ -64,7 +64,7 @@ If everything PASSED:
 ━━━ Next step ━━━
 
 All 7 criteria passed. Next feature:
-   /pilot:build [NEXT FEATURE]
+   /stp:build [NEXT FEATURE]
 ```
 
 5. If the user says yes to fixes, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.

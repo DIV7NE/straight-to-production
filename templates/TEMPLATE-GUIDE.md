@@ -48,14 +48,14 @@ Every template must contain these sections in this order:
 Examples: auth middleware, input validation, error handling, database queries.
 These should be the patterns a non-expert would get wrong without guidance.]
 
-## Pilot Standards Index
+## STP Standards Index
 [Include the full content of _standards-index.md here verbatim.
 This is the universal standards section — same for every stack.]
 ```
 
 ## Placeholders
 
-Templates use these placeholders that `/pilot:new` fills in:
+Templates use these placeholders that `/stp:new` fills in:
 
 - `{{PROJECT_NAME}}` — The project name
 - `{{PROJECT_DESCRIPTION}}` — What the user is building
@@ -104,11 +104,11 @@ If your stack's config file isn't in this list, the hooks won't run type checkin
 
 ## Testing Your Template
 
-1. Create a test project: `/pilot:new [description matching your stack]`
+1. Create a test project: `/stp:new [description matching your stack]`
 2. Verify Opus selects your template
 3. Check the generated CLAUDE.md includes your patterns + the universal standards
 4. Build a small feature and verify hooks run the right type checker
-5. Run `/pilot:evaluate` and verify the Critic can assess the project
+5. Run `/stp:evaluate` and verify the Critic can assess the project
 
 ## Examples of Good Templates
 

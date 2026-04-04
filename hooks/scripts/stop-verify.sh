@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pilot v0.2.0: Stop verification hook
+# STP v0.2.0: Stop verification hook
 # EXIT CODE 2 = BLOCK (Claude cannot stop, must continue)
 # EXIT CODE 0 = ALLOW (Claude can stop)
 #
@@ -20,7 +20,8 @@
 #
 # Safety valve: after 3 TECHNICAL blocks → ALLOW with warning
 
-STATE_DIR=".pilot"
+# Backward compatible: .stp/ or legacy .pilot/
+if [ -d ".stp" ]; then STATE_DIR=".stp"; elif [ -d ".pilot" ]; then STATE_DIR=".pilot"; else STATE_DIR=".stp"; fi
 FEATURE_FILE="$STATE_DIR/current-feature.md"
 RETRY_FILE="$STATE_DIR/.stop-retry-count"
 
@@ -37,7 +38,7 @@ fi
 
 if [ "$RETRY_COUNT" -ge 3 ]; then
   echo "WARNING: 3 technical blocks hit. Allowing stop to prevent session bricking." >&2
-  echo "Unresolved issues may exist. Run /pilot:review to check." >&2
+  echo "Unresolved issues may exist. Run /stp:review to check." >&2
   rm -f "$RETRY_FILE"
   exit 0
 fi
@@ -57,7 +58,7 @@ if [ -f "$FEATURE_FILE" ]; then
   if [ "$UNCHECKED" -gt 0 ]; then
     NEXT=$(grep -m1 '\[ \]' "$FEATURE_FILE" | sed 's/^[[:space:]]*- \[ \] //')
     echo "BLOCKED: $UNCHECKED items remain ($CHECKED done). Next: $NEXT" >&2
-    echo "Continue working. Run /pilot:pause if you need to stop." >&2
+    echo "Continue working. Run /stp:pause if you need to stop." >&2
     HAS_ERRORS=true
     # NOTE: does NOT increment retry counter — this is a workflow gate, not technical
   fi
@@ -65,7 +66,7 @@ fi
 
 # ── Gate 2: PLAN.md should exist if building features (warn only) ─
 if [ -f "$FEATURE_FILE" ] && [ ! -f "PLAN.md" ]; then
-  echo "WARNING: Building features without PLAN.md. Run /pilot:plan for better results." >&2
+  echo "WARNING: Building features without PLAN.md. Run /stp:plan for better results." >&2
 fi
 
 # ── Gate 3: Tests must EXIST for new code ────────────────────────
@@ -113,7 +114,7 @@ SECRETS=$(grep -rn \
 if [ -n "$SECRETS" ]; then
   echo "BLOCKED: Potential hardcoded secrets found:" >&2
   echo "$SECRETS" >&2
-  echo "Move secrets to environment variables. See .pilot/references/security/env-handling.md" >&2
+  echo "Move secrets to environment variables. See .stp/references/security/env-handling.md" >&2
   HAS_ERRORS=true
   HAS_TECHNICAL_ERRORS=true
 fi
@@ -137,7 +138,7 @@ run_type_check() {
   elif [ -f "go.mod" ]; then
     go vet ./... 2>&1 | head -10
   elif ls *.csproj &>/dev/null 2>&1 || ls *.sln &>/dev/null 2>&1; then
-    dotnet build --no-restore --verbosity quiet 2>&1 | grep -i "error" | head -10
+    dotnet build --no-restore --verbosity quiet 2>&1 | grep -i ": error" | head -10
   elif [ -f "Gemfile" ]; then
     find . -name "*.rb" -not -path "*/vendor/*" | head -20 | xargs ruby -c 2>&1 | grep -i "syntax error" | head -10
   elif [ -f "composer.json" ]; then

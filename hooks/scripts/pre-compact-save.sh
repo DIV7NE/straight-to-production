@@ -1,14 +1,11 @@
 #!/bin/bash
-# Pilot v0.2.0: Pre-compaction state save
-# Saves current working state to .pilot/state.json before compaction.
+# STP v0.2.0: Pre-compaction state save
+# Saves current working state to .stp/state.json before compaction.
 # Must be fast (< 5 seconds).
 
-STATE_DIR=".pilot"
+# Backward compatible: .stp/ or legacy .pilot/
+if [ -d ".stp" ]; then STATE_DIR=".stp"; elif [ -d ".pilot" ]; then STATE_DIR=".pilot"; else exit 0; fi
 STATE_FILE="$STATE_DIR/state.json"
-
-if [ ! -d "$STATE_DIR" ]; then
-  exit 0
-fi
 
 mkdir -p "$STATE_DIR"
 
@@ -32,9 +29,9 @@ cat > "$STATE_FILE" << STATEEOF
     "uncommitted_files": $UNCOMMITTED
   },
   "active_feature": "$ACTIVE_FEATURE",
-  "recovery": "Read .pilot/state.json and .pilot/current-feature.md to resume. Check git log --oneline -5 for recent work. Read CLAUDE.md for project context."
+  "recovery": "Read .stp/state.json and .stp/current-feature.md to resume. Check git log --oneline -5 for recent work. Read CLAUDE.md for project context."
 }
 STATEEOF
 
-echo "Pilot: State saved to $STATE_FILE before compaction." >&2
+echo "STP: State saved to $STATE_FILE before compaction." >&2
 exit 0

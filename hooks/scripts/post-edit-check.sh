@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pilot v0.2.0: Post-edit type/compile check
+# STP v0.2.0: Post-edit type/compile check
 # Stack-aware: detects project type from filesystem.
 # Runs after Edit/Write on source files. Feedback only (exit 0 always).
 # Errors shown via stderr so Claude sees and fixes them before Stop blocks.
@@ -25,7 +25,7 @@ fi
 if [[ "$FILE_PATH" =~ \.(ts|tsx|js|jsx)$ ]] && [ -f "tsconfig.json" ]; then
   ERRORS=$(npx tsc --noEmit --pretty false 2>&1 | grep "error TS" | head -10)
   if [ -n "$ERRORS" ]; then
-    echo "Pilot: TypeScript errors after editing $FILE_PATH:" >&2
+    echo "STP: TypeScript errors after editing $FILE_PATH:" >&2
     echo "$ERRORS" >&2
     echo "Fix these. The Stop hook will BLOCK completion until tsc passes." >&2
   fi
@@ -35,7 +35,7 @@ elif [[ "$FILE_PATH" =~ \.py$ ]]; then
   if command -v mypy &>/dev/null && { [ -f "pyproject.toml" ] || [ -f "setup.py" ] || [ -f "mypy.ini" ]; }; then
     ERRORS=$(mypy "$FILE_PATH" --no-error-summary 2>&1 | grep "error:" | head -10)
     if [ -n "$ERRORS" ]; then
-      echo "Pilot: mypy errors after editing $FILE_PATH:" >&2
+      echo "STP: mypy errors after editing $FILE_PATH:" >&2
       echo "$ERRORS" >&2
       echo "Fix these. The Stop hook will BLOCK completion until mypy passes." >&2
     fi
@@ -43,7 +43,7 @@ elif [[ "$FILE_PATH" =~ \.py$ ]]; then
     # Fallback: syntax check only
     ERRORS=$(python3 -m py_compile "$FILE_PATH" 2>&1)
     if [ -n "$ERRORS" ]; then
-      echo "Pilot: Python syntax error in $FILE_PATH:" >&2
+      echo "STP: Python syntax error in $FILE_PATH:" >&2
       echo "$ERRORS" >&2
     fi
   fi
@@ -52,7 +52,7 @@ elif [[ "$FILE_PATH" =~ \.py$ ]]; then
 elif [[ "$FILE_PATH" =~ \.rs$ ]] && [ -f "Cargo.toml" ]; then
   ERRORS=$(cargo check --message-format=short 2>&1 | grep "^error" | head -10)
   if [ -n "$ERRORS" ]; then
-    echo "Pilot: Rust compile errors after editing $FILE_PATH:" >&2
+    echo "STP: Rust compile errors after editing $FILE_PATH:" >&2
     echo "$ERRORS" >&2
     echo "Fix these. The Stop hook will BLOCK completion until cargo check passes." >&2
   fi
@@ -61,7 +61,7 @@ elif [[ "$FILE_PATH" =~ \.rs$ ]] && [ -f "Cargo.toml" ]; then
 elif [[ "$FILE_PATH" =~ \.go$ ]] && [ -f "go.mod" ]; then
   ERRORS=$(go vet ./... 2>&1 | head -10)
   if [ -n "$ERRORS" ]; then
-    echo "Pilot: Go vet errors after editing $FILE_PATH:" >&2
+    echo "STP: Go vet errors after editing $FILE_PATH:" >&2
     echo "$ERRORS" >&2
     echo "Fix these. The Stop hook will BLOCK completion until go vet passes." >&2
   fi
@@ -70,7 +70,7 @@ elif [[ "$FILE_PATH" =~ \.go$ ]] && [ -f "go.mod" ]; then
 elif [[ "$FILE_PATH" =~ \.cs$ ]] && { ls *.csproj &>/dev/null 2>&1 || ls *.sln &>/dev/null 2>&1; }; then
   ERRORS=$(dotnet build --no-restore --verbosity quiet 2>&1 | grep -i "error" | head -10)
   if [ -n "$ERRORS" ]; then
-    echo "Pilot: C# build errors after editing $FILE_PATH:" >&2
+    echo "STP: C# build errors after editing $FILE_PATH:" >&2
     echo "$ERRORS" >&2
     echo "Fix these. The Stop hook will BLOCK completion until dotnet build passes." >&2
   fi
@@ -79,7 +79,7 @@ elif [[ "$FILE_PATH" =~ \.cs$ ]] && { ls *.csproj &>/dev/null 2>&1 || ls *.sln &
 elif [[ "$FILE_PATH" =~ \.rb$ ]] && [ -f "Gemfile" ]; then
   ERRORS=$(ruby -c "$FILE_PATH" 2>&1 | grep -i "syntax error")
   if [ -n "$ERRORS" ]; then
-    echo "Pilot: Ruby syntax error in $FILE_PATH:" >&2
+    echo "STP: Ruby syntax error in $FILE_PATH:" >&2
     echo "$ERRORS" >&2
   fi
 
@@ -87,7 +87,7 @@ elif [[ "$FILE_PATH" =~ \.rb$ ]] && [ -f "Gemfile" ]; then
 elif [[ "$FILE_PATH" =~ \.php$ ]] && [ -f "composer.json" ]; then
   ERRORS=$(php -l "$FILE_PATH" 2>&1 | grep -i "error")
   if [ -n "$ERRORS" ]; then
-    echo "Pilot: PHP syntax error in $FILE_PATH:" >&2
+    echo "STP: PHP syntax error in $FILE_PATH:" >&2
     echo "$ERRORS" >&2
   fi
 
@@ -99,7 +99,7 @@ elif [[ "$FILE_PATH" =~ \.java$ ]]; then
     ERRORS=$(gradle compileJava -q 2>&1 | grep -i "error" | head -10)
   fi
   if [ -n "$ERRORS" ]; then
-    echo "Pilot: Java compile errors after editing $FILE_PATH:" >&2
+    echo "STP: Java compile errors after editing $FILE_PATH:" >&2
     echo "$ERRORS" >&2
   fi
 fi

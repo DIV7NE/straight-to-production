@@ -689,7 +689,7 @@ Run this SILENTLY before starting any project. Only surface conflicts found.
 
 ```bash
 #!/bin/bash
-# Pilot Pre-Flight Environment Check
+# STP — Ship To Production Pre-Flight Environment Check
 # Run silently — only output detected conflicts
 
 CONFLICTS=()

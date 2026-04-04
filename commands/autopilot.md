@@ -1,5 +1,5 @@
 ---
-description: Run Pilot in autonomous mode. Works through the feature checklist unattended — each task gets a fresh context. Set it up before bed, wake up to a built feature.
+description: Run STP in autonomous mode. Works through the feature checklist unattended — each task gets a fresh context. Set it up before bed, wake up to a built feature.
 argument-hint: Optional max iterations (default 30)
 allowed-tools: ["Read", "Bash", "Write"]
 ---
@@ -8,30 +8,30 @@ allowed-tools: ["Read", "Bash", "Write"]
 
 
 
-# Pilot: Auto Mode (Overnight Autonomous)
+# STP: Auto Mode (Overnight Autonomous)
 
 Run the feature checklist autonomously. Each checklist item runs in a fresh Claude Code session (headless -p mode) for context isolation. No rot, no compaction, no forgetting.
 
 ## Prerequisites
 
 1. CLAUDE.md exists with project spec and standards
-2. `.pilot/current-feature.md` exists with a checklist (run `/pilot:build` first)
-3. `.pilot/references/` set up
+2. `.stp/current-feature.md` exists with a checklist (run `/stp:build` first)
+3. `.stp/references/` set up
 
 ## How to Run
 
 Tell the user to run this in their terminal (NOT inside Claude Code):
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pilot-auto.sh" 30
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stp-auto.sh" 30
 ```
 
 Overnight with logging:
 ```bash
-nohup bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pilot-auto.sh" 50 > .pilot/auto.log 2>&1 &
+nohup bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stp-auto.sh" 50 > .stp/auto.log 2>&1 &
 echo "Pilot auto mode running. Check progress:"
-echo "  tail -f .pilot/auto.log"
-echo "  cat .pilot/current-feature.md"
+echo "  tail -f .stp/auto.log"
+echo "  cat .stp/current-feature.md"
 ```
 
 ## How It Works
@@ -66,18 +66,18 @@ Each iteration:
 ```
 ━━━ Run in your terminal (not in Claude Code) ━━━
 
-bash [PLUGIN_ROOT]/hooks/scripts/pilot-auto.sh 30
+bash [PLUGIN_ROOT]/hooks/scripts/stp-auto.sh 30
 
 Overnight:
-nohup bash [PLUGIN_ROOT]/hooks/scripts/pilot-auto.sh 50 > .pilot/auto.log 2>&1 &
+nohup bash [PLUGIN_ROOT]/hooks/scripts/stp-auto.sh 50 > .stp/auto.log 2>&1 &
 
 Check progress anytime:
-  tail -f .pilot/auto.log
-  cat .pilot/current-feature.md
+  tail -f .stp/auto.log
+  cat .stp/current-feature.md
   git log --oneline -10
 
 In the morning:
-  cat .pilot/auto-eval-report.txt
+  cat .stp/auto-eval-report.txt
 ```
 
 Replace [PLUGIN_ROOT] with the actual resolved path.

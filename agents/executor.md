@@ -1,5 +1,5 @@
 ---
-name: pilot-executor
+name: stp-executor
 description: Sonnet builder agent. Receives a focused feature spec from Opus, builds it with TDD in an isolated worktree. Reads CONTEXT.md for codebase state, CLAUDE.md for patterns. Reports back when done.
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet

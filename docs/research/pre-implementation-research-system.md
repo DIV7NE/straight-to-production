@@ -8,7 +8,7 @@
 
 The core insight from all research: **AI-generated code is not inherently less secure or lower quality than human code, but it removes every natural bottleneck that controlled what reaches production** (OX Security, Oct 2025). The solution is not to slow down AI -- it is to front-load research so thoroughly that the AI builds on a foundation of verified truth rather than statistical guesses.
 
-This document defines the complete research system for the Pilot plugin. Research results flow into PLAN.md as the single source of truth during building.
+This document defines the complete research system for the STP plugin. Research results flow into PLAN.md as the single source of truth during building.
 
 ---
 
@@ -683,13 +683,13 @@ Not all gaps are equal. Prioritize by:
 ### 9.1 Research Flow
 
 ```
-/pilot:new (NEW project)
-  └── Domain research (Phase 1 of /pilot:plan)
+/stp:new (NEW project)
+  └── Domain research (Phase 1 of /stp:plan)
        └── Technical research via Context7 (Phase 1b)
             └── Architecture research (Phase 2-4)
                  └── All research → PLAN.md
 
-/pilot:feature (EXISTING codebase)
+/stp:feature (EXISTING codebase)
   └── Step 1: Context (read PLAN.md, CLAUDE.md)
        └── Step 2: Impact Analysis
             ├── Codebase mapping (1.1)

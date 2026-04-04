@@ -1,4 +1,4 @@
-# Pilot v0.2.0 SDLC Gap Analysis
+# STP v0.2.0 SDLC Gap Analysis
 
 **Date:** 2026-04-01
 **Methodology:** Compared Pilot's current workflow against modern SDLC practices from DORA, OWASP SAMM, Shape Up, YC practices, AWS/Google Cloud architecture guides, and 2025-2026 industry research.
@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-Pilot v0.2.0 covers the core build loop well: requirements (PRD.md), architecture (PLAN.md), TDD implementation (/pilot:feature), and quality evaluation (/pilot:evaluate). The primary gaps are in **what happens before first deploy** (CI/CD, deployment readiness) and **what happens after deploy** (monitoring, maintenance, compliance). These are precisely the areas where a solo developer most often fails -- not because they can't code, but because they forget to set up the infrastructure around the code.
+STP v0.2.0 covers the core build loop well: requirements (PRD.md), architecture (PLAN.md), TDD implementation (/stp:feature), and quality evaluation (/stp:evaluate). The primary gaps are in **what happens before first deploy** (CI/CD, deployment readiness) and **what happens after deploy** (monitoring, maintenance, compliance). These are precisely the areas where a solo developer most often fails -- not because they can't code, but because they forget to set up the infrastructure around the code.
 
 14 gaps identified. 6 are critical for solo developers shipping to production.
 
@@ -20,7 +20,7 @@ Pilot v0.2.0 covers the core build loop well: requirements (PRD.md), architectur
 ---
 
 #### Gap 1: CI/CD Pipeline Setup
-**What's Missing:** Pilot has zero CI/CD. No GitHub Actions workflow, no pre-deploy checks, no automated test runs on push. The Stop hook runs locally, but nothing prevents deploying broken code.
+**What's Missing:** STP has zero CI/CD. No GitHub Actions workflow, no pre-deploy checks, no automated test runs on push. The Stop hook runs locally, but nothing prevents deploying broken code.
 
 **Why It Matters for Solo Devs:** You are the only person who will catch a broken deploy. Without CI, you WILL push untested code at 11pm when tired. GitHub Actions is free for 2,000 min/month on public repos. DORA 2025 research shows deployment frequency is the #1 predictor of software delivery performance. Solo devs who deploy manually deploy less often, accumulate bigger changesets, and have higher change failure rates.
 
@@ -31,14 +31,14 @@ Pilot v0.2.0 covers the core build loop well: requirements (PRD.md), architectur
 
 **Current Pilot Coverage:** The Stop hook (type check + tests) runs locally only. No remote verification.
 
-**Recommendation:** **Bake into /pilot:new** -- generate a minimal CI workflow file (.github/workflows/ci.yml) during project setup. Contents: run type check + tests + lint on push/PR. Stack-detected (same logic as stop-verify.sh). Add a `/pilot:deploy` command or bake deploy config into /pilot:plan.
+**Recommendation:** **Bake into /stp:new** -- generate a minimal CI workflow file (.github/workflows/ci.yml) during project setup. Contents: run type check + tests + lint on push/PR. Stack-detected (same logic as stop-verify.sh). Add a `/stp:deploy` command or bake deploy config into /stp:plan.
 
 **Effort:** LOW -- template a GitHub Actions YAML per stack. The stop-verify.sh logic already exists.
 
 ---
 
 #### Gap 2: Monitoring & Error Tracking Setup
-**What's Missing:** Pilot mentions "error tracking service connected" in the error-handling reference checklist, and OWASP A09 says "implement error tracking (Sentry, Datadog, or equivalent)." But nothing in /pilot:new, /pilot:plan, or /pilot:feature actually sets up monitoring.
+**What's Missing:** Pilot mentions "error tracking service connected" in the error-handling reference checklist, and OWASP A09 says "implement error tracking (Sentry, Datadog, or equivalent)." But nothing in /stp:new, /stp:plan, or /stp:feature actually sets up monitoring.
 
 **Why It Matters for Solo Devs:** You have no team watching dashboards. If your app breaks in production at 3am, you won't know until users complain (or leave). Sentry has a free tier (5K errors/month). Without it, you're flying blind.
 
@@ -50,14 +50,14 @@ Pilot v0.2.0 covers the core build loop well: requirements (PRD.md), architectur
 
 **Current Pilot Coverage:** Reference file mentions it. Critic criterion 6 (Production Readiness) checks if error handling exists but NOT if monitoring is connected.
 
-**Recommendation:** **Add to /pilot:plan** as a required section: "Monitoring & Observability" with specific tools chosen per stack. Add a checklist item in /pilot:feature for the Foundation milestone: "Set up error tracking (Sentry/equivalent)." Add to Critic criterion 6: "Error tracking service configured and receiving events?"
+**Recommendation:** **Add to /stp:plan** as a required section: "Monitoring & Observability" with specific tools chosen per stack. Add a checklist item in /stp:feature for the Foundation milestone: "Set up error tracking (Sentry/equivalent)." Add to Critic criterion 6: "Error tracking service configured and receiving events?"
 
 **Effort:** LOW -- add a section to plan.md template and a reference file.
 
 ---
 
 #### Gap 3: Database Migration & Rollback Strategy
-**What's Missing:** /pilot:plan designs data models (tables, fields, relationships, indexes) but says nothing about: migration files, migration ordering, rollback procedures, seed data for development, backup strategy before schema changes.
+**What's Missing:** /stp:plan designs data models (tables, fields, relationships, indexes) but says nothing about: migration files, migration ordering, rollback procedures, seed data for development, backup strategy before schema changes.
 
 **Why It Matters for Solo Devs:** Your first production database migration WILL go wrong. Without a rollback plan, you lose user data. Without seed data, every new dev environment starts empty and you can't reproduce bugs. ORM migration features are convenient but "schema getting out of sync between dev and production" is the #1 migration problem for solo devs.
 
@@ -69,7 +69,7 @@ Pilot v0.2.0 covers the core build loop well: requirements (PRD.md), architectur
 
 **Current Pilot Coverage:** PLAN.md designs the schema. Nothing about migrations, rollbacks, or seed data.
 
-**Recommendation:** **Add to /pilot:plan Phase 3 (Data Models):** After designing the schema, specify: migration strategy (framework's migration tool), seed data script, backup-before-migrate procedure. Add a reference file: `references/production/database-migrations.md`.
+**Recommendation:** **Add to /stp:plan Phase 3 (Data Models):** After designing the schema, specify: migration strategy (framework's migration tool), seed data script, backup-before-migrate procedure. Add a reference file: `references/production/database-migrations.md`.
 
 **Effort:** LOW -- add to plan template and one reference file.
 
@@ -88,7 +88,7 @@ Pilot v0.2.0 covers the core build loop well: requirements (PRD.md), architectur
 
 **Current Pilot Coverage:** OWASP reference file A06 mentions "keep dependencies updated, monitor for CVEs." Nothing enforces it.
 
-**Recommendation:** **Add to CI pipeline** (Gap 1): `npm audit --audit-level=high` (or equivalent) as a CI step. **Add to /pilot:plan**: dependency review section. **Consider a reference file:** `references/security/dependency-security.md` covering audit commands per stack, lockfile hygiene, license checking.
+**Recommendation:** **Add to CI pipeline** (Gap 1): `npm audit --audit-level=high` (or equivalent) as a CI step. **Add to /stp:plan**: dependency review section. **Consider a reference file:** `references/security/dependency-security.md` covering audit commands per stack, lockfile hygiene, license checking.
 
 **Effort:** LOW -- one CI step per stack + one reference file.
 
@@ -105,9 +105,9 @@ Pilot v0.2.0 covers the core build loop well: requirements (PRD.md), architectur
 - Best practice: 3-5 critical path E2E tests, not 100. Happy path + one error path per core workflow.
 - Playwright + Vitest together: Vitest for speed, Playwright for real-world coverage.
 
-**Current Pilot Coverage:** /pilot:feature Step 6 mentions "integration/E2E tests for the milestone workflow" at milestone boundaries. But no tooling setup, no browser automation, and the Critic doesn't verify E2E coverage.
+**Current Pilot Coverage:** /stp:feature Step 6 mentions "integration/E2E tests for the milestone workflow" at milestone boundaries. But no tooling setup, no browser automation, and the Critic doesn't verify E2E coverage.
 
-**Recommendation:** **Add to /pilot:plan:** E2E test strategy section. Which user journeys get E2E tests? **Add to /pilot:new:** Install E2E framework (Playwright) during project setup for web projects. **Add to milestone completion:** Explicit E2E test execution, not just integration tests. Modify the Critic to check for E2E test files.
+**Recommendation:** **Add to /stp:plan:** E2E test strategy section. Which user journeys get E2E tests? **Add to /stp:new:** Install E2E framework (Playwright) during project setup for web projects. **Add to milestone completion:** Explicit E2E test execution, not just integration tests. Modify the Critic to check for E2E test files.
 
 **Effort:** MEDIUM -- requires E2E framework setup per stack template.
 
@@ -125,7 +125,7 @@ Pilot v0.2.0 covers the core build loop well: requirements (PRD.md), architectur
 
 **Current Pilot Coverage:** WCAG AA reference files exist (accessibility). OWASP covers security. Nothing covers legal compliance, privacy, or license auditing.
 
-**Recommendation:** **Add a reference file:** `references/legal/compliance-baseline.md` covering: privacy policy requirements, cookie consent, GDPR data handling basics, EAA accessibility mandate, license auditing for dependencies. **Add to /pilot:new Step 3** (Surface What They Didn't Think Of): include legal compliance items. **Add to /pilot:plan:** compliance section with specific requirements per market (EU, US, global).
+**Recommendation:** **Add a reference file:** `references/legal/compliance-baseline.md` covering: privacy policy requirements, cookie consent, GDPR data handling basics, EAA accessibility mandate, license auditing for dependencies. **Add to /stp:new Step 3** (Surface What They Didn't Think Of): include legal compliance items. **Add to /stp:plan:** compliance section with specific requirements per market (EU, US, global).
 
 **Effort:** LOW -- one reference file + additions to existing templates.
 
@@ -147,7 +147,7 @@ Pilot v0.2.0 covers the core build loop well: requirements (PRD.md), architectur
 
 **Current Pilot Coverage:** Type checking only. The Critic visually inspects code quality but doesn't run linters.
 
-**Recommendation:** **Add to /pilot:new:** Set up linter + formatter during project scaffolding (ESLint + Prettier for JS/TS, Ruff for Python, clippy for Rust, etc.). **Add to post-edit hook or CI:** Run linter. **Add to stop-verify.sh:** Run lint check alongside type check.
+**Recommendation:** **Add to /stp:new:** Set up linter + formatter during project scaffolding (ESLint + Prettier for JS/TS, Ruff for Python, clippy for Rust, etc.). **Add to post-edit hook or CI:** Run linter. **Add to stop-verify.sh:** Run lint check alongside type check.
 
 **Effort:** LOW -- add to stack templates and extend hooks.
 
@@ -164,16 +164,16 @@ Pilot v0.2.0 covers the core build loop well: requirements (PRD.md), architectur
 - Key components: decision, context, alternatives considered, consequences, status.
 - Pilot's PRD.md already captures initial decisions with alternatives -- it just doesn't evolve.
 
-**Current Pilot Coverage:** PRD.md captures initial architecture proposal with alternatives. PLAN.md has a "Technical Decisions Log" placeholder. But nothing enforces updates when decisions change during /pilot:feature.
+**Current Pilot Coverage:** PRD.md captures initial architecture proposal with alternatives. PLAN.md has a "Technical Decisions Log" placeholder. But nothing enforces updates when decisions change during /stp:feature.
 
-**Recommendation:** **Lightweight ADR tracking in PRD.md**: When /pilot:feature changes a technical decision, append to the Technical Decisions Log in PRD.md with date, decision, context, alternatives. This is already half-built -- just needs enforcement. No separate ADR files needed for solo devs.
+**Recommendation:** **Lightweight ADR tracking in PRD.md**: When /stp:feature changes a technical decision, append to the Technical Decisions Log in PRD.md with date, decision, context, alternatives. This is already half-built -- just needs enforcement. No separate ADR files needed for solo devs.
 
-**Effort:** VERY LOW -- add instruction to /pilot:feature to update PRD.md when decisions change.
+**Effort:** VERY LOW -- add instruction to /stp:feature to update PRD.md when decisions change.
 
 ---
 
 #### Gap 9: Deployment Readiness Checklist
-**What's Missing:** No `/pilot:deploy` command. No pre-deploy checklist. No environment variable validation. No health check endpoint verification. No rollback plan.
+**What's Missing:** No `/stp:deploy` command. No pre-deploy checklist. No environment variable validation. No health check endpoint verification. No rollback plan.
 
 **Why It Matters for Solo Devs:** First deploy is terrifying. You forget environment variables, the health check endpoint doesn't exist, there's no rollback plan. Vercel/Railway/Fly.io make deploys easy but don't verify your app is READY to deploy.
 
@@ -182,9 +182,9 @@ Pilot v0.2.0 covers the core build loop well: requirements (PRD.md), architectur
 - Vercel supports instant rollbacks and Rolling Releases (gradual rollout) natively.
 - Feature flags decouple deployment from release -- deploy code, enable features separately.
 
-**Current Pilot Coverage:** /pilot:plan doesn't include deployment planning. The Critic checks production readiness (error handling, loading states) but not deployment infrastructure.
+**Current Pilot Coverage:** /stp:plan doesn't include deployment planning. The Critic checks production readiness (error handling, loading states) but not deployment infrastructure.
 
-**Recommendation:** **Add to /pilot:plan:** Deployment section (target platform, environment variables needed, health check endpoint, rollback plan). **Consider /pilot:deploy or a deployment reference file** with pre-deploy checklist per platform.
+**Recommendation:** **Add to /stp:plan:** Deployment section (target platform, environment variables needed, health check endpoint, rollback plan). **Consider /stp:deploy or a deployment reference file** with pre-deploy checklist per platform.
 
 **Effort:** MEDIUM -- reference file + additions to plan template.
 
@@ -202,7 +202,7 @@ Pilot v0.2.0 covers the core build loop well: requirements (PRD.md), architectur
 
 **Current Pilot Coverage:** PRD.md has features as bullets. PLAN.md has test cases per feature. The test cases ARE implicit acceptance criteria -- but they live in PLAN.md, not PRD.md, and the Critic grades against PRD.md.
 
-**Recommendation:** **Enhance /pilot:plan Phase 5**: Each feature's test cases should explicitly map to acceptance criteria in the PRD. Or simpler: add acceptance criteria to PRD.md during /pilot:plan, derived from the test cases. This creates a traceable chain: PRD requirement -> acceptance criteria -> test cases -> implementation.
+**Recommendation:** **Enhance /stp:plan Phase 5**: Each feature's test cases should explicitly map to acceptance criteria in the PRD. Or simpler: add acceptance criteria to PRD.md during /stp:plan, derived from the test cases. This creates a traceable chain: PRD requirement -> acceptance criteria -> test cases -> implementation.
 
 **Effort:** LOW -- modify plan.md and PRD.md templates.
 
@@ -213,20 +213,20 @@ Pilot v0.2.0 covers the core build loop well: requirements (PRD.md), architectur
 ---
 
 #### Gap 11: API Documentation (OpenAPI/Swagger)
-**What's Missing:** /pilot:plan designs APIs with endpoints, auth, request/response shapes. But no OpenAPI spec is generated. No Swagger UI. No API documentation for consumers.
+**What's Missing:** /stp:plan designs APIs with endpoints, auth, request/response shapes. But no OpenAPI spec is generated. No Swagger UI. No API documentation for consumers.
 
 **Why It Matters for Solo Devs:** If your SaaS has a public API, or if you ever want a mobile app to consume your backend, you need API docs. OpenAPI specs can auto-generate client SDKs, validate requests, and serve as living documentation. For internal-only APIs, this is nice-to-have. For any API with external consumers, it's essential.
 
 **Current Pilot Coverage:** PLAN.md has API design with endpoints and shapes. Not in a machine-readable format.
 
-**Recommendation:** **Add to /pilot:plan Phase 4:** Generate an OpenAPI spec alongside the API design. For many frameworks (FastAPI, Spring Boot), this is auto-generated from code annotations. Add to Critic: check if API documentation matches implementation.
+**Recommendation:** **Add to /stp:plan Phase 4:** Generate an OpenAPI spec alongside the API design. For many frameworks (FastAPI, Spring Boot), this is auto-generated from code annotations. Add to Critic: check if API documentation matches implementation.
 
 **Effort:** MEDIUM -- stack-dependent. Some stacks auto-generate, others need manual spec files.
 
 ---
 
 #### Gap 12: Performance Testing (Lighthouse, Bundle Analysis)
-**What's Missing:** Pilot has performance reference files (Core Web Vitals, bundle optimization). The Critic checks for sequential queries and lazy loading. But no automated performance testing: no Lighthouse CI, no bundle size tracking, no load testing.
+**What's Missing:** STP has performance reference files (Core Web Vitals, bundle optimization). The Critic checks for sequential queries and lazy loading. But no automated performance testing: no Lighthouse CI, no bundle size tracking, no load testing.
 
 **Why It Matters for Solo Devs:** Performance degrades gradually. Each feature adds JavaScript, each query adds latency. Without automated measurement, you don't notice until the app feels slow. Lighthouse CI in GitHub Actions is free and catches regressions.
 
@@ -239,7 +239,7 @@ Pilot v0.2.0 covers the core build loop well: requirements (PRD.md), architectur
 ---
 
 #### Gap 13: Automated Accessibility Testing
-**What's Missing:** Pilot has excellent WCAG AA reference files (4 files covering POUR, keyboard nav, screen reader, color contrast). The Critic visually checks heading hierarchy, alt text, keyboard access. But no automated a11y testing tool runs.
+**What's Missing:** STP has excellent WCAG AA reference files (4 files covering POUR, keyboard nav, screen reader, color contrast). The Critic visually checks heading hierarchy, alt text, keyboard access. But no automated a11y testing tool runs.
 
 **Why It Matters for Solo Devs:** The EAA (Gap 6) mandates WCAG 2.1 AA compliance. Manual Critic checks catch obvious issues but miss subtle ones. axe-core catches 57% of WCAG issues automatically. Playwright has built-in axe integration. Running axe in E2E tests (Gap 5) catches accessibility regressions automatically.
 
@@ -258,7 +258,7 @@ Pilot v0.2.0 covers the core build loop well: requirements (PRD.md), architectur
 
 **Current Pilot Coverage:** Atomic git commits per feature. No changelog.
 
-**Recommendation:** **Add to CLAUDE.md templates:** Conventional Commits format (feat:, fix:, docs:). **Add to /pilot:plan or a future /pilot:ship command:** Auto-generate CHANGELOG.md from git log before release. This is low-priority and can be a reference file, not a command.
+**Recommendation:** **Add to CLAUDE.md templates:** Conventional Commits format (feat:, fix:, docs:). **Add to /stp:plan or a future /stp:ship command:** Auto-generate CHANGELOG.md from git log before release. This is low-priority and can be a reference file, not a command.
 
 **Effort:** VERY LOW -- commit format + one script.
 
@@ -270,7 +270,7 @@ These are real SDLC concerns but not appropriate for Pilot's scope:
 
 | Practice | Why NOT for Pilot |
 |----------|-------------------|
-| **Threat modeling / STRIDE** | Opus can do this when told to. Heavy process for solo dev pre-launch. Add as a /pilot:plan Phase 1.5 for apps handling sensitive data, not for all projects. |
+| **Threat modeling / STRIDE** | Opus can do this when told to. Heavy process for solo dev pre-launch. Add as a /stp:plan Phase 1.5 for apps handling sensitive data, not for all projects. |
 | **Load/stress testing** | Pre-launch solo dev won't have enough traffic to matter. Revisit post-traction. |
 | **Visual regression testing** | Nice but not critical. Chromatic/Percy add complexity. The Critic's design quality check covers the 80%. |
 | **Contract testing** | Only matters with multiple services/teams. Solo dev = one service. |
@@ -285,32 +285,32 @@ These are real SDLC concerns but not appropriate for Pilot's scope:
 
 | Priority | Gap | Effort | Recommendation |
 |----------|-----|--------|----------------|
-| 1 | CI/CD Pipeline (Gap 1) | LOW | Bake into /pilot:new -- generate CI workflow per stack |
-| 2 | Monitoring Setup (Gap 2) | LOW | Add to /pilot:plan + Critic + reference file |
-| 3 | DB Migration Strategy (Gap 3) | LOW | Add to /pilot:plan Phase 3 + reference file |
+| 1 | CI/CD Pipeline (Gap 1) | LOW | Bake into /stp:new -- generate CI workflow per stack |
+| 2 | Monitoring Setup (Gap 2) | LOW | Add to /stp:plan + Critic + reference file |
+| 3 | DB Migration Strategy (Gap 3) | LOW | Add to /stp:plan Phase 3 + reference file |
 | 4 | Dependency Security (Gap 4) | LOW | Add to CI + reference file |
-| 5 | Legal/Compliance (Gap 6) | LOW | Reference file + additions to /pilot:new and /pilot:plan |
-| 6 | Code Quality Automation (Gap 7) | LOW | Add lint/format to /pilot:new + hooks |
-| 7 | E2E Testing (Gap 5) | MEDIUM | Add to /pilot:new + /pilot:plan + milestone completion |
-| 8 | ADRs (Gap 8) | VERY LOW | Add instruction to /pilot:feature |
-| 9 | Deploy Readiness (Gap 9) | MEDIUM | Add to /pilot:plan + reference file |
+| 5 | Legal/Compliance (Gap 6) | LOW | Reference file + additions to /stp:new and /stp:plan |
+| 6 | Code Quality Automation (Gap 7) | LOW | Add lint/format to /stp:new + hooks |
+| 7 | E2E Testing (Gap 5) | MEDIUM | Add to /stp:new + /stp:plan + milestone completion |
+| 8 | ADRs (Gap 8) | VERY LOW | Add instruction to /stp:feature |
+| 9 | Deploy Readiness (Gap 9) | MEDIUM | Add to /stp:plan + reference file |
 | 10 | Acceptance Criteria (Gap 10) | LOW | Enhance PRD.md + PLAN.md templates |
 | 11 | A11y Testing (Gap 13) | VERY LOW | Piggyback on Gap 5 (E2E) |
 | 12 | Changelog (Gap 14) | VERY LOW | Commit format + reference file |
-| 13 | API Docs (Gap 11) | MEDIUM | Add to /pilot:plan Phase 4 |
+| 13 | API Docs (Gap 11) | MEDIUM | Add to /stp:plan Phase 4 |
 | 14 | Perf Testing (Gap 12) | LOW | Add to CI pipeline |
 
 ---
 
 ## How Gaps Map to Pilot Commands
 
-### /pilot:new (augment)
+### /stp:new (augment)
 - Generate CI workflow file (Gap 1)
 - Set up linter + formatter (Gap 7)
 - Install E2E framework for web projects (Gap 5)
 - Surface legal/compliance requirements (Gap 6)
 
-### /pilot:plan (augment)
+### /stp:plan (augment)
 - Add Monitoring & Observability section (Gap 2)
 - Add Migration & Rollback Strategy to Data Models phase (Gap 3)
 - Add Dependency Review section (Gap 4)
@@ -320,7 +320,7 @@ These are real SDLC concerns but not appropriate for Pilot's scope:
 - Add Acceptance Criteria to features (Gap 10)
 - Generate OpenAPI spec for APIs (Gap 11)
 
-### /pilot:feature (augment)
+### /stp:feature (augment)
 - Update PRD.md Technical Decisions Log when decisions change (Gap 8)
 - Write E2E tests for critical paths at milestone boundaries (Gap 5)
 - Include axe-core in E2E tests (Gap 13)

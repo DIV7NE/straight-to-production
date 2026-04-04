@@ -1,4 +1,4 @@
-# Pilot
+# STP — Ship To Production
 
 **Your CTO in a plugin.**
 
@@ -35,15 +35,15 @@ PILOT:
 ```
 pilot/
 ├── commands/           # 9 commands
-│   ├── whiteboard.md      # /pilot:whiteboard — Explore ideas + research
-│   ├── new-project.md     # /pilot:new-project — Start a new project
-│   ├── plan.md            # /pilot:plan — Design the architecture
-│   ├── build.md           # /pilot:build — Build a feature (TDD)
-│   ├── review.md          # /pilot:review — Quality evaluation (7 criteria)
-│   ├── autopilot.md       # /pilot:autopilot — Overnight autonomous
-│   ├── pause.md           # /pilot:pause — Save progress, take a break
-│   ├── onboard-existing.md # /pilot:onboard-existing — Take over existing project
-│   └── upgrade.md         # /pilot:upgrade — Pull latest from GitHub
+│   ├── whiteboard.md      # /stp:whiteboard — Explore ideas + research
+│   ├── new-project.md     # /stp:new-project — Start a new project
+│   ├── plan.md            # /stp:plan — Design the architecture
+│   ├── build.md           # /stp:build — Build a feature (TDD)
+│   ├── review.md          # /stp:review — Quality evaluation (7 criteria)
+│   ├── autopilot.md       # /stp:autopilot — Overnight autonomous
+│   ├── pause.md           # /stp:pause — Save progress, take a break
+│   ├── onboard-existing.md # /stp:onboard-existing — Take over existing project
+│   └── upgrade.md         # /stp:upgrade — Pull latest from GitHub
 ├── agents/             # 3 independent Sonnet agents
 │   ├── executor.md     # Builder — TDD in isolated worktrees
 │   ├── qa.md           # QA tester — tests running app against PRD
@@ -101,53 +101,53 @@ pilot/
 
 ### 0. Whiteboard (optional — use anytime)
 ```
-/pilot:whiteboard I have an idea for a fitness tracking app
-/pilot:whiteboard should we use WebSockets or SSE for real-time?
-/pilot:whiteboard this payment feature is complex, what's the best approach?
+/stp:whiteboard I have an idea for a fitness tracking app
+/stp:whiteboard should we use WebSockets or SSE for real-time?
+/stp:whiteboard this payment feature is complex, what's the best approach?
 ```
-Explore ideas, research approaches, compare options with industry backing. No code — just thinking. Decisions are saved to disk so they survive /clear. Use before /pilot:new-project to shape a vague idea, before /pilot:build for complex decisions, or standalone for any technical question.
+Explore ideas, research approaches, compare options with industry backing. No code — just thinking. Decisions are saved to disk so they survive /clear. Use before /stp:new-project to shape a vague idea, before /stp:build for complex decisions, or standalone for any technical question.
 
 ### 1. Start a new project
 ```
-/pilot:new-project an app where freelancers track invoices and expenses
+/stp:new-project an app where freelancers track invoices and expenses
 ```
 Opus asks product questions (one at a time), proposes the full stack with alternatives and honest downsides, surfaces what you'd miss. Creates **PRD.md** (with acceptance criteria), **CONTEXT.md** (codebase map), **CHANGELOG.md**, **VERSION**, CI pipeline, and scaffolds the foundation.
 
 ### 2. Plan the architecture
 ```
-/pilot:plan
+/stp:plan
 ```
 Researches the domain, designs system architecture, data models, API routes, auth model, error strategy, Feature Touchpoint Map (where each feature appears across the app). Visual whiteboard renders diagrams live. Critic verifies the plan. Writes **PLAN.md**. No code — just the verified blueprint.
 
 ### 3. Build (TDD)
 ```
-/pilot:build database setup and user model
+/stp:build database setup and user model
 ```
 Impact analysis first (what existing features does this touch?). Writes tests FIRST. Implements to make tests pass. `/simplify` polishes code. Checkpoints every 3 items. Backward integration updates existing features. Auto-Critic + integration tests at milestone boundaries. Teaches you concepts along the way.
 
 ### 4. Review quality
 ```
-/pilot:review
+/stp:review
 ```
 A separate Sonnet AI grades your app against PRD + PLAN + 7 quality criteria with file:line evidence and business impact.
 
 ### 5. Run overnight
 ```
-/pilot:autopilot
+/stp:autopilot
 ```
 Works through the feature checklist unattended. TDD per task. Critic evaluates when done.
 
 ### The full flow
 ```
-/pilot:whiteboard        → Shape ideas, research approaches (optional, anytime)
-/pilot:new-project       → PRD.md (what we're building)
-/pilot:plan              → PLAN.md (how we're building it — verified by Critic)
-/pilot:build             → Research → TDD → /simplify → checkpoint → milestone auto-eval
-/pilot:review            → Separate AI grades against PRD + PLAN + 7 criteria
-/pilot:pause             → Save state → /clear → resume next session
-/pilot:autopilot         → Overnight TDD autonomous with Critic at completion
-/pilot:onboard-existing  → Take over an existing project → analyze → document → plan
-/pilot:upgrade           → Pull latest Pilot version from GitHub
+/stp:whiteboard        → Shape ideas, research approaches (optional, anytime)
+/stp:new-project       → PRD.md (what we're building)
+/stp:plan              → PLAN.md (how we're building it — verified by Critic)
+/stp:build             → Research → TDD → /simplify → checkpoint → milestone auto-eval
+/stp:review            → Separate AI grades against PRD + PLAN + 7 criteria
+/stp:pause             → Save state → /clear → resume next session
+/stp:autopilot         → Overnight TDD autonomous with Critic at completion
+/stp:onboard-existing  → Take over an existing project → analyze → document → plan
+/stp:upgrade           → Pull latest Pilot version from GitHub
 ```
 
 ## Quality Enforcement (Hook Gates — Cannot Be Bypassed)
@@ -167,12 +167,12 @@ Works through the feature checklist unattended. TDD per task. Critic evaluates w
 
 | Document | Created By | Updated By | Purpose |
 |----------|-----------|------------|---------|
-| PRD.md | /pilot:new-project | /pilot:build (decisions log) | What we're building + acceptance criteria |
-| PLAN.md | /pilot:plan | /pilot:build (mark [x] + version) | How we're building it (verified blueprint) |
-| CONTEXT.md | /pilot:new-project | /pilot:build (incremental), milestone (full refresh) | What exists RIGHT NOW (codebase map) |
-| CHANGELOG.md | /pilot:new-project | /pilot:build (per feature + milestone) | What happened (versioned history) |
-| VERSION | /pilot:new-project | /pilot:build (patch bump), milestone (minor bump) | Current version number |
-| CLAUDE.md | /pilot:new-project | — | Standards + patterns for Claude |
+| PRD.md | /stp:new-project | /stp:build (decisions log) | What we're building + acceptance criteria |
+| PLAN.md | /stp:plan | /stp:build (mark [x] + version) | How we're building it (verified blueprint) |
+| CONTEXT.md | /stp:new-project | /stp:build (incremental), milestone (full refresh) | What exists RIGHT NOW (codebase map) |
+| CHANGELOG.md | /stp:new-project | /stp:build (per feature + milestone) | What happened (versioned history) |
+| VERSION | /stp:new-project | /stp:build (patch bump), milestone (minor bump) | Current version number |
+| CLAUDE.md | /stp:new-project | — | Standards + patterns for Claude |
 
 ## Design Principles
 

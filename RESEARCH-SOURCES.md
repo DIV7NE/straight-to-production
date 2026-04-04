@@ -1,4 +1,4 @@
-# Pilot v0.2.0 — Research Sources & Key Findings
+# STP v0.2.0 — Research Sources & Key Findings
 
 All research that shaped this plugin's design. Read this to understand WHY every decision was made.
 

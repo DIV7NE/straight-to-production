@@ -23,7 +23,7 @@ Any web application or service that collects user data, accepts payments, or is 
 ## EAA / European Accessibility Act (Mandatory since June 2025)
 - WCAG 2.1 AA compliance is legally required for SaaS products serving EU users
 - Covers: web applications, mobile apps, e-commerce
-- See: .pilot/references/accessibility/wcag-aa-essentials.md
+- See: .stp/references/accessibility/wcag-aa-essentials.md
 
 ## Cookie Consent (Required for EU users)
 - Essential cookies (auth, security): no consent needed

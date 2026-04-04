@@ -102,7 +102,7 @@
 
 ### 1D. Headless Sessions (claude -p)
 
-**How it works:** Fresh CLI invocations per task. Each is a completely independent session. No shared state except the filesystem. Used by `/pilot:auto`.
+**How it works:** Fresh CLI invocations per task. Each is a completely independent session. No shared state except the filesystem. Used by `/stp:auto`.
 
 **Key mechanics:**
 - Each invocation starts cold — reads CLAUDE.md, discovers project from scratch
@@ -324,7 +324,7 @@ Rationale:
 ## 8. Implications for Pilot
 
 ### Current Pilot Model
-Pilot currently uses Model 1A (main Opus agent does everything) for interactive building, and Model 1D (headless `claude -p`) for `/pilot:auto` autonomous execution.
+Pilot currently uses Model 1A (main Opus agent does everything) for interactive building, and Model 1D (headless `claude -p`) for `/stp:auto` autonomous execution.
 
 ### Recommended Architecture
 

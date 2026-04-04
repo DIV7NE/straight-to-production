@@ -1,12 +1,12 @@
 {
-  "name": "pilot-dev",
-  "description": "Development marketplace for Pilot plugin",
+  "name": "stp-dev",
+  "description": "Development marketplace for STP plugin",
   "owner": {
     "name": "visionch"
   },
   "plugins": [
     {
-      "name": "pilot",
+      "name": "stp",
       "description": "Your CTO in a plugin. Production-quality app builder for solo developers.",
       "version": "0.2.0",
       "source": "./",

@@ -32,7 +32,7 @@ process.stdin.on('end', () => {
     } catch (e) {}
 
     // Active feature + progress OR plan progress
-    const featureFile = '.pilot/current-feature.md';
+    const featureFile = '.stp/current-feature.md';
     const planFile = 'PLAN.md';
 
     if (fs.existsSync(featureFile)) {

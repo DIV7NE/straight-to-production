@@ -37,7 +37,7 @@
           },
           {
             "type": "prompt",
-            "prompt": "Context compaction is about to fire. Commit any uncommitted work now. State saved to .pilot/state.json. After compaction, read .pilot/current-feature.md and .pilot/handoff.md to resume."
+            "prompt": "Context compaction is about to fire. Commit any uncommitted work now. State saved to .stp/state.json. After compaction, read .stp/current-feature.md and .stp/handoff.md to resume."
           }
         ],
         "description": "Save state to disk before compaction destroys conversation context"
@@ -59,6 +59,6 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pilot-statusline.js\""
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stp-statusline.js\""
   }
 }

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pilot v0.2.0: Statusline — colored project state + context usage
+# STP v0.2.0: Statusline — colored project state + context usage
 # Reads from disk + environment. Zero token cost. Fast (<50ms).
 
 # Colors
@@ -22,10 +22,10 @@ if [ -f "VERSION" ]; then
 fi
 
 # Active feature + progress
-if [ -f ".pilot/current-feature.md" ]; then
-  TITLE=$(head -1 ".pilot/current-feature.md" | sed 's/^#* *//' | cut -c1-25)
-  DONE=$(grep -c '\[x\]' ".pilot/current-feature.md" 2>/dev/null || echo "0")
-  TOTAL=$(grep -c '\[.\]' ".pilot/current-feature.md" 2>/dev/null || echo "0")
+if [ -f ".stp/current-feature.md" ]; then
+  TITLE=$(head -1 ".stp/current-feature.md" | sed 's/^#* *//' | cut -c1-25)
+  DONE=$(grep -c '\[x\]' ".stp/current-feature.md" 2>/dev/null || echo "0")
+  TOTAL=$(grep -c '\[.\]' ".stp/current-feature.md" 2>/dev/null || echo "0")
 
   # Progress color: green if >50%, yellow if >0%, dim if 0%
   if [ "$TOTAL" -gt 0 ] && [ "$DONE" -gt 0 ]; then
@@ -103,8 +103,8 @@ if [ "$WINDOW_SIZE" -gt 0 ] 2>/dev/null; then
   PCT=$((TOKENS_USED * 100 / WINDOW_SIZE))
   build_bar "$PCT" ""
 else
-  if [ -f ".pilot/.tool-call-count" ]; then
-    COUNT=$(cat ".pilot/.tool-call-count" 2>/dev/null || echo "0")
+  if [ -f ".stp/.tool-call-count" ]; then
+    COUNT=$(cat ".stp/.tool-call-count" 2>/dev/null || echo "0")
     if [ "$COUNT" -gt 0 ] 2>/dev/null; then
       PCT=$((COUNT * 100 / 800))
       if [ "$PCT" -gt 100 ]; then PCT=100; fi

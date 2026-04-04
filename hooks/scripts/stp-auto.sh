@@ -1,25 +1,25 @@
 #!/bin/bash
-# Pilot v0.2.0: Autonomous loop
+# STP v0.2.0: Autonomous loop
 # Each checklist item runs in a fresh claude -p session.
 # Stack-aware verification after each iteration.
-# Usage: bash pilot-auto.sh [max_iterations]
+# Usage: bash stp-auto.sh [max_iterations]
 
 MAX_ITERATIONS=${1:-30}
 ITERATION=0
-FEATURE_FILE=".pilot/current-feature.md"
+FEATURE_FILE=".stp/current-feature.md"
 
 if [ ! -f "CLAUDE.md" ]; then
-  echo "Error: No CLAUDE.md found. Run /pilot:new-project first."
+  echo "Error: No CLAUDE.md found. Run /stp:new-project first."
   exit 1
 fi
 
 if [ ! -f "$FEATURE_FILE" ]; then
-  echo "Error: No .pilot/current-feature.md found. Run /pilot:build first."
+  echo "Error: No .stp/current-feature.md found. Run /stp:build first."
   exit 1
 fi
 
 FEATURE_TITLE=$(head -1 "$FEATURE_FILE" | sed 's/^#* *//')
-echo "=== Pilot Auto Mode ==="
+echo "=== STP Auto Mode ==="
 echo "Feature: $FEATURE_TITLE"
 echo "Max iterations: $MAX_ITERATIONS"
 echo ""
@@ -113,13 +113,13 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
       echo ""
       echo "=== ALL VERIFICATION PASSED ==="
       echo "Running Critic evaluation..."
-      claude -p --model sonnet --effort high "Run /pilot:review on this project. Read CLAUDE.md for context. Be ruthlessly strict." 2>&1 | tee .pilot/auto-eval-report.txt
+      claude -p --model sonnet --effort high "Run /stp:review on this project. Read CLAUDE.md for context. Be ruthlessly strict." 2>&1 | tee .stp/auto-eval-report.txt
       echo ""
-      echo "=== PILOT AUTO COMPLETE ==="
+      echo "=== STP AUTO COMPLETE ==="
       echo "Feature: $FEATURE_TITLE"
       echo "Items completed: $CHECKED"
       echo "Iterations used: $ITERATION"
-      echo "Evaluation: .pilot/auto-eval-report.txt"
+      echo "Evaluation: .stp/auto-eval-report.txt"
       exit 0
     else
       echo "Verification FAILED. Sending back to fix..."
@@ -140,7 +140,7 @@ You are working on: $FEATURE_TITLE
 Read CONTEXT.md for the current codebase state (file map, schema, API, patterns).
 Read CLAUDE.md for project context and standards.
 Read PLAN.md for the technical blueprint (data models, API design, test cases).
-Read .pilot/current-feature.md for the checklist.
+Read .stp/current-feature.md for the checklist.
 
 YOUR TASK:
 ${NEXT_TASK:-Fix all type, compile, and test errors.}
@@ -151,7 +151,7 @@ RULES:
 3. Implement to make the tests pass.
 4. Run the type checker AND tests for this project. Fix any errors.
 5. Run /simplify on the changes (3-agent code review: reuse, quality, efficiency).
-6. Update .pilot/current-feature.md — mark completed item [x]
+6. Update .stp/current-feature.md — mark completed item [x]
 7. Commit tests: git add -A && git commit -m 'test: add tests for [description]'
 8. Commit implementation: git add -A && git commit -m 'feat: [description]'
 9. If stuck after 3 attempts, add a note and move on.
@@ -163,7 +163,7 @@ RULES:
   if [ -n "$TYPE_CMD" ]; then
     POST_ERRORS=$($TYPE_CMD 2>&1 | grep -c -E "^error|error TS|error:|error\[" || echo "0")
     if [ "$POST_ERRORS" -gt 0 ]; then
-      echo "[Pilot] WARNING: type/compile errors after this iteration."
+      echo "[STP] WARNING: type/compile errors after this iteration."
     fi
   fi
 

@@ -4,7 +4,7 @@ argument-hint: No arguments needed
 allowed-tools: ["Bash", "Read"]
 ---
 
-# Pilot: Upgrade
+# STP: Upgrade
 
 Pull the latest version of Pilot from GitHub and show what changed.
 
@@ -50,5 +50,5 @@ Run /clear to load the new version.
 
 If already up to date:
 ```
-Pilot is already at the latest version.
+STP is already at the latest version.
 ```

@@ -30,7 +30,7 @@ The `executor_model` value comes from `model-profiles.cjs`:
 
 In `balanced` profile (the default), executors run as **Sonnet**. This is the "Opus plans, Sonnet builds" pattern in production.
 
-**Action for Pilot:** Add `"Agent"` (or `"Task"`) to `feature.md`'s `allowed-tools` array, or restructure so the orchestration logic lives in a workflow file that has full tool access.
+**Action for STP:** Add `"Agent"` (or `"Task"`) to `feature.md`'s `allowed-tools` array, or restructure so the orchestration logic lives in a workflow file that has full tool access.
 
 ---
 
@@ -96,7 +96,7 @@ The executor also checks `.claude/skills/` directories. Claude Code loads CLAUDE
 </files_to_read>
 ```
 
-**Action for Pilot:** Subagent prompts must explicitly list all files the agent needs to read (CONTEXT.md, PLAN.md, current-feature.md, etc.). Don't assume it knows anything.
+**Action for STP:** Subagent prompts must explicitly list all files the agent needs to read (CONTEXT.md, PLAN.md, current-feature.md, etc.). Don't assume it knows anything.
 
 ---
 
@@ -126,7 +126,7 @@ The executor also checks `.claude/skills/` directories. Claude Code loads CLAUDE
    - Options: squash merge (recommended), merge with history, delete without merging, keep branches
    - Uses `git merge --squash` or `git merge --no-ff --no-commit`
 
-**For Pilot:** After parallel agents finish, you need: (a) merge worktree branches to main, (b) run type check + tests on merged code, (c) run /simplify on combined changes. GSD defers the actual merge to milestone completion; Pilot could do it per-feature instead.
+**For STP:** After parallel agents finish, you need: (a) merge worktree branches to main, (b) run type check + tests on merged code, (c) run /simplify on combined changes. GSD defers the actual merge to milestone completion; Pilot could do it per-feature instead.
 
 ---
 
@@ -207,6 +207,6 @@ The executor also checks `.claude/skills/` directories. Claude Code loads CLAUDE
 1. **Wave-based execution:** Group independent features into waves, parallelize within waves
 2. **Spot-check fallback:** Don't rely solely on completion signals; verify via filesystem/git
 3. **`--no-verify` for parallel agents:** Run hooks once after wave, not per-agent
-4. **Agent definitions:** Create `pilot-executor.md` (like `gsd-executor.md`) with Pilot-specific conventions
+4. **Agent definitions:** Create `stp-executor.md` (like `gsd-executor.md`) with STP-specific conventions
 5. **Model profiles:** Map agent roles to models (planner=opus, executor=sonnet, critic=sonnet)
 6. **`<files_to_read>` pattern:** Explicit file lists in subagent prompts, not implicit assumptions

@@ -4,7 +4,7 @@ argument-hint: No arguments needed
 allowed-tools: ["Read", "Write", "Bash", "Grep", "Glob"]
 ---
 
-# Pilot: Pause
+# STP: Pause
 
 Write a handoff note for your future self (who has ZERO memory of this conversation).
 
@@ -12,7 +12,7 @@ Write a handoff note for your future self (who has ZERO memory of this conversat
 
 ### Step 0: Check If There's Anything to Pause
 
-Run `git status --short` and check if `.pilot/current-feature.md` exists.
+Run `git status --short` and check if `.stp/current-feature.md` exists.
 
 If there are NO uncommitted changes AND no active feature:
 ```
@@ -31,11 +31,11 @@ If changes exist: `git add -A && git commit -m "wip: [specific description]"`
 
 ### Step 2: Update Feature Checklist
 
-If `.pilot/current-feature.md` exists, mark completed items `[x]`.
+If `.stp/current-feature.md` exists, mark completed items `[x]`.
 
 ### Step 3: Write Handoff
 
-Create `.pilot/handoff.md` with ALL of:
+Create `.stp/handoff.md` with ALL of:
 
 ```markdown
 # Handoff — [timestamp]
@@ -75,7 +75,7 @@ Handoff saved. All work committed.
    /clear
 
 2. Then paste this in the new session:
-   Continue working on [FEATURE NAME]. Read .pilot/handoff.md for context.
+   Continue working on [FEATURE NAME]. Read .stp/handoff.md for context.
    Next task: [EXACT NEXT TASK from the handoff].
 ```
 

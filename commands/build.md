@@ -8,7 +8,7 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Age
 
 
 
-# Pilot: Feature Builder
+# STP: Feature Builder
 
 You are building a feature using test-driven development. Tests come BEFORE implementation. Make all technical decisions. Only interrupt the user for PRODUCT decisions. Teach key concepts along the way.
 
@@ -41,9 +41,9 @@ TaskCreate("Version bump + docs update")
 
 Read PLAN.md for this feature's requirements, test cases, and dependencies. Read CLAUDE.md for stack patterns. Check existing code for established patterns.
 
-If PLAN.md exists and this feature is listed, use the plan's test cases and dependencies. If PLAN.md doesn't exist or this feature isn't in it, create the plan inline (but recommend running `/pilot:plan` first for complex projects).
+If PLAN.md exists and this feature is listed, use the plan's test cases and dependencies. If PLAN.md doesn't exist or this feature isn't in it, create the plan inline (but recommend running `/stp:plan` first for complex projects).
 
-If `.pilot/current-feature.md` already exists, use AskUserQuestion with options: "(Recommended) Finish [existing feature] first — picking up is faster than context-switching", "Abandon it, start [new feature] — mark old one incomplete", "Chat about this".
+If `.stp/current-feature.md` already exists, use AskUserQuestion with options: "(Recommended) Finish [existing feature] first — picking up is faster than context-switching", "Abandon it, start [new feature] — mark old one incomplete", "Chat about this".
 
 ### Step 2: Research (BEFORE building — comprehensive, not optional)
 
@@ -79,7 +79,7 @@ For every significant pattern: verify it works with the CURRENT version of the f
 
 **D. Security Research — what can go wrong?**
 
-Read `.pilot/references/security/ai-code-vulnerabilities.md` BEFORE writing code. Then for THIS specific feature:
+Read `.stp/references/security/ai-code-vulnerabilities.md` BEFORE writing code. Then for THIS specific feature:
 - What OWASP category does this feature touch? (auth → A01, user input → A03, etc.)
 - What are the known security mistakes for this type of feature?
 - What validation is required? Where? (server-side, always)
@@ -91,7 +91,7 @@ Read `.pilot/references/security/ai-code-vulnerabilities.md` BEFORE writing code
 - **Data privacy:** Does this feature collect/store PII? What's the retention period? Can it be fully deleted (GDPR)?
 - **Resource exhaustion:** Are all inputs bounded? (max payload, max items, pagination, timeouts)
 - **Error leakage:** Do error responses reveal internal state? Different messages for "not found" vs "wrong password"?
-- Read `.pilot/references/security/` files relevant to this feature
+- Read `.stp/references/security/` files relevant to this feature
 
 **E. Resilience Research — what if things fail?**
 
@@ -129,7 +129,7 @@ Teach: "I'm doing thorough research before writing any code. I'm checking what a
 
 ### Step 3: Enrich + Correct the User
 
-Based on ALL the research above, identify what the user DIDN'T think of. Read relevant `.pilot/references/` files.
+Based on ALL the research above, identify what the user DIDN'T think of. Read relevant `.stp/references/` files.
 
 **If the user's approach is wrong, say so.** You are the CTO — if the user asked for "a simple password field" but the industry standard is OAuth, recommend OAuth and explain why. Don't blindly implement bad ideas. Present the researched, proven approach.
 
@@ -180,7 +180,7 @@ Skip this section if no notable decisions beyond what's in CLAUDE.md.]
 - [ ] [AC 2 — testable condition]
 
 ### Standards I'll check
-- .pilot/references/[domain]/[file].md before: [specific step]
+- .stp/references/[domain]/[file].md before: [specific step]
 ```
 
 Keep the plan UNDER 30 lines. This is a checklist, not a document.
@@ -189,7 +189,7 @@ Keep the plan UNDER 30 lines. This is a checklist, not a document.
 
 When the user says go:
 
-1. Save the checklist to `.pilot/current-feature.md`
+1. Save the checklist to `.stp/current-feature.md`
 
 2. **ALWAYS delegate to Sonnet executor.** This is NOT optional. You are the CTO — you plan, review, and merge. You do NOT write implementation code yourself.
 
@@ -261,7 +261,7 @@ When the user says go:
    Do NOT include in the prompt:
    - Full CONTEXT.md (the agent reads it itself — it loads with CLAUDE.md automatically)
    - Full PLAN.md (only the relevant feature spec)
-   - Reference files (the agent reads .pilot/references/ only if needed)
+   - Reference files (the agent reads .stp/references/ only if needed)
    - Any MCP tool instructions (executors don't use Context7, Tavily, or research tools)
    - Any plugin/skill context (executors just build — Read, Write, Edit, Bash, Glob, Grep only)
 
@@ -312,7 +312,7 @@ When the user says go:
 7. **Post-merge polish.**
    - Run `/simplify` on the combined changes
 
-8. **Hygiene scan.** (read `.pilot/references/production/code-hygiene.md` for the full checklist)
+8. **Hygiene scan.** (read `.stp/references/production/code-hygiene.md` for the full checklist)
    - Remove any unused imports, variables, functions
    - Remove any console.log / print / debug statements
    - Remove any commented-out code blocks (git has the history)
@@ -347,7 +347,7 @@ When the user says go:
 
 10. **Independent QA — separate agent tests the running app.**
 
-   Same principle as the Critic: the builder should NOT QA its own work. Spawn the `pilot-qa` agent — it has NEVER seen the build process and tests purely against acceptance criteria.
+   Same principle as the Critic: the builder should NOT QA its own work. Spawn the `stp-qa` agent — it has NEVER seen the build process and tests purely against acceptance criteria.
 
    First, ensure the dev server is running:
    ```bash
@@ -491,7 +491,7 @@ When the user says go:
    
    A README that doesn't match the code is WORSE than no README — it wastes the user's time with wrong instructions.
 
-7. Delete `.pilot/current-feature.md` and `.pilot/handoff.md` if they exist.
+7. Delete `.stp/current-feature.md` and `.stp/handoff.md` if they exist.
 8. Commit: `feat: [feature name] (v0.1.3)`
 
 ### Step 7: Milestone Check (Automatic)
@@ -508,7 +508,7 @@ Test that features within this milestone work TOGETHER, not just individually.
 Write and run integration/E2E tests for the milestone's primary workflow. Commit them.
 
 **3. Automatic Critic Evaluation**
-Spawn the `pilot-critic` agent automatically. Grade against PRD.md + PLAN.md + 7 criteria. Present results.
+Spawn the `stp-critic` agent automatically. Grade against PRD.md + PLAN.md + 7 criteria. Present results.
 
 **4. Milestone CHANGELOG entry.** Add a milestone summary entry:
    ```markdown
@@ -565,7 +565,7 @@ Priority fixes (if any):
 2. [Second]
 
 Fix these now? Or continue to Milestone [N+1]:
-   /pilot:build [FIRST FEATURE of next milestone]
+   /stp:build [FIRST FEATURE of next milestone]
 ```
 
 If this is the **LAST milestone** (all milestones complete):
@@ -592,7 +592,7 @@ Feature complete: [NAME]
 [N] of [M] features done in Milestone [current].
 
 ━━━ Next ━━━
-/pilot:build [NEXT FEATURE in this milestone]
+/stp:build [NEXT FEATURE in this milestone]
 ```
 
 ALWAYS fill in specific names.
@@ -600,7 +600,7 @@ ALWAYS fill in specific names.
 ## Gotchas
 
 - Do NOT ask technical questions. You decide.
-- ALWAYS save the checklist to `.pilot/current-feature.md` — this survives compaction.
+- ALWAYS save the checklist to `.stp/current-feature.md` — this survives compaction.
 - Do NOT over-scope. "Add a settings page" doesn't mean also add admin tools, themes, and notifications.
 - DO check if patterns already exist in the codebase. Follow established patterns.
 - DO read reference files before implementing security, accessibility, or performance-sensitive code.

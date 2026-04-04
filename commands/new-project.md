@@ -1,5 +1,5 @@
 ---
-description: Start a new project with Pilot. You describe the product, Opus makes all technical decisions (with full justification), and builds a production-ready foundation.
+description: Start a new project with STP. You describe the product, Opus makes all technical decisions (with full justification), and builds a production-ready foundation.
 argument-hint: What you want to build (e.g., "an app where freelancers track invoices and expenses")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
@@ -8,7 +8,7 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Age
 
 
 
-# Pilot: New Project
+# STP: New Project
 
 ## Pre-Flight Check (run silently before anything else)
 
@@ -28,19 +28,19 @@ python3 --version 2>/dev/null | head -1
 # Existing project state
 [ -f "CLAUDE.md" ] && echo "claude_md: exists" || echo "claude_md: none"
 [ -f "PRD.md" ] && echo "prd: exists" || echo "prd: none"
-[ -d ".pilot" ] && echo "pilot_dir: exists" || echo "pilot_dir: none"
+[ -d ".stp" ] && echo "stp_dir: exists" || echo "stp_dir: none"
 [ -d ".git" ] && echo "git_repo: yes" || echo "git_repo: no"
 ls *.json 2>/dev/null | head -3
 ```
 
 **Based on findings:**
-- If `.pilot/` already exists → "This project already has Pilot. Did you mean `/pilot:build` or `/pilot:onboard-existing`?"
+- If `.stp/` already exists → "This project already has Pilot. Did you mean `/stp:build` or `/stp:onboard-existing`?"
 - If no `git` → init git automatically during setup
-- If existing code files detected → "This folder has existing code. Did you mean `/pilot:onboard-existing`?"
+- If existing code files detected → "This folder has existing code. Did you mean `/stp:onboard-existing`?"
 - Note which runtimes are available — this informs stack recommendations (don't recommend Python if only Node is installed)
 
 **Check available research tools (silently — don't show to user):**
-- Context7 MCP available? → enables live doc research during `/pilot:plan`
+- Context7 MCP available? → enables live doc research during `/stp:plan`
 - Tavily MCP available? → enables deep web research
 - If neither: research falls back to training knowledge (note this internally, don't burden the user)
 
@@ -416,7 +416,7 @@ Each feature has acceptance criteria — testable conditions that define "done."
 - [Feature 2]
   - AC: [Testable condition]
 
-### Included (surfaced by Pilot)
+### Included (surfaced by STP)
 - [Auth — why]
   - AC: [Unauthenticated user redirected to login]
   - AC: [User can only see their own data]
@@ -463,7 +463,7 @@ why, and what alternatives were considered.]
      # Changelog
      
      All notable changes to this project are documented here.
-     Pilot updates this automatically on every feature and milestone completion.
+     STP updates this automatically on every feature and milestone completion.
      The AI reads this to understand the project's full history.
      
      ## [0.1.0] — [DATE] — Project Initialized
@@ -478,7 +478,7 @@ why, and what alternatives were considered.]
      ### Documents Created
      - PRD.md — product requirements
      - CLAUDE.md — standards + patterns
-     - .pilot/references/ — [N] production standards
+     - .stp/references/ — [N] production standards
      - .github/workflows/ci.yml — CI pipeline
      ```
    
@@ -536,7 +536,7 @@ why, and what alternatives were considered.]
    
    Teach: "CONTEXT.md is like a building's floor plan. If I start a fresh session, I read it to know where everything is — which files exist, what the database looks like, what API endpoints are available, what patterns to follow. I update it every time I add something new."
 
-8. Initialize git if needed, first commit: `chore: initialize project with Pilot standards (v0.1.0)`
+8. Initialize git if needed, first commit: `chore: initialize project with STP standards (v0.1.0)`
 
 ### Step 7: Handoff
 
@@ -549,24 +549,24 @@ What was created:
 - CONTEXT.md — live codebase map (updated as we build)
 - VERSION — version tracking (0.1.0)
 - CHANGELOG.md — project history (updated every feature)
-- .pilot/references/ — production standards I'll check against
+- .stp/references/ — production standards I'll check against
 - .github/workflows/ci.yml — CI pipeline (runs on every push)
 - Hooks active: type checking + test enforcement + secret detection
 
 ━━━ Next step ━━━
 
 Plan the architecture before writing any code:
-   /pilot:plan
+   /stp:plan
 
 This will design the system architecture, data models, API,
 and create a verified implementation plan with milestones.
 ```
 
-ALWAYS direct to /pilot:plan next. Code comes AFTER planning.
+ALWAYS direct to /stp:plan next. Code comes AFTER planning.
 
 ## Gotchas
 
-- If `.pilot/references/` already exists, this project was already set up. Don't re-run.
+- If `.stp/references/` already exists, this project was already set up. Don't re-run.
 - If CLAUDE.md already exists, ADD the standards index — don't overwrite.
 - If no template matches the stack exactly, use the closest one and adapt.
 - Keep the architecture proposal CONCISE. Each decision: 5-8 lines max. Don't write essays.
