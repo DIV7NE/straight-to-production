@@ -26,6 +26,51 @@ TaskCreate("Step 7: Remediation plan → .stp/docs/PLAN.md")
 
 ## Process
 
+### Step 0: CLAUDE.md Handling (check BEFORE any analysis)
+
+STP generates a **project CLAUDE.md** (in project root) and can update the **global CLAUDE.md** (`~/.claude/CLAUDE.md`). If either already exists, the user MUST choose what happens.
+
+```bash
+[ -f "CLAUDE.md" ] && echo "project_claude: exists" || echo "project_claude: none"
+[ -f "$HOME/.claude/CLAUDE.md" ] && echo "global_claude: exists" || echo "global_claude: none"
+```
+
+**If project CLAUDE.md exists:**
+```
+AskUserQuestion(
+  question: "This project already has a CLAUDE.md. STP needs to create one with detected patterns, project conventions, and the standards index. How should I handle the existing one?",
+  options: [
+    "(Recommended) Backup + Fresh — rename existing to CLAUDE.backup.md, create new STP one. You can review and merge anything you want to keep afterward.",
+    "Fresh start — replace existing completely. WARNING: your current CLAUDE.md will be deleted. All custom rules, patterns, and instructions in it will be lost permanently.",
+    "Append — keep everything in the existing file, add STP sections at the bottom. Your current rules stay intact but there may be conflicting instructions.",
+    "Skip — don't touch my CLAUDE.md. I'll manage it myself. NOTE: STP commands expect certain sections (Project Conventions, Standards Index) — without them, enforcement will be weaker.",
+    "Chat about this"
+  ]
+)
+```
+
+**If global CLAUDE.md exists:**
+```
+AskUserQuestion(
+  question: "You have a global CLAUDE.md (~/.claude/CLAUDE.md) with instructions that apply to ALL your projects. STP can set up a clean global config optimized for the STP workflow. How should I handle it?",
+  options: [
+    "(Recommended) Backup + Fresh — rename to CLAUDE.backup.md, create STP-optimized global. Your backup stays right next to it for reference.",
+    "Append — add STP awareness to your existing global. Keeps all your current rules, adds STP command reference and workflow context.",
+    "Skip — don't touch my global CLAUDE.md. STP will work from the project-level CLAUDE.md only.",
+    "Chat about this"
+  ]
+)
+```
+
+**If neither exists:** Create both without asking.
+
+| Option | What it means |
+|--------|-------------|
+| **Backup + Fresh** | Existing file renamed to `CLAUDE.backup.md` (safe, recoverable). New file created from STP template + detected conventions. Review backup at your leisure. |
+| **Fresh start** | Existing file deleted permanently. New file from STP. Only offered for project-level (too risky for global). |
+| **Append** | Existing content kept verbatim. STP sections (`## Project Conventions`, `## STP Standards Index`, `## Directory Map`) added at the bottom. May have conflicting rules if existing file overlaps. |
+| **Skip** | No changes. User manages manually. STP works but convention enforcement is weaker. |
+
 ### Step 1: Discover — Stack & Infrastructure
 
 Set up the directory structure first:

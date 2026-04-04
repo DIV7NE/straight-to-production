@@ -39,6 +39,54 @@ ls *.json 2>/dev/null | head -3
 - If existing code files detected → "This folder has existing code. Did you mean `/stp:onboard-existing`?"
 - Note which runtimes are available — this informs stack recommendations (don't recommend Python if only Node is installed)
 
+### CLAUDE.md Handling (check BEFORE starting project setup)
+
+STP generates both a **project CLAUDE.md** (in project root) and updates the **global CLAUDE.md** (`~/.claude/CLAUDE.md`). If either already exists, the user MUST choose what happens. This is NOT optional — silently overwriting loses their custom rules.
+
+**Check project CLAUDE.md:**
+```bash
+[ -f "CLAUDE.md" ] && echo "project_claude: exists" || echo "project_claude: none"
+[ -f "$HOME/.claude/CLAUDE.md" ] && echo "global_claude: exists" || echo "global_claude: none"
+```
+
+**If project CLAUDE.md exists:**
+```
+AskUserQuestion(
+  question: "This project already has a CLAUDE.md. STP needs to create one with stack patterns, project conventions, and the standards index. How should I handle the existing one?",
+  options: [
+    "(Recommended) Backup + Fresh — rename existing to CLAUDE.backup.md, create new STP one. You can review and merge anything you want to keep afterward.",
+    "Fresh start — replace existing completely. WARNING: your current CLAUDE.md will be deleted. All custom rules, patterns, and instructions in it will be lost permanently.",
+    "Append — keep everything in the existing file, add STP sections at the bottom. Your current rules stay intact but there may be conflicting instructions if the existing file has overlapping guidance.",
+    "Skip — don't touch my CLAUDE.md. I'll manage it myself. NOTE: STP commands expect certain sections (Project Conventions, Standards Index) — without them, enforcement will be weaker.",
+    "Chat about this"
+  ]
+)
+```
+
+**If global CLAUDE.md exists:**
+```
+AskUserQuestion(
+  question: "You have a global CLAUDE.md (~/.claude/CLAUDE.md) with instructions that apply to ALL your projects. STP can set up a clean global config that works well with the STP workflow. How should I handle it?",
+  options: [
+    "(Recommended) Backup + Fresh — rename to CLAUDE.backup.md, create STP-optimized global. Your backup stays right next to it for reference.",
+    "Append — add STP awareness to your existing global. Keeps all your current rules, adds STP command reference and workflow context.",
+    "Skip — don't touch my global CLAUDE.md. STP will work from the project-level CLAUDE.md only.",
+    "Chat about this"
+  ]
+)
+```
+
+**If neither exists:** Create both without asking — there's nothing to lose.
+
+**What each option does:**
+
+| Option | Project CLAUDE.md | Global CLAUDE.md |
+|--------|------------------|-----------------|
+| **Backup + Fresh** | Renames to `CLAUDE.backup.md`, creates new from stack template + conventions + standards index | Renames to `CLAUDE.backup.md`, creates new with STP workflow reference + universal quality rules |
+| **Fresh start** | Deletes existing, creates new. Irreversible. | (Not offered for global — too risky) |
+| **Append** | Keeps existing content, adds `## STP Standards Index`, `## Project Conventions`, `## Directory Map` sections at the bottom | Keeps existing content, adds STP command reference section |
+| **Skip** | No changes. User manages manually. | No changes. STP relies on project-level CLAUDE.md only. |
+
 **Check available research tools (silently — don't show to user):**
 - Context7 MCP available? → enables live doc research during `/stp:plan`
 - Tavily MCP available? → enables deep web research
