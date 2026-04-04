@@ -39,6 +39,9 @@ A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 9 commands, 3 agent
 - VERSION = current version
 - CLAUDE.md = standards + patterns for Claude
 
+## Statusline
+Node.js statusline (pilot-statusline.js) registered in ~/.claude/settings.json globally. Shows: model + effort level, project version, active feature + progress, current milestone, context usage bar with compaction threshold (green/yellow/orange/red).
+
 ## Hooks (6 enforcement gates)
 1. Unchecked feature items → BLOCK
 2. Source files without tests → BLOCK
