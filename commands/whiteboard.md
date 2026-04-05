@@ -109,7 +109,10 @@ Based on their answer, research the space:
 - **For technical decisions**: What are the real options? What do companies at scale use? What are the actual tradeoffs (not theoretical — real production experiences)?
 - **For approach questions**: What does the framework/library documentation recommend? What patterns has the community settled on? What are the failure modes?
 
-Use your training knowledge. If Context7 has relevant library docs, query them. Present research as facts with sources, not opinions.
+Use STP's required MCP tools — never rely solely on training data:
+- **Tavily** (`tavily_search`/`tavily_research`) — competitor analysis, industry comparisons, real production experiences, "what do companies at scale use"
+- **Context7** (`resolve-library-id` → `query-docs`) — current framework docs, API patterns, recommended approaches
+Present research as facts with sources, not opinions.
 
 ### Step 3: Present 2-3 Approaches
 

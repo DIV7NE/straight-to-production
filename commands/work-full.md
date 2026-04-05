@@ -10,6 +10,8 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Age
 
 The complete development cycle. One command takes you from idea → understanding → tools → research → plan → verified delivery. This is what you run when you want a piece of work done RIGHT — with full investigation, no shortcuts, and production-quality output.
 
+**Context window management:** This command runs 22+ sub-phases in a single session. If the Context Mode MCP (`ctx_execute`, `ctx_batch_execute`) is available, use it for any operation that produces large output (codebase analysis, test runs, grep results, subagent reports). This keeps raw data in the sandbox and only your summary enters the context window, extending session life before compaction fires.
+
 **This handles ANY scope:**
 - Single feature: "add PDF invoice export"
 - Multi-feature: "update stripe payments and the entire pricing plan"

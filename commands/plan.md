@@ -130,7 +130,10 @@ For a fitness app, research:
 - What data structures do they use?
 - What workflows do users expect?
 
-Use your training knowledge. If Context7 or web search would help for specific technical patterns, use them. Present the research as:
+Use STP's required MCP tools for research:
+- **Tavily** (`tavily_search`/`tavily_research`) — search for competitor features, industry standards, user expectations, legal requirements. This is your primary domain research tool.
+- **Context7** (`resolve-library-id` → `query-docs`) — query for framework-specific patterns and current API docs.
+Never rely solely on training data — it may be stale. Present the research as:
 
 ```
 ## Domain Research

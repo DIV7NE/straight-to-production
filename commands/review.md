@@ -122,9 +122,21 @@ Next feature: /stp:work-quick [NEXT FEATURE]
 
 9. If the user says yes to fixes,, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.
 
+## Browser Verification (for web projects)
+
+If the Agent Browser MCP (`use_browser`) is available and the project has UI, use it to visually verify:
+- Pages load without errors (check console)
+- Navigation works (click through primary user flow)
+- Responsive layout (test at 375px, 768px, 1280px)
+- Forms submit correctly (fill and submit a test form)
+- Error states render properly (trigger a validation error)
+- Take screenshots of any visual issues for the report
+
+This supplements the Critic's code-level review with real rendered-state verification.
+
 ## Focus Areas
 
 If the user specified a focus, still run all 7 criteria but go deeper on the focused area:
 - "security" → additional grep for common vulnerabilities, check every API route
-- "accessibility" → check every page for heading hierarchy, focus management, ARIA
-- "performance" → analyze bundle, check for query waterfalls, review caching
+- "accessibility" → check every page for heading hierarchy, focus management, ARIA + browser verification of keyboard navigation
+- "performance" → analyze bundle, check for query waterfalls, review caching + browser verification of load times

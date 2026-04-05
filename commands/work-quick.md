@@ -162,19 +162,18 @@ Read `.stp/docs/ARCHITECTURE.md`'s Feature Dependency Map + `.stp/docs/PLAN.md`'
 
 **C. Research — what's the RIGHT way to do this?**
 
-Research the RIGHT approach for this type of work. Trust hierarchy:
-1. Context7 docs (HIGH trust) — query for the specific library/framework pattern
-2. Official documentation (HIGH trust) — read the docs, not training data
-3. Industry leaders (MEDIUM trust) — how do Stripe/Shopify/Notion solve this exact problem?
-4. AI training data (LOWEST trust) — only when nothing else is available
+Research the RIGHT approach using STP's required MCP tools:
 
-For every significant pattern: verify it works with the CURRENT version of the framework. Your training data may be stale.
+1. **Context7** (HIGH trust) — query `resolve-library-id` then `query-docs` for every library/framework you'll use. Verify patterns against CURRENT versions.
+2. **Tavily** (HIGH trust) — use `tavily_search` or `tavily_research` for: industry best practices, "how do production apps solve [this problem]", security advisories, common mistakes. This is your deep research tool.
+3. **Official documentation** (HIGH trust) — read the docs, not training data
+4. **AI training data** (LOWEST trust) — only when MCP tools return nothing
 
 **Adapt research to work type:**
-- **New feature**: How should this be implemented? What's the industry-standard pattern? What do production apps get wrong?
+- **New feature**: Context7 for API patterns + Tavily for "how do Stripe/Shopify/Notion solve this?" + security considerations
 - **Bug fix**: What's the ROOT CAUSE, not just the symptom? Is this a one-off or a pattern? Are there OTHER places with the same bug? (grep for similar code)
-- **Refactor**: What's the target pattern? Research the modern/idiomatic approach. Read the framework's migration guides. Check if the refactor aligns with the framework's direction.
-- **Update**: What changed in the external dependency/API? Read the changelog/migration guide. What else in the codebase uses the old pattern?
+- **Refactor**: Context7 for latest framework migration guides + Tavily for modern/idiomatic approach
+- **Update**: Context7 for changelog/breaking changes + Tavily for migration patterns others have used
 
 **D. Learn from Past Bugs — don't repeat known mistakes**
 

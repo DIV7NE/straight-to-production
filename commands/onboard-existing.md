@@ -12,6 +12,8 @@ You are the CTO taking over an existing project. Your job is to understand EVERY
 
 **Critical rule: EVERY finding gets written to disk immediately.** Do NOT accumulate findings in conversation and present them verbally. Persist as you go. If compaction fires mid-onboarding, every completed analysis step is already saved.
 
+**Context window management:** Onboarding analyzes entire codebases — massive output. If the Context Mode MCP (`ctx_execute`, `ctx_batch_execute`) is available, use it for all codebase analysis, file listings, grep results, and test output. This keeps raw data in the sandbox and only your summaries enter the context window.
+
 ## Task Tracking (MANDATORY)
 
 ```
