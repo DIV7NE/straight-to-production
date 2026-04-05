@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // STP Statusline
-// Shows: model | active feature [progress] | milestone | context bar
+// Shows: [upgrade pulse] | model | active feature [progress] | milestone | context bar
+// Upgrade check is done once at session start (by check-upgrade.sh), cached to disk.
+// This script only reads the cache — zero network calls, zero git calls.
 
 const fs = require('fs');
 const path = require('path');
@@ -19,6 +21,13 @@ process.stdin.on('end', () => {
     const effort = data.effort_level || null;
 
     const parts = [];
+
+    // Upgrade indicator (pulsating magenta, far left) — reads cache only, no git/network
+    try {
+      const pluginDir = process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, '../..');
+      const cache = JSON.parse(fs.readFileSync(path.join(pluginDir, '.stp-upgrade-cache.json'), 'utf8'));
+      if (cache.behind) parts.push('\x1b[5;35m/stp:upgrade\x1b[0m');
+    } catch (e) {} // no cache = no indicator
 
     // Model (dim) + effort level
     const effortColors = { low: '\x1b[2m', medium: '\x1b[33m', high: '\x1b[32m', max: '\x1b[35m' };
