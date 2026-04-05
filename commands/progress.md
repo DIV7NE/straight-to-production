@@ -82,7 +82,7 @@ Paused: [summary from handoff.md]
   OR
 
 Ready for next feature:
-  /stp:quick [NEXT FEATURE NAME from .stp/docs/PLAN.md]
+  /stp:work-quick [NEXT FEATURE NAME from .stp/docs/PLAN.md]
 
 ━━━ Recent Activity ━━━
 
@@ -98,8 +98,8 @@ Ready for next feature:
 [Specific actionable next step based on state:]
 - If active feature: "Continue working on [feature]. Next: [item]."
 - If paused: "Run /stp:continue to resume from where you left off."
-- If between features: "/stp:quick [next feature] — [1-line what it is]"
-- If milestone complete: "Milestone [N] done. Start Milestone [N+1]: /stp:quick [first feature]"
+- If between features: "/stp:work-quick [next feature] — [1-line what it is]"
+- If milestone complete: "Milestone [N] done. Start Milestone [N+1]: /stp:work-quick [first feature]"
 - If all done: "All milestones complete. Run /stp:review for final evaluation."
 ```
 
@@ -112,7 +112,7 @@ Append warnings ONLY if real issues exist:
 
 [Only show these if they're true:]
 - Uncommitted changes: [N] files modified — commit or stash before switching context
-- No tests found — TDD is mandatory, run /stp:quick to get back on track
+- No tests found — TDD is mandatory, run /stp:work-quick to get back on track
 - .stp/docs/PLAN.md missing — run /stp:plan to create architecture blueprint
 - .stp/docs/PRD.md missing — run /stp:new-project to define what you're building
 - .stp/docs/CONTEXT.md outdated — last updated [date], [N] features built since then

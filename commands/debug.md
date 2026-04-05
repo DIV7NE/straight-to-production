@@ -375,7 +375,7 @@ After 3 disproven hypotheses: **this is architectural, not a bug.** Tell the use
 AskUserQuestion(
   question: "After investigating 3 different root cause theories, I believe this is a structural issue, not a simple bug. [Explain the architectural problem]. This needs a design change, not a fix. How should we proceed?",
   options: [
-    "(Recommended) Redesign this area — /stp:quick refactor [area]",
+    "(Recommended) Redesign this area — /stp:work-quick refactor [area]",
     "Apply a workaround for now and plan the redesign",
     "Let me provide more context that might help",
     "Chat about this"

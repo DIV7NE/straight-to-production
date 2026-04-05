@@ -46,19 +46,19 @@ grep -rl "[keyword]" --include="*.ts" --include="*.tsx" . 2>/dev/null | grep -i 
 |---|---|---|---|
 | 0-1 files, no models, no auth | Trivial | Inline fix — no command | HIGH |
 | Bug keyword + error message/stack trace | Bug | `/stp:debug` | HIGH |
-| 1-3 files, no models, no auth | Quick task | `/stp:quick` | HIGH |
-| 3+ files OR any model/migration change | Serious work | `/stp:work` | HIGH |
-| Any auth/payment/security path touched | Serious work | `/stp:work` (always) | FORCED |
+| 1-3 files, no models, no auth | Quick task | `/stp:work-quick` | HIGH |
+| 3+ files OR any model/migration change | Serious work | `/stp:work-full` | HIGH |
+| Any auth/payment/security path touched | Serious work | `/stp:work-full` (always) | FORCED |
 | Vague/exploratory ("should I", "how to", "compare") | Thinking | `/stp:whiteboard` | HIGH |
 
 ### Rules to prevent overconfidence
 
 1. **Default to MORE ceremony, not less.** When uncertain between `/quick` and `/work`, pick `/work`. The cost of over-planning is minutes. The cost of under-planning is rework.
-2. **Auth/payments/security = always `/stp:work`.** No exceptions. No downshift. These areas have the highest blast radius.
-3. **Never auto-route without showing the scan results.** Show the user: "Impact scan: [N] files, [models: yes/no], [auth: yes/no] → suggesting `/stp:work`." They see WHY you chose it.
+2. **Auth/payments/security = always `/stp:work-full`.** No exceptions. No downshift. These areas have the highest blast radius.
+3. **Never auto-route without showing the scan results.** Show the user: "Impact scan: [N] files, [models: yes/no], [auth: yes/no] → suggesting `/stp:work-full`." They see WHY you chose it.
 4. **AskUserQuestion for EVERY routing decision.** The system suggests, the user confirms. No silent routing.
-5. **Scan before downshift.** `/stp:work` Phase 1 can only downshift to `/stp:quick` if the impact scan shows ≤2 files, zero model changes, zero auth paths. Not based on "this seems simple."
-6. **Scan before staying on `/stp:quick`.** Step 2 research MUST check the impact scan. If it shows 3+ files or any model/auth involvement, upshift is MANDATORY (not optional).
+5. **Scan before downshift.** `/stp:work-full` Phase 1 can only downshift to `/stp:work-quick` if the impact scan shows ≤2 files, zero model changes, zero auth paths. Not based on "this seems simple."
+6. **Scan before staying on `/stp:work-quick`.** Step 2 research MUST check the impact scan. If it shows 3+ files or any model/auth involvement, upshift is MANDATORY (not optional).
 
 ### Routing presentation format
 
@@ -80,14 +80,15 @@ AskUserQuestion(
 - `/stp:plan` — "Design the architecture." 9-phase blueprint → Critic verifies → PLAN.md
 
 **Doing work:**
-- `/stp:work` — "I have serious work to do." Full cycle: understand → tools → research → plan → build
+- `/stp:work-adaptive` — "Let STP decide." Impact scan → auto-classifies → routes to quick or full mode. Use when unsure about scope.
+- `/stp:work-full` — "Full cycle, zero compromise." Understand → tools → research → architecture blueprint (12 sub-phases) → TDD build → QA → Critic. For 3+ files, new models, auth/payments.
+- `/stp:work-quick` — "Just do it." Context → research → build → QA → ship. For small tasks (≤3 files, no new models). Hooks still fire.
 - `/stp:research` — "I need to think first." Investigate approaches, create plan. No code written.
-- `/stp:quick` — "Just do it." Jumps into building. For small tasks, fixes, refactors.
 - `/stp:debug` — "Something is broken." Root cause analysis → evidence-based fix → defense-in-depth
 
 **Quality + operations:**
 - `/stp:review` — "Grade my work." Separate AI evaluates against 7 criteria
-- `/stp:autopilot` — "Build overnight." Same as /stp:work but AI decides everything
+- `/stp:autopilot` — "Build overnight." Same as /stp:work-full but AI decides everything
 - `/stp:whiteboard` — "I need to think." Explore ideas, compare options, no commitment
 
 **Session management:**
@@ -139,15 +140,15 @@ This applies to ALL STP commands and agents. The executor agents, QA agent, and 
 |------|------|-------------|------------|
 | ARCHITECTURE.md | Full codebase map (models, routes, components, integrations, dependencies) | Before ANY code change — check what exists and what could break | /stp:onboard-existing, milestone refresh |
 | AUDIT.md | Production health (Sentry errors, deploy status, billing, performance) | Before fixing bugs, planning remediation | /stp:onboard-existing, /stp:review |
-| PRD.md | Requirements + acceptance criteria | Starting features, QA, reviewing | /stp:new-project, /stp:quick |
-| PLAN.md | Architecture + feature waves | Planning builds, dependency checks | /stp:plan, /stp:quick |
-| CONTEXT.md | Concise AI reference (<150 lines) | Quick lookup, links to ARCHITECTURE.md for full detail | /stp:quick (per feature + milestone refresh) |
-| CHANGELOG.md | Versioned history | Checking recent work | /stp:quick (per feature + milestone) |
+| PRD.md | Requirements + acceptance criteria | Starting features, QA, reviewing | /stp:new-project, /stp:work-quick |
+| PLAN.md | Architecture + feature waves | Planning builds, dependency checks | /stp:plan, /stp:work-quick |
+| CONTEXT.md | Concise AI reference (<150 lines) | Quick lookup, links to ARCHITECTURE.md for full detail | /stp:work-quick (per feature + milestone refresh) |
+| CHANGELOG.md | Versioned history | Checking recent work | /stp:work-quick (per feature + milestone) |
 
 ### .stp/state/ — Runtime State (survives /clear + compaction)
 | File | Purpose | Created by |
 |------|---------|------------|
-| current-feature.md | Active feature checklist | /stp:quick |
+| current-feature.md | Active feature checklist | /stp:work-quick |
 | handoff.md | Pause context for next session | /stp:pause (consumed by /stp:continue) |
 | state.json | Emergency auto-save | PreCompact hook |
 
@@ -218,9 +219,9 @@ Node.js statusline (stp-statusline.js) registered in ~/.claude/settings.json glo
 All research sources in RESEARCH-SOURCES.md. Key: Anthropic harness blog, Vercel AGENTS.md (100% vs 53%), Phil Schmid "Build to Delete", OX Security AI anti-patterns.
 
 ## Effort Levels
-- /stp:new-project, /stp:plan, /stp:debug, /stp:work → max
+- /stp:new-project, /stp:plan, /stp:debug, /stp:work-full → max
 - /stp:research → max
-- /stp:whiteboard, /stp:quick, /stp:review, /stp:continue → high
+- /stp:whiteboard, /stp:work-quick, /stp:review, /stp:continue → high
 - /stp:onboard-existing → max
 - /stp:autopilot → medium
 - /stp:progress, /stp:pause, /stp:upgrade → low

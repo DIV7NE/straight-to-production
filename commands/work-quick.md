@@ -1,5 +1,5 @@
 ---
-description: "Just do it — skip the ceremony." Jumps straight into building with its own research. Use for small-to-medium tasks where you already know what you want and don't need a full investigation. Fixes, refactors, single features, updates. If a plan from /stp:research exists, picks it up and executes immediately.
+description: "Quick build — skip the architecture cycle." For small-to-medium tasks (≤3 files, no new models, no auth changes). Cycle: context → inline research → plan checklist → TDD build → QA → version bump. Use when scope is clear and you want speed. Hooks still enforce all quality gates. If research reveals unexpected complexity, auto-suggests upgrading to /stp:work-full.
 argument-hint: What you want (e.g., "add Stripe payments", "fix the Sentry errors on /dashboard", "refactor auth middleware", "update invoice PDF export")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
@@ -121,16 +121,16 @@ grep -rl "[feature keywords]" . 2>/dev/null | grep -i "auth\|payment\|stripe\|we
 If upshift triggered:
 ```
 AskUserQuestion(
-  question: "Impact scan: [N] files, [models: yes], [auth: yes]. This needs the full architecture cycle. Recommend upgrading to /stp:work.",
+  question: "Impact scan: [N] files, [models: yes], [auth: yes]. This needs the full architecture cycle. Recommend upgrading to /stp:work-full ",
   options: [
-    "(Recommended) Upgrade to /stp:work — full architecture cycle",
-    "Continue with /stp:quick — I accept the risk",
+    "(Recommended) Upgrade to /stp:work-full — full architecture cycle",
+    "Continue with /stp:work-quick — I accept the risk",
     "Chat about this"
   ]
 )
 ```
 
-If the user chooses to continue with `/stp:quick` despite the scan, proceed but note: the hooks still fire on all code. The user is accepting reduced planning, not reduced enforcement.
+If the user chooses to continue with `/stp:work-quick` despite the scan, proceed but note: the hooks still fire on all code. The user is accepting reduced planning, not reduced enforcement.
 
 **A. Architecture Context — understand what EXISTS before touching anything**
 
@@ -633,7 +633,7 @@ When the user says go:
    - **[Rule name]**: [What to always/never do]
      - Why: [The reason — a decision, a bug prevention, a pattern that works]
      - Applies when: [When a developer should think of this rule]
-     - Added: [DATE] via /stp:quick [feature name]
+     - Added: [DATE] via /stp:work-quick [feature name]
    ```
 
    Examples of conventions worth capturing:
@@ -756,7 +756,7 @@ Priority fixes (if any):
 2. [Second]
 
 Fix these now? Or continue to Milestone [N+1]:
-   /stp:quick [FIRST FEATURE of next milestone]
+   /stp:work-quick [FIRST FEATURE of next milestone]
 ```
 
 If this is the **LAST milestone** (all milestones complete):
@@ -783,7 +783,7 @@ Feature complete: [NAME]
 [N] of [M] features done in Milestone [current].
 
 ━━━ Next ━━━
-/stp:quick [NEXT FEATURE in this milestone]
+/stp:work-quick [NEXT FEATURE in this milestone]
 ```
 
 ALWAYS fill in specific names.

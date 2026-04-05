@@ -1,5 +1,5 @@
 ---
-description: "I have serious work to do." Full cycle from idea to finished code — asks you what you need, finds and installs tools, researches the best approach, creates a verified plan, then builds everything with TDD. Use when the task is big, complex, or you want the best possible outcome. This is the main command for getting real work done.
+description: "Full development cycle — zero compromise." Complete cycle from idea to shipped code. Cycle: understand → tools → research → UI/UX design system → full architecture blueprint (12 sub-phases: domain research, technical research, system architecture, data models, API design, auth design, error strategy, cross-cutting concerns, test strategy, wave execution, risk mitigation, self-verification) → TDD build with executor agents → QA → Critic evaluation → version bump. Use for features touching 3+ files, new models, auth/payments, or anything where you want the best possible outcome.
 argument-hint: What you want done (e.g., "update stripe payments and pricing", "add real-time notifications", "rebuild the entire auth system")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
@@ -47,8 +47,8 @@ grep -rl "[keyword]" . 2>/dev/null | grep -i "auth\|payment\|stripe\|webhook\|mi
 - Zero auth/payment/security paths involved
 - No new routes or endpoints needed
 
-If ALL true → AskUserQuestion: "Impact scan: [N] files, no models, no auth. This is a quick fix — recommend dropping to `/stp:quick` mode. Want to downshift?"
-If ANY false → continue with full `/stp:work` cycle. No downshift offered.
+If ALL true → AskUserQuestion: "Impact scan: [N] files, no models, no auth. This is a quick fix — recommend dropping to `/stp:work-quick` mode. Want to downshift?"
+If ANY false → continue with full `/stp:work-full` cycle. No downshift offered.
 
 **Read existing context first:**
 - `.stp/docs/PRD.md` — what was already promised? Does this extend or change the PRD?
@@ -278,7 +278,7 @@ AskUserQuestion(
 
 ### Phase 5: PLAN — Full Architecture Blueprint (zero compromise)
 
-This is the FULL `/stp:plan` cycle embedded in `/stp:work`. No shortcuts. Every sub-phase below is mandatory. Write all findings to `.stp/docs/PLAN.md` as you go — if compaction fires, the plan is already on disk.
+This is the FULL `/stp:plan` cycle embedded in `/stp:work-full`. No shortcuts. Every sub-phase below is mandatory. Write all findings to `.stp/docs/PLAN.md` as you go — if compaction fires, the plan is already on disk.
 
 **For single features:** Also create `.stp/state/current-feature.md` with the standard checklist format.
 **For multi-feature work:** `.stp/docs/PLAN.md` is the primary document.
@@ -420,7 +420,7 @@ AskUserQuestion(
     "(Recommended) Approved — start building",
     "Modify — I want to adjust [something]",
     "Review full plan — open .stp/docs/PLAN.md",
-    "Save for later — I'll run /stp:quick when ready",
+    "Save for later — I'll run /stp:work-quick when ready",
     "Discard — changed my mind",
     "Chat about this"
   ]
@@ -677,7 +677,7 @@ The key rule for autopilot: **always pick the recommended option.** Every AskUse
 
 - This is the FULL cycle. Do NOT skip phases. Phase 3 (Tools) is new and critical — missing tools mid-build wastes time.
 - AskUserQuestion is MANDATORY for all decisions (use the tool, not text).
-- The plan from Phase 5 MUST be compatible with /stp:quick's checklist format.
+- The plan from Phase 5 MUST be compatible with /stp:work-quick's checklist format.
 - If the user says "just build it" during Phase 1-4, redirect: "Let me finish the investigation — 10 more minutes of research prevents days of rework."
 - For multi-feature work, create milestones in .stp/docs/PLAN.md. For single features, use .stp/state/current-feature.md.
 - Phase 3 (Tools) should be FAST — check, suggest, install, move on. Don't spend 10 minutes researching tools.

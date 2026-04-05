@@ -37,7 +37,7 @@ ls *.json 2>/dev/null | head -3
 ```
 
 **Based on findings:**
-- If `.stp/` already exists → "This project already has STP. Did you mean `/stp:quick` or `/stp:onboard-existing`?"
+- If `.stp/` already exists → "This project already has STP. Did you mean `/stp:work-quick` or `/stp:onboard-existing`?"
 - If no `git` → init git automatically during setup
 - If existing code files detected → "This folder has existing code. Did you mean `/stp:onboard-existing`?"
 - Note which runtimes are available — this informs stack recommendations (don't recommend Python if only Node is installed)

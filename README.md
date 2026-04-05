@@ -36,21 +36,22 @@ STP:
 
 ```
 stp/
-├── commands/           # 14 commands
+├── commands/           # 15 commands
 │   ├── whiteboard.md      # /stp:whiteboard — Explore ideas + research
 │   ├── new-project.md     # /stp:new-project — Start a new project
 │   ├── plan.md            # /stp:plan — Design the architecture
-│   ├── work.md            # /stp:work — "I have serious work" (full cycle)
+│   ├── work-adaptive.md   # /stp:work-adaptive — Impact scan → auto-routes to quick or full
+│   ├── work-full.md       # /stp:work-full — Full cycle, zero compromise (22 sub-phases)
+│   ├── work-quick.md      # /stp:work-quick — Quick build (≤3 files, no new models)
 │   ├── research.md        # /stp:research — "I need to think first" (no code)
-│   ├── quick.md           # /stp:quick — "Just do it" (small tasks, fixes)
-│   ├── review.md          # /stp:review — "Grade my work" (7 criteria)
+│   ├── review.md          # /stp:review — "Grade my work" (7 criteria + 6-layer verification)
 │   ├── autopilot.md       # /stp:autopilot — "Build overnight" (AI decides)
 │   ├── debug.md           # /stp:debug — Systematic debugging (one-shot)
 │   ├── progress.md        # /stp:progress — Check project status
 │   ├── continue.md        # /stp:continue — Resume where you left off
 │   ├── pause.md           # /stp:pause — Save progress, take a break
 │   ├── onboard-existing.md # /stp:onboard-existing — Take over existing project
-│   └── upgrade.md         # /stp:upgrade — Pull latest from GitHub
+│   └── upgrade.md         # /stp:upgrade — Pull latest + sync everything
 ├── agents/             # 3 independent Sonnet agents
 │   ├── executor.md     # Builder — TDD in isolated worktrees
 │   ├── qa.md           # QA tester — tests running app against PRD
@@ -162,7 +163,7 @@ When any STP command detects UI/UX work, it:
 /stp:whiteboard should we use WebSockets or SSE for real-time?
 /stp:whiteboard this payment feature is complex, what's the best approach?
 ```
-Explore ideas, research approaches, compare options with industry backing. No code — just thinking. Decisions are saved to disk so they survive /clear. Use before /stp:new-project to shape a vague idea, before /stp:quick for complex decisions, or standalone for any technical question.
+Explore ideas, research approaches, compare options with industry backing. No code — just thinking. Decisions are saved to disk so they survive /clear. Use before /stp:new-project to shape a vague idea, before /stp:work-quick for complex decisions, or standalone for any technical question.
 
 ### 1. Start a new project
 ```
@@ -178,9 +179,9 @@ Researches the domain, designs system architecture, data models, API routes, aut
 
 ### 3. Develop (full cycle — idea to delivery)
 ```
-/stp:work update stripe payments and the entire pricing plan
-/stp:work add real-time notifications with WebSockets
-/stp:work rebuild the auth system with role-based access
+/stp:work-full update stripe payments and the entire pricing plan
+/stp:work-full add real-time notifications with WebSockets
+/stp:work-full rebuild the auth system with role-based access
 ```
 The command you use when you mean business. Asks you product questions to understand requirements, discovers and installs needed tools (Stripe MCP, CLIs), researches deeply (Context7, Tavily, industry standards), explores approaches, creates a verified plan, then builds with TDD. One command, full cycle. For autopilot: `/stp:autopilot add payment processing` — same flow, AI makes all decisions automatically.
 
@@ -190,14 +191,14 @@ The command you use when you mean business. Asks you product questions to unders
 /stp:research refactor the auth system
 /stp:research should we migrate to server actions?
 ```
-Full investigation before committing to code. Researches the domain, explores 2-3 approaches with tradeoffs, maps how it fits YOUR codebase (from ARCHITECTURE.md), surfaces risks and what you didn't think of. Saves the plan — `/stp:quick` picks it up when you're ready. No code written.
+Full investigation before committing to code. Researches the domain, explores 2-3 approaches with tradeoffs, maps how it fits YOUR codebase (from ARCHITECTURE.md), surfaces risks and what you didn't think of. Saves the plan — `/stp:work-quick` picks it up when you're ready. No code written.
 
 ### 4. Build / Fix / Refactor (TDD)
 ```
-/stp:quick add Stripe payments
-/stp:quick fix the 5 critical Sentry errors from AUDIT.md
-/stp:quick refactor auth middleware to use centralized pattern
-/stp:quick update invoice PDF export to use new template
+/stp:work-quick add Stripe payments
+/stp:work-quick fix the 5 critical Sentry errors from AUDIT.md
+/stp:work-quick refactor auth middleware to use centralized pattern
+/stp:work-quick update invoice PDF export to use new template
 ```
 One command for ALL work types. Reads ARCHITECTURE.md first (what exists, what could break). Impact analysis, writes tests FIRST, implements, `/simplify` polishes. Backward integration updates existing features. Auto-Critic + integration tests at milestone boundaries. Teaches you concepts along the way.
 
@@ -230,9 +231,9 @@ Reads all state files (handoff, feature checklist, plan) and immediately picks u
 /stp:whiteboard        → Shape ideas, research approaches (optional, anytime)
 /stp:new-project       → .stp/docs/PRD.md (what we're building)
 /stp:plan              → .stp/docs/PLAN.md (how we're building it — verified by Critic)
-/stp:work           → Full cycle: understand → tools → research → plan → TDD build (one command)
+/stp:work-full           → Full cycle: understand → tools → research → plan → TDD build (one command)
 /stp:research           → Research → approaches → architecture fit → impact → saved plan (stops before building)
-/stp:quick             → Executes plan (from /stp:research or its own research) → TDD → milestone auto-eval
+/stp:work-quick             → Executes plan (from /stp:research or its own research) → TDD → milestone auto-eval
 /stp:review            → Separate AI grades against PRD + PLAN + 7 criteria
 /stp:debug             → Systematic debugging (auto-gather → diagnose → fix → learn)
 /stp:progress          → Check what's done, in progress, and next
@@ -253,9 +254,9 @@ Day 1:
 
 Day 1+:
   /stp:progress                      → See what's planned, what's next
-  /stp:quick fix critical Sentry errors → Reads ARCHITECTURE.md, knows what could break
-  /stp:quick add new feature          → Impact analysis against full codebase map
-  /stp:quick refactor auth module     → Dependency map shows what depends on it
+  /stp:work-quick fix critical Sentry errors → Reads ARCHITECTURE.md, knows what could break
+  /stp:work-quick add new feature          → Impact analysis against full codebase map
+  /stp:work-quick refactor auth module     → Dependency map shows what depends on it
   /stp:review                        → Refreshes AUDIT.md with latest Sentry/Vercel data
 
 Session breaks:
@@ -290,11 +291,11 @@ Everything persisted:
 |----------|-----------|------------|---------|
 | .stp/docs/ARCHITECTURE.md | /stp:onboard-existing | milestone refresh | Full codebase map (models, routes, components, integrations, dependencies) |
 | .stp/docs/AUDIT.md | /stp:onboard-existing | /stp:review | Production health (Sentry errors, deploy status, billing, performance) |
-| .stp/docs/PRD.md | /stp:new-project | /stp:quick (decisions log) | What we're building + acceptance criteria |
-| .stp/docs/PLAN.md | /stp:plan | /stp:quick (mark [x] + version) | How we're building it (verified blueprint) |
-| .stp/docs/CONTEXT.md | /stp:new-project | /stp:quick (incremental), milestone (full refresh) | Concise AI reference (<150 lines, links to ARCHITECTURE.md) |
-| .stp/docs/CHANGELOG.md | /stp:new-project | /stp:quick (per feature + milestone) | What happened (versioned history) |
-| VERSION | /stp:new-project | /stp:quick (patch bump), milestone (minor bump) | Current version number |
+| .stp/docs/PRD.md | /stp:new-project | /stp:work-quick (decisions log) | What we're building + acceptance criteria |
+| .stp/docs/PLAN.md | /stp:plan | /stp:work-quick (mark [x] + version) | How we're building it (verified blueprint) |
+| .stp/docs/CONTEXT.md | /stp:new-project | /stp:work-quick (incremental), milestone (full refresh) | Concise AI reference (<150 lines, links to ARCHITECTURE.md) |
+| .stp/docs/CHANGELOG.md | /stp:new-project | /stp:work-quick (per feature + milestone) | What happened (versioned history) |
+| VERSION | /stp:new-project | /stp:work-quick (patch bump), milestone (minor bump) | Current version number |
 | CLAUDE.md | /stp:new-project | — | Standards + patterns for Claude |
 
 ## Design Principles

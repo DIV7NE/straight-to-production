@@ -285,8 +285,8 @@ Plan saved to .stp/state/current-feature.md
 AskUserQuestion(
   question: "Plan is ready. What do you want to do?",
   options: [
-    "(Recommended) Build it now — /stp:quick will pick up this plan",
-    "Save for later — I'll run /stp:quick when ready",
+    "(Recommended) Build it now — /stp:work-quick will pick up this plan",
+    "Save for later — I'll run /stp:work-quick when ready",
     "Modify the plan — let me adjust something",
     "Discard — I changed my mind",
     "Chat about this"
@@ -294,9 +294,9 @@ AskUserQuestion(
 )
 ```
 
-If "Build it now": tell the user to run `/stp:quick`. The build command detects the existing `.stp/state/current-feature.md` and skips straight to execution (Step 5) since research and planning are already done.
+If "Build it now": tell the user to run `/stp:work-quick`. The build command detects the existing `.stp/state/current-feature.md` and skips straight to execution (Step 5) since research and planning are already done.
 
-If "Save for later": the plan persists in `.stp/state/current-feature.md`. `/stp:continue` or `/stp:quick` will find it on the next session.
+If "Save for later": the plan persists in `.stp/state/current-feature.md`. `/stp:continue` or `/stp:work-quick` will find it on the next session.
 
 If "Discard": delete `.stp/state/current-feature.md`.
 
@@ -309,5 +309,5 @@ If "Discard": delete `.stp/state/current-feature.md`.
 - ALWAYS read ARCHITECTURE.md before proposing how work fits the codebase.
 - ALWAYS check AUDIT.md Patterns & Lessons for relevant past bugs.
 - ALWAYS surface what the user didn't think of. That's the CTO's job.
-- The plan saved to current-feature.md must be compatible with /stp:quick's format — same checklist structure so build can execute it directly.
+- The plan saved to current-feature.md must be compatible with /stp:work-quick's format — same checklist structure so build can execute it directly.
 - If the user asks to "just build it" during discussion, redirect: "Let's finish the plan first — 5 more minutes of thinking saves hours of wrong implementation."
