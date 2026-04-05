@@ -266,6 +266,17 @@ This is the FULL `/stp:plan` cycle embedded in `/stp:work`. No shortcuts. Every 
 **For single features:** Also create `.stp/state/current-feature.md` with the standard checklist format.
 **For multi-feature work:** `.stp/docs/PLAN.md` is the primary document.
 
+**Visual whiteboard** — offer the whiteboard for live diagrams during planning:
+
+"I'll be designing the architecture with diagrams — user flows, data models, API sequences. Want me to open the visual whiteboard so you can see them live? (http://localhost:3333)"
+
+If accepted:
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
+```
+
+Throughout Phase 5, push all diagrams to `.stp/explore-data.json` — the whiteboard polls every 2 seconds and renders them live. If UI/UX work is involved, the design system preview (color swatches, font samples, layout wireframe) will also render in the whiteboard.
+
 #### 5a. Domain Research
 
 Research what production versions of this type of feature/product actually need. Not the tech — the DOMAIN.
@@ -399,21 +410,217 @@ AskUserQuestion(
 )
 ```
 
-### Phase 6: EXECUTE — Build With TDD
+### Phase 6: EXECUTE — Build, Verify, Ship (fully self-contained — zero references to other commands)
 
-**This phase follows the exact same process as `/stp:quick` Step 5 onward.**
+#### 6a. Save Checklist + Start Dev Server
 
-For approved plans:
-1. Save checklist to `.stp/state/current-feature.md` (if not already)
-2. **Opus builds foundation** (DB, auth, config) directly
-3. **Delegate features to Sonnet executor** via Agent Teams with worktree isolation
-4. **Wave-based parallel execution** for independent features
-5. **Post-merge**: /simplify, hygiene scan, QA agent, user QA
-6. **Complete**: version bump, CHANGELOG, CONTEXT.md, ARCHITECTURE.md update
-7. **Capture conventions** in CLAUDE.md if new patterns were established
-8. **Update AUDIT.md** if bugs were fixed or lessons learned
+1. Save the plan to `.stp/state/current-feature.md` with the standard checklist format
+2. For multi-feature: also save to `.stp/docs/PLAN.md` with wave execution plan
+3. Start the dev server if not already running:
+```bash
+# Stack-appropriate — npm run dev, python manage.py runserver, cargo run, etc.
+npm run dev &
+```
 
-For milestone-level work, repeat Phase 6 per milestone with integration tests and Critic evaluation at each milestone boundary.
+#### 6b. Foundation First (Opus builds directly)
+
+Opus builds foundational work that every feature depends on:
+- Database setup, migrations, schema changes
+- Auth/middleware integration (security-critical)
+- Core project configuration (CI, deployment, env setup)
+- One-line fixes (typo, config change)
+
+Everything else goes to Sonnet executors.
+
+#### 6c. Wave-Based Parallel Execution
+
+**Wave analysis** (from .stp/docs/PLAN.md dependency graph):
+- Read each feature's "Create" and "Modify" file lists
+- INDEPENDENT features (zero shared files) → same wave (parallel)
+- DEPENDENT features → later wave (sequential)
+
+**Create Agent Teams for each wave:**
+```
+TeamCreate(name="wave-1-build", description="Milestone [N] Wave 1 parallel build")
+
+Agent(
+  name="build-[feature-name]",
+  model="sonnet",
+  isolation="worktree",
+  team_name="wave-1-build",
+  run_in_background=true,
+  prompt="[focused spec — under 3K tokens]"
+)
+```
+
+**Executor prompt must include ONLY:**
+- Feature name + 1-line summary
+- Exact files to CREATE and MODIFY
+- Test cases to write FIRST (executable specs from acceptance criteria)
+- Acceptance criteria (from PRD.md)
+- 2-3 key patterns to follow (from CONTEXT.md)
+- Reference to design-system/MASTER.md if UI work
+
+**Executor prompt must NOT include:**
+- Full CONTEXT.md, PLAN.md, or reference files (agent reads these itself)
+- MCP tool instructions (executors use only: Read, Write, Edit, Bash, Glob, Grep)
+
+Wait for all team members → read reports → TaskUpdate each → shut down team:
+```
+SendMessage(to="build-[name]", type="shutdown_request")
+TeamDelete(name="wave-1-build")
+```
+
+**Merge Wave 1** → verify (type check + ALL tests) → update CONTEXT.md → **then create Wave 2 team.**
+
+#### 6d. Review Executor Work
+
+For each executor report:
+- Read the report (files created, modified, test count, decisions, issues)
+- Review changes: `git diff main...[worktree-branch]`
+- Check: does code follow project patterns? Are tests meaningful? Any red flags?
+- If issues: fix directly on the branch before merging
+
+Merge:
+```bash
+git merge [worktree-branch] --no-ff -m "feat: [feature name] (v[VERSION])"
+```
+
+After merge: run full type check + ALL tests (not just new ones — catch regressions).
+
+#### 6e. /simplify + Hygiene Scan
+
+Run `/simplify` on combined changes, then scan:
+- Remove unused imports, variables, functions
+- Remove console.log / print / debug statements
+- Remove commented-out code blocks (git has history)
+- Remove TODO/FIXME not in PLAN.md
+- Check for God files over 300 lines — split them
+- Check for duplicate utility functions — consolidate
+- Verify .gitignore covers build output, deps, OS files, env files
+- Remove empty placeholder files
+
+#### 6f. Review Checkpoint
+
+Show the user what was built:
+```
+━━━ Feature complete: [Name] ━━━
+
+What was built:
+- [Summary of what the executor created]
+- [Backward integration changes]
+
+What's different now:
+[What the user would SEE in the app]
+
+Tests: [N] new, [N] total, all passing
+Type check: clean
+```
+
+```
+AskUserQuestion(
+  question: "Feature checkpoint — review what was built. Continue or flag issues?",
+  options: [
+    "(Recommended) Looks good, continue",
+    "Something is off — let me explain",
+    "Chat about this"
+  ]
+)
+```
+
+#### 6g. Independent QA Agent
+
+Spawn the `stp-qa` agent — it has NEVER seen the build process:
+```
+Agent(
+  name="qa-[feature-name]",
+  model="sonnet",
+  prompt="QA test this feature:
+    Feature: [name]
+    URL: [where to find it]
+    Acceptance criteria (from .stp/docs/PRD.md):
+    - AC1: [testable condition]
+    - AC2: [testable condition]
+    Test: happy path, empty state, validation, error handling, auth, mobile, keyboard.
+    Report every bug with reproduction steps."
+)
+```
+
+- **PASS**: proceed to user QA
+- **NEEDS FIXES**: fix every bug, re-spawn QA to verify
+
+#### 6h. Guided Manual QA
+
+Present a test guide to the user:
+```
+━━━ QA: Test this feature ━━━
+
+What was added/changed:
+- [File 1] — [what it does]
+
+How to see it:
+[Exact command + URL]
+
+Test these scenarios:
+1. [Happy path — exact steps]
+2. [Empty state — what shows with no data?]
+3. [Error case — submit without required fields]
+4. [Edge case — long text, special characters]
+5. [Mobile — resize to phone width]
+6. [Keyboard — Tab through everything]
+
+Look for: loading states, disabled buttons during submit, helpful error messages.
+```
+
+```
+AskUserQuestion(
+  question: "Manual QA complete — does everything look right?",
+  options: [
+    "(Recommended) Approved — everything works",
+    "Found an issue — here's what's wrong",
+    "Need to test more",
+    "Chat about this"
+  ]
+)
+```
+
+This is NOT optional. The user must test and approve.
+
+#### 6i. Version Bump + Documentation Update
+
+1. **Bump patch version.** Read `VERSION`, increment patch, write back.
+2. **CHANGELOG entry** in .stp/docs/CHANGELOG.md (newest first): summary, changes, tests, decisions, stats.
+3. **Update .stp/docs/PLAN.md** — mark feature `[x]` with version.
+4. **Update .stp/docs/CONTEXT.md** — add new files, schema, routes, patterns, env vars. Keep under 150 lines.
+5. **Update .stp/docs/ARCHITECTURE.md** — add new models, routes, components, dependencies.
+6. **Update README.md** — features, setup, usage, config. Then VERIFY every claim against actual code.
+7. **Capture conventions in CLAUDE.md** — if this feature established a pattern that future development must follow, add it to `## Project Conventions`.
+8. **Update AUDIT.md** — if bugs were fixed or lessons learned.
+9. Delete `.stp/state/current-feature.md` and `.stp/state/handoff.md`.
+10. Commit: `feat: [feature name] (v[VERSION])`
+
+#### 6j. Milestone Check (Automatic)
+
+After completing a feature, check PLAN.md: **is this the last feature in the current milestone?**
+
+If YES:
+1. **Bump minor version** (reset patch: 0.1.3 → 0.2.0)
+2. **Integration verification** — write and run E2E tests for the milestone's primary workflow
+3. **Critic evaluation (Double-Check Protocol):**
+```
+Agent(
+  name="critic-milestone",
+  model="sonnet",
+  prompt="Evaluate this milestone. MANDATORY: Follow the Double-Check Protocol — 2 iteration minimum.
+  1. Restate the goal, 2. Define 'complete', 3. List angles, 4. Iteration 1, 5. Iteration 2, 6. Synthesize.
+  Grade against .stp/docs/PRD.md + .stp/docs/PLAN.md + 7 criteria + 6-layer verification.
+  Run specification verification, test quality analysis, and mutation challenge.
+  Flag NET-NEW GAPS: features where infrastructure exists but no UI/API/purchase flow was wired."
+)
+```
+4. **Milestone CHANGELOG entry** with Critic evaluation results
+5. **Cross-family review** for security-critical code (if non-Claude models available)
+6. Present Critic report + next milestone to user
 
 **After everything is built:**
 
@@ -423,15 +630,15 @@ For milestone-level work, repeat Phase 6 per milestone with integration tests an
 What was built: [summary]
 Approach: [what was chosen]
 Files: [N] created, [N] modified
-Tests: [N] new, [N] total — all passing
+Tests: [N] spec, [N] behavioral, [N] property-based, [N] integration — all passing
 Type check: clean
 
 Version: [new version]
 Conventions added: [N] new rules in CLAUDE.md (if any)
+Critic evaluation: [PASS/NEEDS WORK/FAIL]
+Cross-family review: [done/skipped]
 AUDIT.md: [updates made]
 ARCHITECTURE.md: [sections updated]
-
-Teach: "[1-2 sentences explaining something the user learned about their codebase through this process]"
 ```
 
 ## Autopilot Mode
