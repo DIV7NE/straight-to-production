@@ -83,7 +83,9 @@ Focus area: $ARGUMENTS (if provided, go deeper on this but still check everythin
 
    **Deduplicate** findings by root cause before presenting. Cross-family findings get their own section in the report.
 
-5. When the Critic returns (and cross-family if applicable), present the report to the user. Append the Critic's summary to AUDIT.md under `## Critic Evaluation — [DATE]`. Translate any remaining technical jargon into business terms:
+5. **CRITICAL SECURITY — auto-fix, don't ask.** If the Critic (or cross-family review) finds hardcoded secrets, exposed API keys, or auth bypasses: fix them IMMEDIATELY without waiting for user approval. Say: "SECURITY: [issue] at [file:line]. Fixing now — this can't wait." Then fix and commit. This happens BEFORE the report so the user sees the fixed state, not the vulnerable state.
+
+6. When all reviews complete (Critic + cross-family + security fixes), present the report to the user. Append the Critic's summary to AUDIT.md under `## Critic Evaluation — [DATE]`. Translate any remaining technical jargon into business terms:
 
    Technical: "No rate limiting on POST /api/invoices"
    Business: "Someone could spam your invoice endpoint and rack up your database/hosting costs"
@@ -91,13 +93,11 @@ Focus area: $ARGUMENTS (if provided, go deeper on this but still check everythin
    Technical: "Missing aria-label on icon buttons"
    Business: "Users who rely on screen readers (visual impairments) can't tell what these buttons do"
 
-6. **Capture new conventions from Critic findings.** If the Critic found a pattern violation that should become a project rule, add it to CLAUDE.md's `## Project Conventions`:
+7. **Capture new conventions from Critic findings.** If the Critic found a pattern violation that should become a project rule, add it to CLAUDE.md's `## Project Conventions`:
    - "Critic found 3 API routes without rate limiting → Convention: All POST endpoints must use `withRateLimit()` middleware"
    - "Critic found inconsistent error response format → Convention: All API errors return `{ error: string, code: string }`"
    
    Not every finding becomes a convention — only patterns that apply project-wide.
-
-7. **CRITICAL SECURITY — auto-fix, don't ask.** If the Critic finds hardcoded secrets, exposed API keys, or auth bypasses: fix them IMMEDIATELY without waiting for user approval. Say: "SECURITY: [issue] at [file:line]. Fixing now — this can't wait." Then fix and commit.
 
 8. End with explicit next step:
 
@@ -120,7 +120,7 @@ If everything PASSED:
 Next feature: /stp:work-quick [NEXT FEATURE]
 ```
 
-9. If the user says yes to fixes, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.
+9. If the user says yes to fixes,, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.
 
 ## Focus Areas
 
