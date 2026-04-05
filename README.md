@@ -24,10 +24,12 @@ STP:
 ├── Creates: .stp/docs/PRD.md, .stp/docs/PLAN.md (verified), .stp/docs/CONTEXT.md, .stp/docs/CHANGELOG.md
 ├── Visual whiteboard: live diagrams in your browser (localhost)
 ├── Impact analysis: checks what existing features each new feature touches
-├── TDD: writes tests before code, /simplify polishes after
-├── 6 enforcement gates: type check, tests exist, tests pass, no secrets,
-│   unchecked items, plan warning — cannot be bypassed
-└── Auto-Critic at every milestone (separate Sonnet AI, not self-grading)
+├── Spec-first TDD: acceptance criteria → executable specs → behavioral tests → build
+├── 8 enforcement gates: type check, tests exist, tests pass, no secrets,
+│   unchecked items, plan warning, placeholder scanning, hollow test detection
+├── 6-layer verification: specs → deterministic analysis → mutation challenge →
+│   property-based tests → cross-family AI review → production canary
+└── Auto-Critic at every milestone (Double-Check Protocol, 2-iteration minimum)
 ```
 
 ## Architecture

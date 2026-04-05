@@ -53,7 +53,37 @@ Focus area: $ARGUMENTS (if provided, go deeper on this but still check everythin
    - If AUDIT.md doesn't exist, create it. If MCP services aren't connected, skip silently.
    - Add a `## Review Refresh — [DATE]` entry with current findings.
 
-4. When the Critic returns, present the report to the user. Append the Critic's summary to AUDIT.md under `## Critic Evaluation — [DATE]`. Translate any remaining technical jargon into business terms:
+4. **Cross-Family Verification (Layer 5 — for security-critical, auth, payments, data integrity code)**
+
+   After the Critic returns, check if the reviewed code touches auth, payments, data integrity, or security-critical paths. If it does, run a cross-family review to decorrelate blind spots:
+
+   **Why:** Claude reviewing Claude-generated code has correlated blind spots — same training data, same systematic misses. Cross-family review catches 3-5x more bugs (Zylos 2026 research).
+
+   **How:** Send the Critic's findings + the relevant source files to 1-2 non-Claude models with role-specific lenses. Use any available AI provider MCP tools or API keys:
+
+   ```
+   CROSS-FAMILY REVIEW PROMPT (send to each non-Claude model):
+   
+   Review this code. The code was written by Claude and reviewed by Claude.
+   Your job is to find what Claude missed — you have different blind spots.
+   
+   Focus on your specific lens:
+   - Lens A (Assumptions): "What assumptions does this code make that could be wrong?"
+   - Lens B (Adversarial): "If I wanted to break this code, how would I do it?"
+   - Lens C (Ground Truth): "Does this code match the actual API/library behavior?"
+   
+   Code files: [attached]
+   Claude's findings: [attached]
+   PRD acceptance criteria: [attached]
+   
+   Report ONLY findings Claude missed. Do not repeat what Claude already found.
+   ```
+
+   **If no non-Claude models are available** (no API keys, no MCP tools): skip this step but note in the report: "Cross-family review skipped — no non-Claude models available. Consider adding an OpenAI or Gemini API key for deeper security-critical verification."
+
+   **Deduplicate** findings by root cause before presenting. Cross-family findings get their own section in the report.
+
+5. When the Critic returns (and cross-family if applicable), present the report to the user. Append the Critic's summary to AUDIT.md under `## Critic Evaluation — [DATE]`. Translate any remaining technical jargon into business terms:
 
    Technical: "No rate limiting on POST /api/invoices"
    Business: "Someone could spam your invoice endpoint and rack up your database/hosting costs"
@@ -61,15 +91,15 @@ Focus area: $ARGUMENTS (if provided, go deeper on this but still check everythin
    Technical: "Missing aria-label on icon buttons"
    Business: "Users who rely on screen readers (visual impairments) can't tell what these buttons do"
 
-5. **Capture new conventions from Critic findings.** If the Critic found a pattern violation that should become a project rule, add it to CLAUDE.md's `## Project Conventions`:
+6. **Capture new conventions from Critic findings.** If the Critic found a pattern violation that should become a project rule, add it to CLAUDE.md's `## Project Conventions`:
    - "Critic found 3 API routes without rate limiting → Convention: All POST endpoints must use `withRateLimit()` middleware"
    - "Critic found inconsistent error response format → Convention: All API errors return `{ error: string, code: string }`"
    
    Not every finding becomes a convention — only patterns that apply project-wide.
 
-6. **CRITICAL SECURITY — auto-fix, don't ask.** If the Critic finds hardcoded secrets, exposed API keys, or auth bypasses: fix them IMMEDIATELY without waiting for user approval. Say: "SECURITY: [issue] at [file:line]. Fixing now — this can't wait." Then fix and commit.
+7. **CRITICAL SECURITY — auto-fix, don't ask.** If the Critic finds hardcoded secrets, exposed API keys, or auth bypasses: fix them IMMEDIATELY without waiting for user approval. Say: "SECURITY: [issue] at [file:line]. Fixing now — this can't wait." Then fix and commit.
 
-7. End with explicit next step:
+8. End with explicit next step:
 
 If FAIL/PARTIAL issues exist:
 
@@ -90,7 +120,7 @@ If everything PASSED:
 Next feature: /stp:quick [NEXT FEATURE]
 ```
 
-8. If the user says yes to fixes, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.
+9. If the user says yes to fixes, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.
 
 ## Focus Areas
 

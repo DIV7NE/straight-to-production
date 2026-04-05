@@ -255,17 +255,18 @@ Skip this section if no notable decisions beyond what's in CLAUDE.md.]
 - [ ] [Test case 2]
 - [ ] [Test case 3]
 
-### Build order (8-layer Definition of Done)
+### Build order (9-layer Definition of Done)
 1. [Database — migrations, schema changes]
-2. [Write tests FIRST (TDD)]
-3. [API / server logic — endpoints, server actions, validation]
-4. [Business logic — core feature functionality, make tests pass]
-5. [UI — pages, components, forms, connected to API]
-6. [Error/edge cases — error handling, loading states, empty states]
-7. [Backward integration — update existing features to connect]
-8. [Polish — accessibility, /simplify, verify acceptance criteria from PRD]
+2. [Executable specs — one test per acceptance criterion, named "AC: ..."]
+3. [Write tests FIRST (TDD) — behavioral tests, error-path tests, property-based for critical invariants]
+4. [API / server logic — endpoints, server actions, validation]
+5. [Business logic — core feature functionality, make tests pass]
+6. [UI — pages, components, forms, connected to API]
+7. [Error/edge cases — error handling, loading states, empty states]
+8. [Backward integration — update existing features to connect]
+9. [Polish — accessibility, /simplify, verify acceptance criteria from PRD]
 
-### Acceptance criteria (from .stp/docs/PRD.md)
+### Acceptance criteria (from .stp/docs/PRD.md) — EACH becomes an executable spec test
 - [ ] [AC 1 — testable condition that defines "done"]
 - [ ] [AC 2 — testable condition]
 

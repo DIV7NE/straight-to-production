@@ -181,7 +181,93 @@ Does the code look like a senior engineer wrote it, or like AI generated it? Che
 - Hallucinated imports (packages or functions that don't exist)?
 - Features that are built but not connected to the rest of the app (orphans)?
 
-### 6. Report Format
+### 6. Specification Verification (Layer 1 — deterministic, no opinions)
+
+Before any subjective review, verify the code against its external specification. The specification is the PRD acceptance criteria + PLAN.md test cases. This is the PRIMARY quality gate — pass/fail, no opinions.
+
+**For each acceptance criterion in PRD.md:**
+1. Find the test that covers it (grep for keywords, test descriptions)
+2. Check: does the test verify the ACTUAL behavior, or just that code runs?
+3. If no test covers an acceptance criterion → FAIL: "AC not verified"
+
+**For each feature in PLAN.md with defined test cases:**
+1. Do the implemented tests match the planned test cases?
+2. Are there planned test cases that were never implemented?
+
+**Report as:**
+```
+SPECIFICATION VERIFICATION:
+  ✓ AC1: "User can create invoice" → covered by invoice.test.ts:23
+  ✗ AC2: "Invoice PDF can be downloaded" → NO TEST FOUND
+  ✗ AC3: "Overdue invoices show warning" → test exists but only checks happy path
+```
+
+### 7. Test Quality Analysis (Layer 2 — "What does this test actually verify?")
+
+For each test file, answer these questions:
+
+**A. Assertion analysis** — For each test, state in ONE sentence what user-visible behavior it verifies. If you cannot articulate it in terms of user behavior, the test is suspect.
+- "Verifies that expired tokens return 401" ✓ (real behavior)
+- "Verifies that the function is called" ✗ (mock interaction)
+- "Verifies that the result is truthy" ✗ (hollow assertion)
+
+**B. Ghost intent coverage** — Find behaviors that SHOULD have tests but don't:
+- Functions with error handling → do error-path tests exist?
+- Conditional branches → do branch-specific tests exist?
+- Auth middleware → do unauthorized-access tests exist?
+- Database writes → do read-back verification tests exist?
+- API endpoints → do invalid-input tests exist?
+
+**C. Mock audit** — For each test that uses mocks:
+- Is there a corresponding integration test that hits the real service?
+- If ALL tests for a feature use only mocks → FLAG: "Feature X has zero real-service tests"
+
+### 8. Mutation Challenge (Layer 3 — adversarial test validation)
+
+For the 3-5 most critical functions (auth, payments, data validation, access control), generate targeted mutations and check if tests catch them:
+
+**Generate these mutation types:**
+1. Flip a comparison operator (`>` to `>=`, `===` to `!==`)
+2. Remove an early-return guard clause
+3. Change a boundary value (off-by-one)
+4. Remove a validation check
+5. Swap two function arguments
+
+**For each mutation:**
+```bash
+# Apply mutation, run tests, check if they catch it
+```
+
+**Report as:**
+```
+MUTATION CHALLENGE:
+  createInvoice():
+    ✓ Flip amount > 0 to amount >= 0 → test CAUGHT (invoice.test.ts:45)
+    ✗ Remove auth check → tests still PASS — auth not tested!
+    ✓ Swap (userId, invoiceId) → test CAUGHT (type error)
+  processPayment():
+    ✗ Change cents rounding from Math.round to Math.floor → tests still PASS — precision not tested!
+```
+
+Surviving mutations = tests that look good but verify nothing. Each surviving mutation is a finding.
+
+### 9. Property-Based Test Check (Layer 4 — invariant verification)
+
+For features involving these categories, check whether property-based tests exist:
+
+| Feature Category | Required Property | Example |
+|---|---|---|
+| Data serialization | Round-trip: `parse(serialize(x)) === x` | JSON API responses, form encoding |
+| Financial/billing | Conservation: `sum(inputs) === sum(outputs)` | Payment processing, invoice totals |
+| Auth/permissions | Invariant: `no protected route accessible without valid token` | Middleware, API routes |
+| State mutations | Idempotency: `f(f(x)) === f(x)` | Database upserts, form submissions |
+| Sorting/ranking | Monotonicity: `if a > b then rank(a) >= rank(b)` | Search results, leaderboards |
+
+**If property-based tests are missing for critical invariants:** FLAG with the specific property that should be tested and why.
+
+**If fast-check (JS/TS) or Hypothesis (Python) is not in the project dependencies:** NOTE: "Consider adding [library] for property-based testing of [invariant]."
+
+### 10. Report Format
 
 ```
 ## STP — Ship To Production Evaluation Report
@@ -221,6 +307,22 @@ Does the code look like a senior engineer wrote it, or like AI generated it? Che
 
 ### 7. AI Code Quality: [PASS/FAIL/PARTIAL]
 [Findings: God files, duplicate logic, fake tests, generic names, hallucinated imports, missing cleanup]
+
+### Specification Verification
+[AC coverage table — which acceptance criteria have tests, which don't]
+
+### Test Quality
+- Ghost intent: [N] untested behaviors found
+- Mock audit: [N] features with zero real-service tests
+- Hollow tests: [N] tests that verify mock interactions, not behavior
+
+### Mutation Challenge ([N] critical functions tested)
+- [N] mutations caught by tests
+- [N] mutations SURVIVED — tests insufficient
+- [List surviving mutations with impact]
+
+### Property-Based Tests
+- [Which invariants are tested, which are missing]
 
 ### Gaps Found (net-new — features that should exist but weren't built)
 [Infrastructure/types exist but no UI/API wired, config defined but not used, etc.]

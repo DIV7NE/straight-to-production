@@ -14,9 +14,11 @@
 #   Gate 2: PLAN.md warning → WARN (non-blocking)
 #   Gate 3: Test files must exist → BLOCK
 #   Gate 4: No hardcoded secrets → BLOCK
+#   Gate 5: Placeholder/mock patterns → WARN
+#   Gate 6: Hollow test detection → WARN (tautological asserts, assertion-free tests)
 # SLOW (seconds):
-#   Gate 5: Type/compile errors → BLOCK
-#   Gate 6: Test failures → BLOCK (skipped if Gate 5 failed)
+#   Gate 7: Type/compile errors → BLOCK
+#   Gate 8: Test failures → BLOCK (skipped if Gate 7 failed)
 #
 # Safety valve: after 3 TECHNICAL blocks → ALLOW with warning
 
@@ -132,11 +134,73 @@ if [ -n "$SECRETS" ]; then
   HAS_TECHNICAL_ERRORS=true
 fi
 
+# ── Gate 5: Placeholder/mock patterns in source files (WARN) ────
+if [ -f "$FEATURE_FILE" ]; then
+  PLACEHOLDERS=$(grep -rn \
+    "// TODO\|// FIXME\|// implement\|// \.\.\.\|// rest of\|lorem ipsum\|placeholder\|mock data\|fake data\|REPLACE_ME\|NOT_IMPLEMENTED" \
+    --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" \
+    --include="*.py" --include="*.rs" --include="*.go" --include="*.cs" \
+    --include="*.java" --include="*.rb" --include="*.php" \
+    --exclude-dir=node_modules --exclude-dir=.venv --exclude-dir=vendor \
+    --exclude-dir=target --exclude-dir=.next --exclude-dir=dist \
+    -i . 2>/dev/null | \
+    grep -v "\.test\." | grep -v "\.spec\." | grep -v "test_" | grep -v "_test\." | \
+    grep -v "__mocks__" | grep -v "fixtures" | grep -v "\.d\.ts" | head -10)
+
+  if [ -n "$PLACEHOLDERS" ]; then
+    echo "WARNING: Placeholder/mock patterns found in source files:" >&2
+    echo "$PLACEHOLDERS" >&2
+    echo "STP builds production code. Replace placeholders with real implementations." >&2
+    # WARN only — does not block
+  fi
+fi
+
+# ── Gate 6: Hollow test detection (WARN) ───────────────────────
+if [ -f "$FEATURE_FILE" ]; then
+  # Check for tautological assertions: expect(true), expect(1).toBe(1), assert True
+  HOLLOW_TESTS=$(grep -rn \
+    "expect(true)\|expect(false)\|expect(1)\.toBe(1)\|expect(0)\.toBe(0)\|assert True\|assert False\|assertEqual(True\|\.toBe(true)\|\.toBe(false)" \
+    --include="*.test.*" --include="*.spec.*" --include="test_*.py" \
+    --include="*_test.go" --include="*Test.java" --include="*_test.rs" \
+    --exclude-dir=node_modules --exclude-dir=.venv --exclude-dir=vendor \
+    --exclude-dir=target \
+    . 2>/dev/null | head -5)
+
+  if [ -n "$HOLLOW_TESTS" ]; then
+    echo "WARNING: Hollow/tautological test assertions found:" >&2
+    echo "$HOLLOW_TESTS" >&2
+    echo "Tests must verify real behavior. expect(true).toBe(true) proves nothing." >&2
+  fi
+
+  # Check for assertion-free test functions
+  # Look for test/it blocks that have no expect/assert/should
+  ASSERTION_FREE=""
+  TEST_FILES=$(find . -type f \( \
+    -name "*.test.*" -o -name "*.spec.*" -o -name "test_*.py" \
+  \) -not -path "*/node_modules/*" -not -path "*/.venv/*" -not -path "*/vendor/*" \
+     -not -path "*/target/*" 2>/dev/null | head -10)
+
+  for tf in $TEST_FILES; do
+    # Count test blocks vs assertion blocks
+    TESTS_COUNT=$(grep -c "it(\|test(\|def test_\|func Test" "$tf" 2>/dev/null || echo "0")
+    ASSERTS_COUNT=$(grep -c "expect(\|assert\|should\.\|\.to\.\|\.toBe\|\.toEqual\|\.toThrow\|assertEqual\|assertRaises" "$tf" 2>/dev/null || echo "0")
+    if [ "$TESTS_COUNT" -gt 0 ] && [ "$ASSERTS_COUNT" -eq 0 ]; then
+      ASSERTION_FREE="$ASSERTION_FREE\n  $tf: $TESTS_COUNT test(s) with 0 assertions"
+    fi
+  done
+
+  if [ -n "$ASSERTION_FREE" ]; then
+    echo "WARNING: Test files with zero assertions found:" >&2
+    echo -e "$ASSERTION_FREE" >&2
+    echo "Tests without assertions are not testing anything." >&2
+  fi
+fi
+
 # ══════════════════════════════════════════════════════════════════
 # SLOW GATES (seconds — only run if fast gates passed or partially)
 # ══════════════════════════════════════════════════════════════════
 
-# ── Gate 5: Stack-aware type/compile check ───────────────────────
+# ── Gate 7: Stack-aware type/compile check ───────────────────────
 run_type_check() {
   if [ -f "tsconfig.json" ]; then
     npx tsc --noEmit --pretty false 2>&1 | grep "error TS" | head -10
@@ -172,7 +236,7 @@ if [ -n "$TYPE_ERRORS" ]; then
   HAS_TECHNICAL_ERRORS=true
 fi
 
-# ── Gate 6: Test failures (skip if type check already failed) ────
+# ── Gate 8: Test failures (skip if type check already failed) ────
 if [ -z "$TYPE_ERRORS" ]; then
   run_tests() {
     if [ -f "package.json" ] && grep -q '"test"' package.json 2>/dev/null; then

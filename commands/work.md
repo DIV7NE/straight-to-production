@@ -272,10 +272,10 @@ The plan must include:
 - **Architecture fit** (from ARCHITECTURE.md — new files, modified files, data changes, API changes)
 - **Impact on existing features** (from dependency map — what could break)
 - **Build order** (dependencies determine sequence — what must come first)
-- **Test strategy** (what to test, TDD approach for each part)
+- **Test strategy** (what to test, TDD approach: executable specs from acceptance criteria FIRST, then behavioral tests, property-based tests for critical invariants, error-path coverage)
 - **Risk mitigation** (security, breaking changes, performance)
 - **Conventions to follow** (from CLAUDE.md Project Conventions)
-- **Acceptance criteria** (from Phase 1 — testable conditions that define "done")
+- **Acceptance criteria as executable specs** (from Phase 1 — each AC becomes a named test: `test("AC: user can ...")`. These are the PRIMARY quality gate — if specs fail, nothing else matters)
 - **Wave analysis** (for multi-feature: which features can build in parallel)
 
 **Verify the plan internally:**

@@ -27,11 +27,31 @@ Read these files in order before writing ANY code:
 
 Follow the patterns you find. If the project uses server actions, use server actions. If it uses a specific validation pattern, follow it. If a design system exists, use its exact colors, fonts, and style — do NOT improvise a different look.
 
-### 2. Write Tests FIRST (TDD)
+### 2. Write Executable Specs + Tests FIRST (TDD)
 
-Before any implementation:
-- Create test files for the feature
-- Write specific behavioral tests from the spec's test cases
+Before any implementation, write tests in this order:
+
+**A. Acceptance criteria as executable specs:**
+- Read the acceptance criteria from the feature spec
+- Write one test per acceptance criterion — named to match: `test("AC: user can create invoice with line items")`
+- These are the PRIMARY quality gate. If these fail, nothing else matters.
+
+**B. Behavioral tests from the spec's test cases:**
+- Write specific tests from the planned test cases
+- Each test must verify a USER-VISIBLE BEHAVIOR, not an implementation detail
+- Bad: `expect(mockDb.save).toHaveBeenCalled()` — tests mock interaction
+- Good: `expect(response.status).toBe(201); expect(await db.invoice.findFirst()).toBeTruthy()` — tests real outcome
+
+**C. Property-based tests for critical invariants (if applicable):**
+- Financial/billing: `expect(sum(lineItems)).toBe(invoice.total)` — conservation
+- Auth: test that protected routes return 401 without token — invariant
+- Data transforms: `expect(parse(serialize(data))).toEqual(data)` — round-trip
+- Use fast-check (JS/TS) or Hypothesis (Python) if available in dependencies
+
+**D. Error-path tests:**
+- Every function with error handling must have a test that triggers the error path
+- Every validation must have a test with invalid input
+
 - Run tests — they MUST fail (nothing implemented yet)
 - Commit: `test: add tests for [feature]`
 

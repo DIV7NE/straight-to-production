@@ -7,7 +7,21 @@ A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 14 commands, 3 agen
 - **Opus** = CTO (plans, researches, reviews, merges, teaches). Builds foundation work directly (DB, auth, config).
 - **Sonnet executors** = builders (features on top of foundation, worktree isolation, Agent Teams for parallelism)
 - **Sonnet QA** = independent tester (tests running app against PRD acceptance criteria)
-- **Sonnet Critic** = code reviewer (7 criteria + Double-Check Protocol: goal restatement, completion criteria, multi-angle verification, 2-iteration minimum, net-new gap detection)
+- **Sonnet Critic** = code reviewer (7 criteria + Double-Check Protocol + 6-layer verification)
+
+## 6-Layer Verification Stack
+Each layer catches what the others miss. LLM review (Critic) is Layer 5, not Layer 1.
+
+| Layer | What | Type | Catches |
+|-------|------|------|---------|
+| 1. Executable specs | BDD tests from PRD acceptance criteria | Deterministic | Logic errors, boundary bugs, missing features |
+| 2. Deterministic analysis | Hollow test detection, ghost coverage, placeholder scanning | AST/grep | AI slop in tests, tautological asserts, mock-only suites |
+| 3. Mutation challenge | Flip operators, remove guards, change boundaries — do tests catch it? | Adversarial | Tests that look good but verify nothing (57% kill rate for AI tests) |
+| 4. Property-based tests | Invariants for all inputs: round-trip, conservation, idempotency | Automated | Edge cases AI never considered |
+| 5. Cross-family AI review | Critic (Claude) + non-Claude models with role-specific lenses | LLM | Architectural drift, wrong assumptions, correlated blind spots |
+| 6. Production verification | Canary deploys, metric monitoring | Runtime | Load failures, emergent interactions |
+
+**Key principle:** The Critic handles Layer 5 (structural/architectural review). Behavioral verification (Layer 1) is deterministic — specs pass or fail, no opinions. Using LLM review for behavioral checking is structurally circular.
 
 ## Commands
 **Getting started:**
@@ -64,7 +78,7 @@ This applies to ALL STP commands and agents. The executor agents, QA agent, and 
 - TaskCreate/TaskUpdate tracks ALL progress visibly
 - README.md updated + VERIFIED after every feature
 - 8-part research before every feature (codebase, impact, feature, security, resilience, edge cases, backward integration, anti-hallucination)
-- TDD mandatory — stop hook blocks if no tests exist. Tests must verify real behavior, not mock satisfaction
+- Spec-first TDD: acceptance criteria → executable spec tests → behavioral tests → property-based tests → implementation. Stop hook blocks if no tests exist. Tests must verify real behavior, not mock satisfaction
 - /simplify + hygiene scan after every build
 - Version bump + CHANGELOG + CONTEXT.md update after every feature
 
@@ -123,14 +137,15 @@ On any new session: read CHANGELOG.md for history, ARCHITECTURE.md for context, 
 ## Statusline
 Node.js statusline (stp-statusline.js) registered in ~/.claude/settings.json globally. Shows: model + effort level, project version, active feature + progress, current milestone, context usage bar with compaction threshold (green/yellow/orange/red).
 
-## Hooks (7 enforcement gates)
+## Hooks (8 enforcement gates)
 1. Unchecked feature items → BLOCK
-2. Source files without tests → BLOCK
-3. Hardcoded secrets → BLOCK
-4. Type/compile errors → BLOCK
-5. Test failures → BLOCK
-6. Missing PLAN.md → WARN
-7. Placeholder/mock patterns in source files → WARN (scans for: `// TODO`, `// FIXME`, `// implement`, `lorem ipsum`, `placeholder`, `mock data`, `fake data`, `hardcoded`, `// ...`, `// rest of`)
+2. PLAN.md should exist → WARN
+3. Source files without tests → BLOCK
+4. Hardcoded secrets → BLOCK
+5. Placeholder/mock patterns in source files → WARN (scans for: `// TODO`, `// FIXME`, `// implement`, `lorem ipsum`, `placeholder`, `mock data`, `fake data`, `hardcoded`, `// ...`, `// rest of`)
+6. Hollow test detection → WARN (tautological asserts, assertion-free test files)
+7. Type/compile errors → BLOCK
+8. Test failures → BLOCK
 
 ## Research
 All research sources in RESEARCH-SOURCES.md. Key: Anthropic harness blog, Vercel AGENTS.md (100% vs 53%), Phil Schmid "Build to Delete", OX Security AI anti-patterns.
