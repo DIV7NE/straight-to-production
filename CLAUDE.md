@@ -23,24 +23,55 @@ Each layer catches what the others miss. LLM review (Critic) is Layer 5, not Lay
 
 **Key principle:** The Critic handles Layer 5 (structural/architectural review). Behavioral verification (Layer 1) is deterministic — specs pass or fail, no opinions. Using LLM review for behavioral checking is structurally circular.
 
-## Task Routing (Scale-Adaptive — auto-classify before suggesting a command)
+## Task Routing (Scale-Adaptive — evidence-based, never overconfident)
 
-When the user describes work WITHOUT specifying an STP command, classify the task and suggest:
+When the user describes work WITHOUT specifying an STP command, classify using the **Impact Scan** below — not gut feeling.
 
-| Signal | Classification | Route to |
-|--------|---------------|----------|
-| 1-line change, typo, config tweak, version bump | Trivial | Just do it inline — no command needed |
-| Bug with clear symptoms, error message, stack trace | Bug | `/stp:debug` |
-| Small task, <3 files, known scope | Quick task | `/stp:quick` |
-| Feature that touches 3+ files, needs research | Serious work | `/stp:work` |
-| Vague idea, "should I use X or Y?", exploration | Thinking | `/stp:whiteboard` |
-| "Research X before building" | Research only | `/stp:research` |
-| New project from scratch | New project | `/stp:new-project` |
-| Existing codebase, first time with STP | Onboarding | `/stp:onboard-existing` |
+### Impact Scan (MANDATORY before routing — run silently, takes <5 seconds)
 
-**Adaptive downshift:** If `/stp:work` Phase 1 reveals a trivial task (1-2 files, no architectural impact, no new models/routes), say: "This is a quick fix — dropping to `/stp:quick` mode to skip the full architecture cycle." Don't force 12 planning sub-phases on a CSS change.
+```bash
+# 1. Count files that would be touched
+grep -rl "[keyword from user's request]" --include="*.ts" --include="*.tsx" --include="*.py" --include="*.rs" --include="*.go" --exclude-dir=node_modules --exclude-dir=.venv --exclude-dir=target . 2>/dev/null | wc -l
 
-**Adaptive upshift:** If `/stp:quick` Step 2 (Research) reveals the task is bigger than expected (needs new models, touches auth, has security implications), say: "This is more complex than a quick task — recommend switching to `/stp:work` for the full cycle. Want to upgrade?"
+# 2. Check if models/schema/migrations are involved
+grep -rl "[keyword]" --include="*.prisma" --include="*.sql" --include="*migration*" --include="*schema*" --include="*model*" . 2>/dev/null | head -3
+
+# 3. Check if auth/payments/security paths are involved
+grep -rl "[keyword]" --include="*.ts" --include="*.tsx" . 2>/dev/null | grep -i "auth\|payment\|stripe\|webhook\|middleware\|permission\|role\|token" | head -3
+```
+
+### Routing Table (based on scan results, not vibes)
+
+| Impact Scan Result | Classification | Route to | Confidence |
+|---|---|---|---|
+| 0-1 files, no models, no auth | Trivial | Inline fix — no command | HIGH |
+| Bug keyword + error message/stack trace | Bug | `/stp:debug` | HIGH |
+| 1-3 files, no models, no auth | Quick task | `/stp:quick` | HIGH |
+| 3+ files OR any model/migration change | Serious work | `/stp:work` | HIGH |
+| Any auth/payment/security path touched | Serious work | `/stp:work` (always) | FORCED |
+| Vague/exploratory ("should I", "how to", "compare") | Thinking | `/stp:whiteboard` | HIGH |
+
+### Rules to prevent overconfidence
+
+1. **Default to MORE ceremony, not less.** When uncertain between `/quick` and `/work`, pick `/work`. The cost of over-planning is minutes. The cost of under-planning is rework.
+2. **Auth/payments/security = always `/stp:work`.** No exceptions. No downshift. These areas have the highest blast radius.
+3. **Never auto-route without showing the scan results.** Show the user: "Impact scan: [N] files, [models: yes/no], [auth: yes/no] → suggesting `/stp:work`." They see WHY you chose it.
+4. **AskUserQuestion for EVERY routing decision.** The system suggests, the user confirms. No silent routing.
+5. **Scan before downshift.** `/stp:work` Phase 1 can only downshift to `/stp:quick` if the impact scan shows ≤2 files, zero model changes, zero auth paths. Not based on "this seems simple."
+6. **Scan before staying on `/stp:quick`.** Step 2 research MUST check the impact scan. If it shows 3+ files or any model/auth involvement, upshift is MANDATORY (not optional).
+
+### Routing presentation format
+
+```
+AskUserQuestion(
+  question: "Impact scan: [N] files affected, [models: yes/no], [auth/payments: yes/no]. Based on this, I recommend [command] because [reason].",
+  options: [
+    "(Recommended) [command] — [why]",
+    "[alternative] — [when this makes sense]",
+    "Chat about this"
+  ]
+)
+```
 
 ## Commands
 **Getting started:**

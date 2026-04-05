@@ -33,10 +33,22 @@ TaskCreate("Phase 6: Execute — TDD build")
 
 Before researching anything, understand the requirements. The user has an idea — it might be vague, specific, or somewhere in between. Your job is to get clarity.
 
-**Scale-adaptive check:** After understanding the task, assess its scope:
-- If it's a trivial fix (1-2 files, no new models/routes, no architectural impact) → tell the user: "This is a quick fix — dropping to `/stp:quick` mode to skip the full architecture cycle." Then follow /stp:quick's process instead.
-- If it's serious work (3+ files, new models, auth/payments, cross-cutting) → continue with the full /stp:work cycle.
-- Be honest about the classification. Don't force 12 planning sub-phases on a CSS change.
+**Scale-adaptive check (evidence-based — not gut feeling):** After understanding the task, run the Impact Scan from CLAUDE.md's Task Routing section:
+```bash
+# Count files, check for model/migration/auth involvement
+grep -rl "[keyword]" --include="*.ts" --include="*.tsx" --exclude-dir=node_modules . 2>/dev/null | wc -l
+grep -rl "[keyword]" --include="*.prisma" --include="*.sql" --include="*migration*" . 2>/dev/null | head -3
+grep -rl "[keyword]" . 2>/dev/null | grep -i "auth\|payment\|stripe\|webhook\|middleware" | head -3
+```
+
+**Downshift rules (ALL must be true):**
+- Impact scan shows ≤2 files affected
+- Zero model/migration changes
+- Zero auth/payment/security paths involved
+- No new routes or endpoints needed
+
+If ALL true → AskUserQuestion: "Impact scan: [N] files, no models, no auth. This is a quick fix — recommend dropping to `/stp:quick` mode. Want to downshift?"
+If ANY false → continue with full `/stp:work` cycle. No downshift offered.
 
 **Read existing context first:**
 - `.stp/docs/PRD.md` — what was already promised? Does this extend or change the PRD?

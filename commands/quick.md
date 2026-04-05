@@ -103,7 +103,34 @@ Ask the user to approve the design system at localhost:3333 before proceeding to
 
 This is the most important step. Skip this and you ship broken, insecure, disconnected code.
 
-**Scale-adaptive upshift:** If research reveals the task is bigger than expected (needs new data models, touches auth/payments, has security implications, impacts 5+ files, needs cross-cutting changes), tell the user: "This is more complex than a quick task — new models, auth changes, and [N] files impacted. Recommend switching to `/stp:work` for the full architecture cycle. Want to upgrade?" Use AskUserQuestion with options: "(Recommended) Upgrade to /stp:work", "Continue with /stp:quick — I know the scope", "Chat about this".
+**Scale-adaptive upshift (evidence-based — MANDATORY check):** After research, run the Impact Scan:
+```bash
+# How many files will this actually touch?
+grep -rl "[feature keywords]" --include="*.ts" --include="*.tsx" --exclude-dir=node_modules . 2>/dev/null | wc -l
+# Any model/migration/auth involvement?
+grep -rl "[feature keywords]" --include="*.prisma" --include="*.sql" --include="*migration*" . 2>/dev/null | head -3
+grep -rl "[feature keywords]" . 2>/dev/null | grep -i "auth\|payment\|stripe\|webhook\|middleware" | head -3
+```
+
+**Upshift is MANDATORY (not optional) if ANY of these are true:**
+- 3+ files affected
+- Any model/migration changes needed
+- Any auth/payment/security paths involved
+- New API routes or endpoints needed
+
+If upshift triggered:
+```
+AskUserQuestion(
+  question: "Impact scan: [N] files, [models: yes], [auth: yes]. This needs the full architecture cycle. Recommend upgrading to /stp:work.",
+  options: [
+    "(Recommended) Upgrade to /stp:work — full architecture cycle",
+    "Continue with /stp:quick — I accept the risk",
+    "Chat about this"
+  ]
+)
+```
+
+If the user chooses to continue with `/stp:quick` despite the scan, proceed but note: the hooks still fire on all code. The user is accepting reduced planning, not reduced enforcement.
 
 **A. Architecture Context — understand what EXISTS before touching anything**
 
