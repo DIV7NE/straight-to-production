@@ -183,12 +183,14 @@ Does the code look like a senior engineer wrote it, or like AI generated it? Che
 
 ### 6. Specification Verification (Layer 1 — deterministic, no opinions)
 
-Before any subjective review, verify the code against its external specification. The specification is the PRD acceptance criteria + PLAN.md test cases. This is the PRIMARY quality gate — pass/fail, no opinions.
+Before any subjective review, verify the code against its external specification. The specification is PRD.md's structured Given/When/Then scenarios + PLAN.md test cases. This is the PRIMARY quality gate — pass/fail, no opinions.
 
-**For each acceptance criterion in PRD.md:**
-1. Find the test that covers it (grep for keywords, test descriptions)
-2. Check: does the test verify the ACTUAL behavior, or just that code runs?
-3. If no test covers an acceptance criterion → FAIL: "AC not verified"
+**For each structured scenario in PRD.md:**
+1. Find the test that covers it (grep for the Given/When/Then keywords in test descriptions)
+2. Check RFC 2119 severity: SHALL/MUST scenarios MUST have tests. SHOULD scenarios SHOULD have tests. MAY is optional.
+3. Check: does the test verify the ACTUAL outcome from the "Then" clause, or just that code runs?
+4. If a SHALL/MUST scenario has no test → FAIL: "Mandatory scenario not verified"
+5. Check delta-merge: are all "Constraints introduced" from spec deltas reflected as scenarios in PRD.md?
 
 **For each feature in PLAN.md with defined test cases:**
 1. Do the implemented tests match the planned test cases?
@@ -197,9 +199,14 @@ Before any subjective review, verify the code against its external specification
 **Report as:**
 ```
 SPECIFICATION VERIFICATION:
-  ✓ AC1: "User can create invoice" → covered by invoice.test.ts:23
-  ✗ AC2: "Invoice PDF can be downloaded" → NO TEST FOUND
-  ✗ AC3: "Overdue invoices show warning" → test exists but only checks happy path
+  ✓ SHALL: "Given valid line items, When invoice created, Then total SHALL equal sum of items" → invoice.test.ts:23
+  ✗ SHALL: "Given no auth token, When accessing /api/invoices, Then MUST return 401" → NO TEST FOUND
+  ✗ SHOULD: "Given overdue invoice, When dashboard loads, Then SHOULD show warning" → test exists but only checks happy path
+  — MAY: "Given invoice, When exported, Then MAY include company logo" → no test (optional)
+  
+  Constraints from spec deltas:
+  ✓ "All invoices must have ≥1 line item" (v0.1.3) → validated in invoice.test.ts:45
+  ✗ "PDF export requires lineItems populated" (v0.1.5) → NO TEST for empty lineItems case
 ```
 
 ### 7. Test Quality Analysis (Layer 2 — "What does this test actually verify?")

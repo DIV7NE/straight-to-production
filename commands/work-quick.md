@@ -600,13 +600,22 @@ When the user says go:
    - Type check: clean
    ```
 
-3. **Update .stp/docs/PLAN.md:**
+3. **Delta merge-back (MANDATORY).** After writing the spec delta to CHANGELOG, merge changes into canonical docs:
+   - **Added** items → add to ARCHITECTURE.md (new models, routes, components sections)
+   - **Changed** items → update ARCHITECTURE.md (replace outdated assumptions, not append)
+   - **Constraints introduced** → add to PRD.md `## System Constraints` section
+   - **Dependencies created** → update ARCHITECTURE.md Feature Dependency Map
+   - **If new SHALL/MUST requirements emerged** → add as structured Given/When/Then scenarios to PRD.md
+   
+   **Update vs new change heuristic:** If this feature modifies an existing spec (same intent, >50% overlap with existing scenarios), UPDATE the existing scenarios in PRD.md. If it's net-new intent, ADD new scenarios. When uncertain, ADD (safer).
+
+4. **Update .stp/docs/PLAN.md:**
    - Mark this feature `[x]` with version: `- [x] 3. Ingredient CRUD (v0.1.3)`
    - If this feature was NOT in the original plan (unplanned work), ADD it to the appropriate milestone with `[x]` already checked, and update the Feature Touchpoint Map to include it. .stp/docs/PLAN.md must reflect ALL features that exist, not just originally planned ones.
 
-4. Update .stp/docs/PRD.md Technical Decisions Log if significant decisions were made.
+5. Update .stp/docs/PRD.md Technical Decisions Log if significant decisions were made. If new structured scenarios emerged during building, add them to the appropriate SPEC section.
 
-5. **Update .stp/docs/CONTEXT.md** — reflect the current state of the codebase after this feature:
+6. **Update .stp/docs/CONTEXT.md** — reflect the current state of the codebase after this feature:
    - Add new files to the file map (with 1-line purpose each)
    - Update data schema if new tables/columns were added
    - Update API endpoints if new routes were created
@@ -616,7 +625,7 @@ When the user says go:
    
    .stp/docs/CONTEXT.md is a SNAPSHOT of what exists NOW — not history. Replace outdated info, don't append. Keep it under 150 lines.
 
-6. **Update .stp/docs/ARCHITECTURE.md** (if it exists) — incremental update:
+7. **Update .stp/docs/ARCHITECTURE.md** (if it exists) — incremental update:
    - Add new models/tables to the Data Models section
    - Add new routes to the API/Page Routes section
    - Add new components to the Components section
@@ -625,7 +634,7 @@ When the user says go:
 
    Don't rewrite the whole file — just add/update the sections affected by this feature.
 
-7. **Capture project conventions in CLAUDE.md.** After building, ask yourself: did this feature establish a pattern that future development must follow?
+8. **Capture project conventions in CLAUDE.md.** After building, ask yourself: did this feature establish a pattern that future development must follow?
 
    If YES, append to the `## Project Conventions` section:
    ```markdown
@@ -646,7 +655,7 @@ When the user says go:
    - **Non-obvious** — someone new wouldn't know this without being told
    - **Important** — violating it would cause bugs, inconsistency, or security issues
 
-8. **Update README.md — MANDATORY after EVERY feature.** The project README must always reflect the current state. Update:
+9. **Update README.md — MANDATORY after EVERY feature.** The project README must always reflect the current state. Update:
    - Feature list / what the app does (if this feature adds visible capability)
    - Setup/install instructions (if dependencies or steps changed)
    - Usage instructions (if new commands, endpoints, or workflows were added)
@@ -662,7 +671,7 @@ When the user says go:
    
    A README that doesn't match the code is WORSE than no README — it wastes the user's time with wrong instructions.
 
-7. Delete `.stp/state/current-feature.md` and `.stp/state/handoff.md` if they exist.
+10. Delete `.stp/state/current-feature.md` and `.stp/state/handoff.md` if they exist.
 8. Commit: `feat: [feature name] (v0.1.3)`
 
 ### Step 7: Milestone Check (Automatic)

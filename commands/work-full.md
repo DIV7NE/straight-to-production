@@ -609,9 +609,15 @@ This is NOT optional. The user must test and approve.
 
 1. **Bump patch version.** Read `VERSION`, increment patch, write back.
 2. **CHANGELOG entry** in .stp/docs/CHANGELOG.md (newest first): summary, changes, tests, decisions, **spec delta** (Added/Changed/Constraints introduced/Dependencies created), stats.
-3. **Update .stp/docs/PLAN.md** — mark feature `[x]` with version.
-4. **Update .stp/docs/CONTEXT.md** — add new files, schema, routes, patterns, env vars. Keep under 150 lines.
-5. **Update .stp/docs/ARCHITECTURE.md** — add new models, routes, components, dependencies.
+3. **Delta merge-back (MANDATORY).** Merge spec delta into canonical docs:
+   - **Added** items → add to ARCHITECTURE.md (new models, routes, components)
+   - **Changed** items → update ARCHITECTURE.md (replace outdated assumptions)
+   - **Constraints introduced** → add to PRD.md `## System Constraints` section
+   - **Dependencies created** → update ARCHITECTURE.md Feature Dependency Map
+   - **New SHALL/MUST requirements** → add as Given/When/Then scenarios to PRD.md
+   - **Update vs new:** same intent + >50% overlap → update existing scenarios. New intent → add new scenarios. Uncertain → add.
+4. **Update .stp/docs/PLAN.md** — mark feature `[x]` with version.
+5. **Update .stp/docs/CONTEXT.md** — add new files, schema, routes, patterns, env vars. Keep under 150 lines.
 6. **Update README.md** — features, setup, usage, config. Then VERIFY every claim against actual code.
 7. **Capture conventions in CLAUDE.md** — if this feature established a pattern that future development must follow, add it to `## Project Conventions`.
 8. **Update AUDIT.md** — if bugs were fixed or lessons learned.

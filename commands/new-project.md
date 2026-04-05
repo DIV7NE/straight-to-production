@@ -496,24 +496,42 @@ owner, not technical, checks stock from phone in kitchen between services."]
 alternatives and downsides. This is the permanent record.]
 
 ## Features
-Each feature has acceptance criteria — testable conditions that define "done."
+Each feature has structured scenarios using Given/When/Then + RFC 2119 keywords (SHALL/MUST/SHOULD/MAY). Each scenario maps directly to an executable test.
 
 ### Core (from user)
-- [Feature 1]
-  - AC: [When X happens, Y should result]
-  - AC: [User can do Z successfully]
-- [Feature 2]
-  - AC: [Testable condition]
+
+#### SPEC: [Feature 1]
+**Requirements:**
+- The system SHALL [mandatory behavior]
+- The system MUST NOT [prohibited behavior]
+
+**Scenarios:**
+- Given [precondition], When [action], Then [expected outcome]
+- Given [precondition], When [invalid action], Then [error behavior]
+
+#### SPEC: [Feature 2]
+**Requirements:**
+- The system SHALL [mandatory behavior]
+
+**Scenarios:**
+- Given [precondition], When [action], Then [expected outcome]
 
 ### Included (surfaced by STP)
-- [Auth — why]
-  - AC: [Unauthenticated user redirected to login]
-  - AC: [User can only see their own data]
-- [Error handling — why]
-  - AC: [User sees friendly message, not stack trace]
-- [Empty states — why]
-  - AC: [New user sees onboarding prompt, not blank page]
-- [etc.]
+
+#### SPEC: Authentication
+- Given an unauthenticated user, When they access a protected route, Then they SHALL be redirected to login
+- Given an authenticated user, When they request another user's data, Then the system MUST NOT return it
+- The system MUST NOT expose password hashes, tokens, or secrets in API responses
+
+#### SPEC: Error Handling
+- Given any server error, When the user sees it, Then the system SHALL show a friendly message, MUST NOT show stack traces
+- Given a form submission error, When validation fails, Then the system SHALL show field-level error messages
+
+#### SPEC: Empty States
+- Given a new user with no data, When they view any list page, Then the system SHALL show an onboarding prompt, MUST NOT show a blank page
+
+## System Constraints
+[Grows over time from spec deltas. Each constraint was introduced by a specific feature and is enforced by tests.]
 
 ## Out of Scope (for now)
 - [Things explicitly deferred]

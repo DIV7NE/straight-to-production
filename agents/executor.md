@@ -31,9 +31,10 @@ Follow the patterns you find. If the project uses server actions, use server act
 
 Before any implementation, write tests in this order:
 
-**A. Acceptance criteria as executable specs:**
-- Read the acceptance criteria from the feature spec
-- Write one test per acceptance criterion — named to match: `test("AC: user can create invoice with line items")`
+**A. Acceptance criteria as executable specs (Given/When/Then):**
+- Read the structured scenarios from the feature spec (Given/When/Then format with RFC 2119 keywords)
+- Write one test per scenario — named to match the scenario: `test("Given valid credentials, When login submitted, Then SHALL receive session token")`
+- Every SHALL/MUST scenario is MANDATORY — skip none. Every SHOULD scenario is expected. MAY scenarios are optional.
 - These are the PRIMARY quality gate. If these fail, nothing else matters.
 
 **B. Behavioral tests from the spec's test cases:**

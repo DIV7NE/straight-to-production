@@ -185,29 +185,70 @@ STP uses file-based memory — everything lives in .stp/docs/. No reliance on Cl
 - **What was built + decisions + spec deltas**: CHANGELOG.md (append per feature — includes spec deltas showing how each feature mutated the system's architectural assumptions)
 - **What exists now**: ARCHITECTURE.md (full map) + CONTEXT.md (concise)
 - **What's planned**: PLAN.md (milestones, features, status)
-- **What was promised**: PRD.md (requirements, acceptance criteria)
+- **What was promised**: PRD.md (requirements as structured Given/When/Then scenarios with RFC 2119 keywords)
 - **Production health**: AUDIT.md (Sentry, deploy, billing — refreshed by /stp:review)
 - **Bug patterns**: AUDIT.md Patterns & Lessons section (every debug writes a generalizable lesson — build reads these to avoid repeating mistakes)
 - **Project conventions**: CLAUDE.md `## Project Conventions` section (living rules — grows from build decisions, debug lessons, Critic findings, and onboarding detection. Read on every session, enforced by Critic.)
 - **Session continuity**: handoff.md (created by /stp:pause, consumed by /stp:continue — lessons preserved to CHANGELOG before deletion)
 - **Session restore**: hook fires on start, reads state files, suggests /stp:continue
 
-## Spec Delta System (tracks HOW the system evolves, not just WHAT was built)
+## Structured Spec Format (Given/When/Then + RFC 2119)
 
-Every feature build appends a **Spec Delta** to its CHANGELOG entry. A spec delta captures how the feature mutated the system's architectural assumptions — not just what code changed, but what the system IS now vs what it WAS.
+ALL acceptance criteria in PRD.md and PLAN.md MUST use structured scenarios with RFC 2119 severity keywords. This makes specs testable by design — each scenario maps directly to an executable test.
+
+**Format:**
+```markdown
+### SPEC: [Feature Name]
+
+**Requirements:**
+- The system SHALL [mandatory behavior] (MUST-level)
+- The system SHOULD [recommended behavior] (RECOMMENDED-level)
+- The system MUST NOT [prohibited behavior]
+
+**Scenarios:**
+- Given [precondition], When [action], Then [expected outcome]
+- Given [precondition], When [invalid action], Then [error handling]
+- Given [edge case], When [action], Then [graceful behavior]
+```
+
+**RFC 2119 keywords** (use precisely):
+- **SHALL / MUST** — absolute requirement. Tests MUST verify this. Failure = BLOCK.
+- **SHOULD / RECOMMENDED** — expected unless good reason to deviate. Tests SHOULD verify.
+- **MAY / OPTIONAL** — truly optional. Test if time allows.
+- **MUST NOT / SHALL NOT** — absolute prohibition. Tests MUST verify this NEVER happens.
+
+**Why this matters:** Freeform prose like "user can log in" is ambiguous. "Given a user with valid credentials, When they submit login, Then they SHALL receive a session token within 2 seconds" is testable, measurable, and unambiguous. The executor writes tests directly from scenarios. The Critic verifies each scenario has a corresponding test.
+
+## Spec Delta System (tracks HOW the system evolves — with merge-back)
+
+Every feature build produces a **Spec Delta** that captures how the feature mutated the system's architectural assumptions. Deltas are NOT just logged — they **merge back** into canonical docs.
 
 **Spec Delta format (in CHANGELOG.md entries):**
 ```markdown
 ### Spec Delta
 - **Added:** [new models, routes, integrations, patterns that didn't exist before]
 - **Changed:** [existing assumptions that this feature invalidated or replaced]
-- **Constraints introduced:** [new rules the system must now follow — e.g., "all invoices must have at least one line item"]
-- **Dependencies created:** [what now depends on this feature — e.g., "PDF export requires invoice.lineItems to be populated"]
+- **Constraints introduced:** [new rules the system must now follow]
+- **Dependencies created:** [what now depends on this feature]
 ```
 
-**Why this matters:** ARCHITECTURE.md shows what exists NOW. CHANGELOG shows what was BUILT. Spec deltas show what CHANGED IN MEANING — the evolution of architectural intent. When a future feature contradicts a past assumption, the delta trail shows exactly when and why that assumption was established.
+**Delta merge-back (MANDATORY after every feature):**
+After writing the spec delta to CHANGELOG.md, merge the changes into the canonical docs:
+1. **Added** items → add to ARCHITECTURE.md (new models, routes, components sections)
+2. **Changed** items → update ARCHITECTURE.md (replace outdated assumptions)
+3. **Constraints introduced** → add to PRD.md `## System Constraints` section (append, don't replace)
+4. **Dependencies created** → update ARCHITECTURE.md Feature Dependency Map
+5. **If a SHOULD/SHALL requirement was added** → add to PRD.md as a new structured scenario
 
-**The Critic reads spec deltas** during verification to check: does the new feature contradict any previously established constraint? Does it create circular dependencies in the delta trail?
+The canonical docs (PRD.md, ARCHITECTURE.md) are always the source of truth. CHANGELOG.md is the history. Spec deltas are the bridge — they describe what changed and drive the merge into canonical docs.
+
+**Update vs New Change heuristic:**
+When the user requests work that touches an existing feature:
+- **Same intent + >50% overlap** with existing spec → UPDATE the existing scenarios in PRD.md. This is a refinement, not a new feature.
+- **New intent or <50% overlap** → ADD new scenarios to PRD.md. This is net-new work.
+- When uncertain, default to ADD (safer — doesn't risk losing existing spec intent).
+
+**The Critic reads spec deltas** during verification to check: does the new feature contradict any previously established constraint? Does it create circular dependencies? Are all deltas properly merged back into canonical docs?
 
 On any new session: read CHANGELOG.md (with spec deltas) for evolution history, ARCHITECTURE.md for current state, PLAN.md for what's next. This gives full project memory regardless of /clear, compaction, or machine changes.
 
