@@ -672,7 +672,7 @@ When the user says go:
    A README that doesn't match the code is WORSE than no README — it wastes the user's time with wrong instructions.
 
 10. Delete `.stp/state/current-feature.md` and `.stp/state/handoff.md` if they exist.
-8. Commit: `feat: [feature name] (v0.1.3)`
+11. Commit: `feat: [feature name] (v0.1.3)`
 
 ### Step 7: Milestone Check (Automatic)
 

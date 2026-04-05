@@ -1,7 +1,7 @@
 # STP — Ship To Production — Claude Code Plugin
 
 ## What This Is
-A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 14 commands, 3 agents, 25 reference files, 20 templates, visual whiteboard, wave-based parallel building.
+A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 15 commands, 3 agents, 25 reference files, 20 templates, visual whiteboard, wave-based parallel building.
 
 ## Architecture
 - **Opus** = CTO (plans, researches, reviews, merges, teaches). Builds foundation work directly (DB, auth, config).
