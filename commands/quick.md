@@ -643,8 +643,15 @@ Test that features within this milestone work TOGETHER, not just individually.
 
 Write and run integration/E2E tests for the milestone's primary workflow. Commit them.
 
-**3. Automatic Critic Evaluation**
-Spawn the `stp-critic` agent automatically. Grade against .stp/docs/PRD.md + .stp/docs/PLAN.md + 7 criteria. Present results.
+**3. Automatic Critic Evaluation (Double-Check Protocol)**
+Spawn the `stp-critic` agent with the Double-Check Protocol enforced:
+```
+Evaluate this milestone. MANDATORY: Follow the Double-Check Protocol — 2 iteration minimum.
+1. Restate the goal, 2. Define "complete", 3. List angles, 4. Iteration 1, 5. Iteration 2, 6. Synthesize.
+Grade against .stp/docs/PRD.md + .stp/docs/PLAN.md + 7 criteria.
+Flag NET-NEW GAPS: features where infrastructure exists but no UI/API/purchase flow was wired.
+```
+Present results including the Verified Complete table and any net-new gaps found.
 
 **4. Milestone CHANGELOG entry.** Add a milestone summary entry:
    ```markdown

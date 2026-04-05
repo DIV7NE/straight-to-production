@@ -7,7 +7,7 @@ A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 14 commands, 3 agen
 - **Opus** = CTO (plans, researches, reviews, merges, teaches). Builds foundation work directly (DB, auth, config).
 - **Sonnet executors** = builders (features on top of foundation, worktree isolation, Agent Teams for parallelism)
 - **Sonnet QA** = independent tester (tests running app against PRD acceptance criteria)
-- **Sonnet Critic** = code reviewer (7 criteria including AI slop detection)
+- **Sonnet Critic** = code reviewer (7 criteria + Double-Check Protocol: goal restatement, completion criteria, multi-angle verification, 2-iteration minimum, net-new gap detection)
 
 ## Commands
 **Getting started:**

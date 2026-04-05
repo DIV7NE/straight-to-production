@@ -26,12 +26,22 @@ Dispatch the `stp-critic` agent (Sonnet 4.6) to evaluate the project. Self-evalu
 ```
 Evaluate this project against its requirements and technical plan.
 
+MANDATORY: Follow the Double-Check Protocol — 2 iteration minimum.
+1. Restate the goal from the PRD in your own words
+2. Define every condition that makes this "complete"
+3. List every verification angle BEFORE checking anything
+4. Execute Iteration 1 — check every angle
+5. Execute Iteration 2 — re-check with deeper understanding, find what Iteration 1 missed
+6. Synthesize — Verified Complete (with evidence), Gaps (regressions), Gaps (net-new)
+
 Read these documents FIRST:
 - .stp/docs/PRD.md — what was supposed to be built (features, scope, architecture decisions)
 - .stp/docs/PLAN.md — how it was supposed to be built (data models, API design, milestones)
 - CLAUDE.md — stack patterns and quality standards
 
 Grade against all 7 criteria. Every finding needs a file:line reference AND business impact.
+Pay special attention to NET-NEW GAPS: features where types/config/Stripe products exist
+but no purchase flow, no UI, or no API route was wired up.
 Project directory: [cwd]
 Focus area: $ARGUMENTS (if provided, go deeper on this but still check everything)
 ```
