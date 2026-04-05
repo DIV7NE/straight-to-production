@@ -97,14 +97,21 @@ AskUserQuestion(
 - `/stp:pause` — "I'm done for now." Saves context for next session
 - `/stp:upgrade` — "Update STP." Pulls latest + syncs companion plugins + refreshes CLAUDE.md sections + verifies hooks
 
-## Required Companion Plugins
-STP requires the following plugins installed in every project it manages:
+## Required Companion Plugins & MCP Servers
+STP requires the following installed for full capability:
 
+### Plugins (installed per project)
 | Plugin | Purpose | Install |
 |--------|---------|---------|
 | **ui-ux-pro-max** (v2.5+) | Design intelligence — 67 styles, 161 palettes, 57 font pairings, product-type-aware recommendations. Generates persistent DESIGN-SYSTEM.md. | `npm i -g uipro-cli && uipro init --ai claude` |
 
-**Enforcement:** `/stp:new-project` and `/stp:onboard-existing` preflight checks verify these are installed. If missing, the user is prompted to install before proceeding. Any STP command that touches UI/UX code MUST invoke `/ui-ux-pro-max` before writing frontend code — this supplements (not replaces) the `/frontend-design` skill.
+### MCP Servers (installed globally)
+| MCP Server | Purpose | Why mandatory |
+|------------|---------|---------------|
+| **Context7** | Live documentation retrieval — resolve library IDs, query current API docs, verify patterns against latest versions | STP's research phases (Phase 4, Phase 5b) depend on Context7 to prevent building on stale training data. Without it, architecture decisions use potentially outdated API knowledge. |
+| **Tavily** | Deep web research — best practices, industry standards, competitive analysis, structured research | STP's research phases use Tavily for implementation patterns, security advisories, and "how do production apps solve this" queries. Without it, research depth is significantly reduced. |
+
+**Enforcement:** `/stp:new-project` and `/stp:onboard-existing` preflight checks verify plugins and MCP servers are available. If missing, the user is prompted to install before proceeding. Any STP command that touches UI/UX code MUST invoke `/ui-ux-pro-max` before writing frontend code. Research phases MUST use Context7 for library docs and Tavily for industry research — never rely solely on training data.
 
 ## Philosophy (NON-NEGOTIABLE)
 

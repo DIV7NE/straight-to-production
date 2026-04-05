@@ -116,13 +116,20 @@ your-project/
 
 Existing projects using the old flat layout (docs at root, state files in `.stp/`) are auto-migrated on first session start after upgrade.
 
-## Required Companion Plugins
+## Required Companion Plugins & MCP Servers
 
-STP auto-installs these during setup (`/stp:new-project`, `/stp:onboard-existing`). If you already have STP and are upgrading, install manually:
+STP checks for these during setup (`/stp:new-project`, `/stp:onboard-existing`) and upgrade (`/stp:upgrade`). Install them for full capability:
 
+### Plugins (per project)
 | Plugin | Purpose | Install |
 |--------|---------|---------|
 | **[ui-ux-pro-max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill)** (v2.5+) | Design intelligence — 67 styles, 161 palettes, 57 font pairings. Generates `design-system/MASTER.md` that all build commands read before writing frontend code. | `npm i -g uipro-cli && uipro init --ai claude` |
+
+### MCP Servers (global — install once)
+| MCP Server | Purpose | Install |
+|------------|---------|---------|
+| **[Context7](https://github.com/upstash/context7)** | Live documentation — query current API docs, verify patterns against latest library versions. Prevents building on stale training data. | `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest` |
+| **[Tavily](https://tavily.com)** | Deep web research — best practices, industry standards, security advisories, competitive analysis. | `claude mcp add tavily -- npx -y tavily-mcp@latest` + set `TAVILY_API_KEY` |
 
 When any STP command detects UI/UX work, it:
 1. Generates a design system via ui-ux-pro-max

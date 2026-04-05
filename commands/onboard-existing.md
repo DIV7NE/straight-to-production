@@ -26,13 +26,20 @@ TaskCreate("Step 7: Remediation plan → .stp/docs/PLAN.md")
 
 ## Process
 
-### Pre-Step: Required Companion Plugins (check BEFORE anything else)
+### Pre-Step: Required Companion Plugins & MCP Servers (check BEFORE anything else)
 
 ```bash
+# Plugin check
 [ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ] && echo "ui-ux-pro-max: installed" || echo "ui-ux-pro-max: MISSING"
 ```
 
 If `ui-ux-pro-max: MISSING` → install automatically: `npm i -g uipro-cli && uipro init --ai claude`. This is a required companion plugin — do NOT skip.
+
+**MCP server check:** Attempt a Context7 `resolve-library-id` call and a Tavily `tavily_search` call. If either fails, prompt the user to install:
+- Context7: `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest`
+- Tavily: `claude mcp add tavily -- npx -y tavily-mcp@latest` (requires TAVILY_API_KEY)
+
+These are required for STP's research phases. Without them, architecture decisions use potentially stale training data.
 
 ### Step 0: CLAUDE.md Handling (check BEFORE any analysis)
 

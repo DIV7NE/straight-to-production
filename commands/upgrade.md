@@ -73,6 +73,25 @@ uipro init --ai claude
 ```
 Report: "Updated ui-ux-pro-max from v$INSTALLED_VER to v$LATEST_VER."
 
+**Check required MCP servers:**
+
+Attempt a Context7 `resolve-library-id` call and a Tavily `tavily_search` call to verify they're available.
+
+If **Context7 is missing:**
+```
+Context7 MCP server not detected. STP research phases depend on it for live documentation.
+Install: claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
+```
+
+If **Tavily is missing:**
+```
+Tavily MCP server not detected. STP research phases depend on it for deep web research.
+Install: claude mcp add tavily -- npx -y tavily-mcp@latest
+Note: Requires TAVILY_API_KEY environment variable (free tier available at tavily.com)
+```
+
+Report MCP status in the upgrade summary: `[✓/✗] Context7 MCP`, `[✓/✗] Tavily MCP`.
+
 ### Step 4: Sync Project CLAUDE.md (CAREFUL — never destroy user content)
 
 The project CLAUDE.md contains both STP-managed sections AND user-written sections. The upgrade MUST preserve ALL user content while refreshing ONLY STP content.

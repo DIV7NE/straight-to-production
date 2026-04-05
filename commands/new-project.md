@@ -34,6 +34,11 @@ ls *.json 2>/dev/null | head -3
 
 # Required companion plugins
 [ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ] && echo "ui-ux-pro-max: installed" || echo "ui-ux-pro-max: MISSING"
+
+# Required MCP servers (check if tools are available)
+# Context7: try calling resolve-library-id to see if it responds
+# Tavily: try calling tavily_search to see if it responds
+echo "mcp-check: Context7 and Tavily availability will be verified by attempting tool calls during research phases"
 ```
 
 **Based on findings:**
@@ -42,6 +47,18 @@ ls *.json 2>/dev/null | head -3
 - If existing code files detected → "This folder has existing code. Did you mean `/stp:onboard-existing`?"
 - Note which runtimes are available — this informs stack recommendations (don't recommend Python if only Node is installed)
 - If `ui-ux-pro-max: MISSING` → install automatically: `npm i -g uipro-cli && uipro init --ai claude`. This is a required companion plugin — do NOT skip.
+- **MCP server check:** Attempt a Context7 `resolve-library-id` call and a Tavily `tavily_search` call. If either fails:
+  ```
+  AskUserQuestion(
+    question: "[Context7/Tavily] MCP server is not available. STP's research phases depend on it for [live docs/deep research]. Install it now?",
+    options: [
+      "(Recommended) Show me how to install it",
+      "Skip — I'll install later (research quality will be reduced)",
+      "Chat about this"
+    ]
+  )
+  ```
+  If "show me how": provide the install command from the MCP server's documentation. Context7: `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest`. Tavily: `claude mcp add tavily -- npx -y tavily-mcp@latest` (requires TAVILY_API_KEY env var).
 
 ### CLAUDE.md Handling (check BEFORE starting project setup)
 
