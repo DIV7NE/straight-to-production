@@ -75,22 +75,24 @@ Report: "Updated ui-ux-pro-max from v$INSTALLED_VER to v$LATEST_VER."
 
 **Check required MCP servers:**
 
-Attempt a Context7 `resolve-library-id` call and a Tavily `tavily_search` call to verify they're available.
+Attempt tool calls to verify each is available:
+- Context7: try `resolve-library-id`
+- Tavily: try `tavily_search`
+- Context Mode: try `ctx_stats`
+- Agent Browser: try `use_browser`
 
-If **Context7 is missing:**
+For each missing MCP server, show install instructions:
+
 ```
-Context7 MCP server not detected. STP research phases depend on it for live documentation.
-Install: claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
+[MCP Server] not detected. STP depends on it for [purpose].
+Install:
+  Context7:       claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
+  Tavily:         claude mcp add tavily -- npx -y tavily-mcp@latest  (requires TAVILY_API_KEY)
+  Context Mode:   claude mcp add context-mode -- npx -y context-mode-mcp@latest
+  Agent Browser:  claude plugins install superpowers-chrome
 ```
 
-If **Tavily is missing:**
-```
-Tavily MCP server not detected. STP research phases depend on it for deep web research.
-Install: claude mcp add tavily -- npx -y tavily-mcp@latest
-Note: Requires TAVILY_API_KEY environment variable (free tier available at tavily.com)
-```
-
-Report MCP status in the upgrade summary: `[✓/✗] Context7 MCP`, `[✓/✗] Tavily MCP`.
+Report MCP status in the upgrade summary: `[✓/✗] Context7`, `[✓/✗] Tavily`, `[✓/✗] Context Mode`, `[✓/✗] Agent Browser`.
 
 ### Step 4: Sync Project CLAUDE.md (CAREFUL — never destroy user content)
 

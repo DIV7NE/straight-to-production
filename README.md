@@ -130,6 +130,8 @@ STP checks for these during setup (`/stp:new-project`, `/stp:onboard-existing`) 
 |------------|---------|---------|
 | **[Context7](https://github.com/upstash/context7)** | Live documentation — query current API docs, verify patterns against latest library versions. Prevents building on stale training data. | `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest` |
 | **[Tavily](https://tavily.com)** | Deep web research — best practices, industry standards, security advisories, competitive analysis. | `claude mcp add tavily -- npx -y tavily-mcp@latest` + set `TAVILY_API_KEY` |
+| **[Context Mode](https://github.com/context-labs/context-mode)** | Context window protection — runs commands in sandbox, prevents context flooding, enables longer sessions before compaction. | `claude mcp add context-mode -- npx -y context-mode-mcp@latest` |
+| **[Vercel Agent Browser](https://github.com/nicepkg/gpt-runner)** | Headless browser for QA — navigate pages, click elements, verify rendered state, test responsive layouts. | Install via Claude Code plugins or `claude plugins install superpowers-chrome` |
 
 When any STP command detects UI/UX work, it:
 1. Generates a design system via ui-ux-pro-max
