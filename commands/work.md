@@ -259,59 +259,139 @@ AskUserQuestion(
 )
 ```
 
-### Phase 5: PLAN — Architecture + Verification
+### Phase 5: PLAN — Full Architecture Blueprint (zero compromise)
 
-With the chosen approach, create a comprehensive plan.
+This is the FULL `/stp:plan` cycle embedded in `/stp:work`. No shortcuts. Every sub-phase below is mandatory. Write all findings to `.stp/docs/PLAN.md` as you go — if compaction fires, the plan is already on disk.
 
-**For single features:** Create `.stp/state/current-feature.md` with the standard checklist format (compatible with /stp:quick).
+**For single features:** Also create `.stp/state/current-feature.md` with the standard checklist format.
+**For multi-feature work:** `.stp/docs/PLAN.md` is the primary document.
 
-**For multi-feature work:** Create or update `.stp/docs/PLAN.md` with milestones, features, and wave execution plans.
+#### 5a. Domain Research
 
-The plan must include:
-- **What's being built** (from Phase 1 requirements)
-- **Architecture fit** (from ARCHITECTURE.md — new files, modified files, data changes, API changes)
-- **Impact on existing features** (from dependency map — what could break)
-- **Build order** (dependencies determine sequence — what must come first)
-- **Test strategy** (what to test, TDD approach: executable specs from acceptance criteria FIRST, then behavioral tests, property-based tests for critical invariants, error-path coverage)
-- **Risk mitigation** (security, breaking changes, performance)
-- **Conventions to follow** (from CLAUDE.md Project Conventions)
-- **Acceptance criteria as executable specs** (from Phase 1 — each AC becomes a named test: `test("AC: user can ...")`. These are the PRIMARY quality gate — if specs fail, nothing else matters)
-- **Wave analysis** (for multi-feature: which features can build in parallel)
+Research what production versions of this type of feature/product actually need. Not the tech — the DOMAIN.
+- What do competitors/existing tools do for this?
+- What workflows do users expect?
+- What edge cases exist? (partial states, failures, concurrent access, undo)
+- Legal/compliance requirements if applicable
 
-**Verify the plan internally:**
-- Does every acceptance criterion have a corresponding test?
+#### 5b. Technical Research (Context7 + MCP tools)
+
+Before designing: verify the CURRENT state of every technology you'll use. Training data may be stale.
+- Framework: Context7 query for latest patterns, breaking changes
+- Database/ORM: latest migration patterns, connection pooling, RLS
+- Auth: latest middleware pattern, security advisories
+- Integrations: latest API versions, deprecated endpoints
+- Record findings in PLAN.md `## Technical Research` section
+
+#### 5c. System Architecture
+
+Design components, connections, and data flow. Produce diagrams (Mermaid — push to whiteboard if running):
+- **User flow** — how users move through the feature/app
+- **System architecture** — frontend, backend, database, external services
+- **State diagrams** — for entities with lifecycles (draft→sent→paid→overdue)
+
+#### 5d. Data Models
+
+Design every table/model with fields, types, relationships, indexes:
+- ER diagram (Mermaid `erDiagram`)
+- Migration files to create + rollback procedures
+- Seed data for development/testing
+
+#### 5e. API/Route Design
+
+Design every endpoint with purpose, auth requirements, request/response shapes:
+- Sequence diagrams for complex flows (payments, webhooks, multi-step)
+- Validation rules per endpoint
+- For non-API apps: design the service layer / data access patterns
+
+#### 5f. Auth & Authorization Design (centralized, not per-endpoint)
+
+- Authentication: provider, protected routes, session handling
+- Authorization: who can do what, role-based access, row-level security
+- Webhook auth: signature verification per webhook endpoint
+
+#### 5g. Error Handling Strategy (centralized, not per-feature)
+
+- Consistent error response format across ALL endpoints
+- Error propagation: DB error → catch → log → safe message
+- User-facing messages: never stack traces, always next steps
+- Error tracking: Sentry/equivalent config
+
+#### 5h. Cross-Cutting Concerns — Feature Touchpoint Map
+
+Map where every feature appears across the ENTIRE app:
+
+| Feature | Database | API | UI Pages | Navigation | Search | Notifications | Dashboard |
+|---------|----------|-----|----------|------------|--------|--------------|-----------|
+| [Feature] | [table] | [endpoints] | [pages] | [nav links] | [searchable?] | [triggers?] | [widget?] |
+
+This prevents building features in isolation but forgetting to connect them everywhere.
+
+#### 5i. Test Strategy — Spec-First TDD
+
+- **Acceptance criteria as executable specs** — each AC becomes `test("AC: user can ...")`. PRIMARY quality gate.
+- **Behavioral tests** — verify user-visible outcomes, not mock interactions
+- **Property-based tests** — for financial, auth, data transform invariants
+- **Error-path tests** — every error handler must have a test
+- **Integration tests** — at least one test per feature that hits real services
+
+#### 5j. Build Order + Wave Execution
+
+- Dependencies determine sequence — what must come first
+- **Wave analysis** (for multi-feature): compare file lists, features sharing modified files → different waves
+- Within a wave: all features are independent → parallel via executor agents
+- Produce dependency graph diagram for whiteboard
+
+#### 5k. Risk Mitigation
+
+- Security: attack surface, auth requirements, data sensitivity
+- Breaking changes: what existing features could break
+- Performance: potential bottlenecks, N+1 queries, bundle impact
+- Conventions: from CLAUDE.md Project Conventions
+- Past lessons: from AUDIT.md Patterns & Lessons
+
+#### 5l. Plan Self-Verification
+
+Before presenting, verify internally:
+- Does every acceptance criterion have a corresponding executable spec test?
+- Does every feature appear in the touchpoint map?
 - Does the build order respect dependencies?
 - Are all impacted existing features accounted for?
 - Do the conventions from CLAUDE.md apply correctly?
-- Does AUDIT.md's Patterns & Lessons have any relevant warnings?
+- Does AUDIT.md have any relevant warnings?
 
 **Present to user:**
 
 ```
-━━━ Development Plan ━━━
+━━━ Architecture Blueprint ━━━
 
 Scope: [what's being built — 1-2 sentences]
 Approach: [chosen approach]
-Scale: [N] features, [N] files new, [N] files modified
-Tests: [N] test cases planned
+Scale: [N] features, [N] files new, [N] files modified, [N] models, [N] endpoints
+Tests: [N] spec tests, [N] behavioral, [N] property-based, [N] integration
 Milestones: [N] (if multi-feature)
+Waves: [N] parallel execution waves
+
+Architecture: [1-sentence summary — e.g., "Next.js app router + Supabase RLS + Stripe webhooks"]
 
 Build order:
-  1. [First thing — why first]
-  2. [Second — depends on 1]
+  Wave 1: [features — why parallel]
+  Wave 2: [features — depends on Wave 1]
   ...
 
 Risk: [top concern and mitigation]
-Tools: [what we're using — Stripe MCP, CLI, etc.]
+Tools: [what we're using — Stripe MCP, Context7, etc.]
+
+Full plan saved to .stp/docs/PLAN.md
 ```
 
 ```
 AskUserQuestion(
-  question: "Development plan ready. This covers [scope summary]. Proceed?",
+  question: "Architecture blueprint ready. [N] features across [N] waves. Full plan saved to .stp/docs/PLAN.md. Proceed to build?",
   options: [
     "(Recommended) Approved — start building",
     "Modify — I want to adjust [something]",
-    "More detail — show me the full plan",
+    "Review full plan — open .stp/docs/PLAN.md",
     "Save for later — I'll run /stp:quick when ready",
     "Discard — changed my mind",
     "Chat about this"

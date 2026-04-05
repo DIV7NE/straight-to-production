@@ -273,12 +273,14 @@ Everything persisted:
 
 | Gate | What It Blocks | Enforcement |
 |------|---------------|-------------|
-| Type/compile errors | Code with errors | 100% — hook exit 2 |
-| Tests must pass | Failing tests | 100% — hook exit 2 |
-| Tests must exist | Source files without any test files | 100% — hook exit 2 |
-| No hardcoded secrets | Stripe keys, AWS keys, passwords in source | 100% — hook exit 2 |
 | Unchecked items | Stopping with work remaining | 100% — hook exit 2 |
 | .stp/docs/PLAN.md missing | Building features without a plan | Warning (non-blocking) |
+| Tests must exist | Source files without any test files | 100% — hook exit 2 |
+| No hardcoded secrets | Stripe keys, AWS keys, passwords in source | 100% — hook exit 2 |
+| Placeholder/mock patterns | TODO, FIXME, lorem ipsum, mock data in source | Warning (non-blocking) |
+| Hollow test detection | Tautological asserts, assertion-free test files | Warning (non-blocking) |
+| Type/compile errors | Code with errors | 100% — hook exit 2 |
+| Tests must pass | Failing tests | 100% — hook exit 2 |
 
 3-attempt safety valve prevents session bricking if an issue is truly unfixable.
 
