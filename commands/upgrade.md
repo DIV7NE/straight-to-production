@@ -23,21 +23,57 @@ Pull the latest version of STP from GitHub and sync EVERYTHING in the current pr
 
 ## Process
 
-### Step 1: Pull Latest Plugin Code
+### Step 1: Update Plugin Code (auto-detects install type)
 
 ```bash
 PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT}"
-CURRENT=$(cd "$PLUGIN_DIR" && git rev-parse --short HEAD)
-cd "$PLUGIN_DIR" && git pull origin main
-NEW_HEAD=$(cd "$PLUGIN_DIR" && git rev-parse --short HEAD)
 ```
 
-If already up to date (`$CURRENT` == `$NEW_HEAD`), still run the remaining sync steps — the project may be behind even if the plugin is current.
+**Detect install type and update accordingly:**
 
-Show what changed:
 ```bash
-cd "$PLUGIN_DIR" && git log --oneline "$CURRENT".."$NEW_HEAD" 2>/dev/null
+if [ -L "$PLUGIN_DIR" ]; then
+  echo "install_type: symlink (developer mode)"
+  # Symlink to dev repo — pull from the actual repo
+  REAL_DIR=$(readlink -f "$PLUGIN_DIR")
+  cd "$REAL_DIR" && git pull origin main 2>/dev/null
+elif [ -d "$PLUGIN_DIR/.git" ]; then
+  echo "install_type: git clone"
+  cd "$PLUGIN_DIR" && git pull origin main
+else
+  echo "install_type: marketplace (flat copy)"
+fi
 ```
+
+**For each install type:**
+
+**Git repo or symlink → `git pull`:**
+```bash
+CURRENT=$(cd "$PLUGIN_DIR" && git rev-parse --short HEAD 2>/dev/null)
+# pull already done above
+NEW_HEAD=$(cd "$PLUGIN_DIR" && git rev-parse --short HEAD 2>/dev/null)
+```
+Show what changed: `git log --oneline "$CURRENT".."$NEW_HEAD"`
+
+**Marketplace install (no .git) → re-install from marketplace:**
+```
+The plugin was installed via Claude Code marketplace. To upgrade:
+
+Option 1 (recommended): Re-install from marketplace
+  /plugin uninstall stp
+  /plugin install stp@pilot-dev
+
+Option 2 (developer): Symlink to the git repo for instant updates
+  rm -rf [PLUGIN_DIR]
+  git clone https://github.com/DIV7NE/stp.git /path/to/stp
+  ln -s /path/to/stp [PLUGIN_DIR]
+  
+  This gives you instant access to every commit — no re-install needed.
+```
+
+Use AskUserQuestion to let the user choose. If they pick Option 2, run the commands.
+
+Regardless of install type, still run all remaining sync steps — the project may be behind even if the plugin is current.
 
 ### Step 2: Run Layout Migration
 
@@ -235,7 +271,47 @@ The git pull may have overwritten patched files. Check your Local Patches
 section and reapply if needed (e.g., `cp ~/.claude/gsd-local-patches/... ...`).
 ```
 
-### Step 8: Report
+### Step 8: Migrate Project Docs (if outdated format detected)
+
+Check if existing project docs need format migration:
+
+**PRD.md format check:**
+```bash
+[ -f ".stp/docs/PRD.md" ] && grep -q "Given.*When.*Then\|SHALL\|MUST NOT" .stp/docs/PRD.md 2>/dev/null && echo "prd_format: structured" || echo "prd_format: legacy_freeform"
+```
+
+If `prd_format: legacy_freeform` — the PRD uses old freeform acceptance criteria ("AC: user can log in") instead of structured Given/When/Then scenarios with RFC 2119 keywords.
+
+```
+AskUserQuestion(
+  question: "Your PRD.md uses the old freeform format. STP now uses structured specs (Given/When/Then + SHALL/MUST/SHOULD) for testable acceptance criteria. Want me to migrate?",
+  options: [
+    "(Recommended) Migrate now — convert existing ACs to structured scenarios. I'll preserve all requirements, just restructure the format.",
+    "Skip — I'll migrate manually later. New features will use the new format, old ones keep freeform.",
+    "Chat about this"
+  ]
+)
+```
+
+If migrating: read each freeform AC, convert to Given/When/Then with appropriate RFC 2119 keyword, preserve intent.
+
+**System Constraints section check:**
+```bash
+[ -f ".stp/docs/PRD.md" ] && grep -q "## System Constraints" .stp/docs/PRD.md 2>/dev/null && echo "constraints_section: exists" || echo "constraints_section: MISSING"
+```
+
+If MISSING → append `## System Constraints` section to PRD.md (empty, ready for delta merge-back to populate).
+
+**Command name migration note:**
+If the CHANGELOG or any state files reference old command names (`/stp:quick`, `/stp:work`), note:
+```
+Commands renamed in this version:
+  /stp:quick  →  /stp:work-quick
+  /stp:work   →  /stp:work-full
+  NEW: /stp:work-adaptive (impact scan → auto-routes to quick or full)
+```
+
+### Step 9: Report
 
 Present a clean summary:
 
@@ -250,8 +326,10 @@ Changes:
 
 Synced:
   [✓/✗] Companion plugins (ui-ux-pro-max v[VER])
-  [✓/✗] Project CLAUDE.md (Philosophy, Hooks, Required Plugins)
+  [✓/✗] MCP servers (Context7, Tavily, Context Mode, Agent Browser)
+  [✓/✗] Project CLAUDE.md (Philosophy, Hooks, Verification Stack, Spec Format)
   [✓/✗] Global CLAUDE.md (STP Awareness section)
+  [✓/─] PRD.md format (structured scenarios / legacy freeform / migrated)
   [✓/─] Layout migration (already organized / migrated)
   [✓/─] Hook scripts (all executable)
   [✓/─] Local patches (reapply reminder shown / none configured)
