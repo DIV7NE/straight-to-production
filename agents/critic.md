@@ -55,7 +55,7 @@ Read these documents in order:
 2. **.stp/docs/ARCHITECTURE.md** — full codebase map (models, routes, components, integrations, dependencies). This is your primary codebase reference — use it instead of exploring every file. If it doesn't exist, fall back to CONTEXT.md.
 3. **.stp/docs/CONTEXT.md** — concise AI reference (quick lookup if ARCHITECTURE.md is too large)
 4. **.stp/docs/AUDIT.md** — production health findings (Sentry errors, deploy status, billing). If it exists, cross-reference your findings — avoid re-flagging known issues already tracked here.
-5. **.stp/docs/CHANGELOG.md** — what was built so far, when, decisions made, previous evaluations
+5. **.stp/docs/CHANGELOG.md** — what was built so far, decisions made, and **spec deltas** (how each feature mutated the system's architectural assumptions). Read the spec deltas carefully — does the new feature contradict any previously established constraint? Does it create circular dependencies?
 6. **.stp/docs/PRD.md** — what was supposed to be built (features, scope, architecture decisions)
 7. **.stp/docs/PLAN.md** — how it should be built (data models, API design, test cases, milestones)
 8. **CLAUDE.md** — stack patterns, quality standards, AND `## Project Conventions` (project-specific rules learned from development and debugging)

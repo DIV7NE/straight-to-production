@@ -33,6 +33,11 @@ TaskCreate("Phase 6: Execute — TDD build")
 
 Before researching anything, understand the requirements. The user has an idea — it might be vague, specific, or somewhere in between. Your job is to get clarity.
 
+**Scale-adaptive check:** After understanding the task, assess its scope:
+- If it's a trivial fix (1-2 files, no new models/routes, no architectural impact) → tell the user: "This is a quick fix — dropping to `/stp:quick` mode to skip the full architecture cycle." Then follow /stp:quick's process instead.
+- If it's serious work (3+ files, new models, auth/payments, cross-cutting) → continue with the full /stp:work cycle.
+- Be honest about the classification. Don't force 12 planning sub-phases on a CSS change.
+
 **Read existing context first:**
 - `.stp/docs/PRD.md` — what was already promised? Does this extend or change the PRD?
 - `.stp/docs/PLAN.md` — is this already planned? Which milestone?
@@ -589,7 +594,7 @@ This is NOT optional. The user must test and approve.
 #### 6i. Version Bump + Documentation Update
 
 1. **Bump patch version.** Read `VERSION`, increment patch, write back.
-2. **CHANGELOG entry** in .stp/docs/CHANGELOG.md (newest first): summary, changes, tests, decisions, stats.
+2. **CHANGELOG entry** in .stp/docs/CHANGELOG.md (newest first): summary, changes, tests, decisions, **spec delta** (Added/Changed/Constraints introduced/Dependencies created), stats.
 3. **Update .stp/docs/PLAN.md** — mark feature `[x]` with version.
 4. **Update .stp/docs/CONTEXT.md** — add new files, schema, routes, patterns, env vars. Keep under 150 lines.
 5. **Update .stp/docs/ARCHITECTURE.md** — add new models, routes, components, dependencies.

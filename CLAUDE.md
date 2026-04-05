@@ -23,6 +23,25 @@ Each layer catches what the others miss. LLM review (Critic) is Layer 5, not Lay
 
 **Key principle:** The Critic handles Layer 5 (structural/architectural review). Behavioral verification (Layer 1) is deterministic — specs pass or fail, no opinions. Using LLM review for behavioral checking is structurally circular.
 
+## Task Routing (Scale-Adaptive — auto-classify before suggesting a command)
+
+When the user describes work WITHOUT specifying an STP command, classify the task and suggest:
+
+| Signal | Classification | Route to |
+|--------|---------------|----------|
+| 1-line change, typo, config tweak, version bump | Trivial | Just do it inline — no command needed |
+| Bug with clear symptoms, error message, stack trace | Bug | `/stp:debug` |
+| Small task, <3 files, known scope | Quick task | `/stp:quick` |
+| Feature that touches 3+ files, needs research | Serious work | `/stp:work` |
+| Vague idea, "should I use X or Y?", exploration | Thinking | `/stp:whiteboard` |
+| "Research X before building" | Research only | `/stp:research` |
+| New project from scratch | New project | `/stp:new-project` |
+| Existing codebase, first time with STP | Onboarding | `/stp:onboard-existing` |
+
+**Adaptive downshift:** If `/stp:work` Phase 1 reveals a trivial task (1-2 files, no architectural impact, no new models/routes), say: "This is a quick fix — dropping to `/stp:quick` mode to skip the full architecture cycle." Don't force 12 planning sub-phases on a CSS change.
+
+**Adaptive upshift:** If `/stp:quick` Step 2 (Research) reveals the task is bigger than expected (needs new models, touches auth, has security implications), say: "This is more complex than a quick task — recommend switching to `/stp:work` for the full cycle. Want to upgrade?"
+
 ## Commands
 **Getting started:**
 - `/stp:new-project` — "I'm starting from scratch." Pre-flight → questions → stack → PRD.md
@@ -122,7 +141,7 @@ This applies to ALL STP commands and agents. The executor agents, QA agent, and 
 
 ## Memory Strategy (how STP remembers across sessions)
 STP uses file-based memory — everything lives in .stp/docs/. No reliance on Claude's conversation memory.
-- **What was built + decisions**: CHANGELOG.md (append per feature, includes failed approaches from handoff)
+- **What was built + decisions + spec deltas**: CHANGELOG.md (append per feature — includes spec deltas showing how each feature mutated the system's architectural assumptions)
 - **What exists now**: ARCHITECTURE.md (full map) + CONTEXT.md (concise)
 - **What's planned**: PLAN.md (milestones, features, status)
 - **What was promised**: PRD.md (requirements, acceptance criteria)
@@ -132,7 +151,24 @@ STP uses file-based memory — everything lives in .stp/docs/. No reliance on Cl
 - **Session continuity**: handoff.md (created by /stp:pause, consumed by /stp:continue — lessons preserved to CHANGELOG before deletion)
 - **Session restore**: hook fires on start, reads state files, suggests /stp:continue
 
-On any new session: read CHANGELOG.md for history, ARCHITECTURE.md for context, PLAN.md for what's next. This gives full project memory regardless of /clear, compaction, or machine changes.
+## Spec Delta System (tracks HOW the system evolves, not just WHAT was built)
+
+Every feature build appends a **Spec Delta** to its CHANGELOG entry. A spec delta captures how the feature mutated the system's architectural assumptions — not just what code changed, but what the system IS now vs what it WAS.
+
+**Spec Delta format (in CHANGELOG.md entries):**
+```markdown
+### Spec Delta
+- **Added:** [new models, routes, integrations, patterns that didn't exist before]
+- **Changed:** [existing assumptions that this feature invalidated or replaced]
+- **Constraints introduced:** [new rules the system must now follow — e.g., "all invoices must have at least one line item"]
+- **Dependencies created:** [what now depends on this feature — e.g., "PDF export requires invoice.lineItems to be populated"]
+```
+
+**Why this matters:** ARCHITECTURE.md shows what exists NOW. CHANGELOG shows what was BUILT. Spec deltas show what CHANGED IN MEANING — the evolution of architectural intent. When a future feature contradicts a past assumption, the delta trail shows exactly when and why that assumption was established.
+
+**The Critic reads spec deltas** during verification to check: does the new feature contradict any previously established constraint? Does it create circular dependencies in the delta trail?
+
+On any new session: read CHANGELOG.md (with spec deltas) for evolution history, ARCHITECTURE.md for current state, PLAN.md for what's next. This gives full project memory regardless of /clear, compaction, or machine changes.
 
 ## Statusline
 Node.js statusline (stp-statusline.js) registered in ~/.claude/settings.json globally. Shows: model + effort level, project version, active feature + progress, current milestone, context usage bar with compaction threshold (green/yellow/orange/red).

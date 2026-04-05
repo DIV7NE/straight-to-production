@@ -103,6 +103,8 @@ Ask the user to approve the design system at localhost:3333 before proceeding to
 
 This is the most important step. Skip this and you ship broken, insecure, disconnected code.
 
+**Scale-adaptive upshift:** If research reveals the task is bigger than expected (needs new data models, touches auth/payments, has security implications, impacts 5+ files, needs cross-cutting changes), tell the user: "This is more complex than a quick task — new models, auth changes, and [N] files impacted. Recommend switching to `/stp:work` for the full architecture cycle. Want to upgrade?" Use AskUserQuestion with options: "(Recommended) Upgrade to /stp:work", "Continue with /stp:quick — I know the scope", "Chat about this".
+
 **A. Architecture Context — understand what EXISTS before touching anything**
 
 Read `.stp/docs/ARCHITECTURE.md` first (if it exists). This is the full codebase map. From it, identify:
@@ -560,6 +562,12 @@ When the user says go:
    
    ### Decisions Made
    - [Any technical decisions during this feature — why, alternatives]
+   
+   ### Spec Delta
+   - **Added:** [new models, routes, integrations, patterns that didn't exist before]
+   - **Changed:** [existing assumptions this feature invalidated or replaced]
+   - **Constraints introduced:** [new rules the system must now follow]
+   - **Dependencies created:** [what now depends on this feature]
    
    ### Stats
    - Tests: [N] passing
