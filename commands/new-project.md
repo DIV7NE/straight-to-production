@@ -93,12 +93,23 @@ AskUserQuestion(
 | **Append** | Keeps existing content, adds `## STP Standards Index`, `## Project Conventions`, `## Directory Map` sections at the bottom | Keeps existing content, adds STP command reference section |
 | **Skip** | No changes. User manages manually. | No changes. STP relies on project-level CLAUDE.md only. |
 
-**Version marker (MANDATORY when creating/updating CLAUDE.md):**
+**Section markers (MANDATORY when creating/updating CLAUDE.md):**
 
-When writing STP sections to ANY CLAUDE.md (project or global), include this HTML comment at the top of the STP content. This enables automatic staleness detection on session start:
+When writing STP sections to ANY CLAUDE.md, wrap each STP-managed section in HTML comment markers so `/stp:upgrade` can find and refresh them without touching user content:
+
 ```
 <!-- STP v0.2.0 -->
+<!-- STP:stp-header:start -->     ...header/arch...     <!-- STP:stp-header:end -->
+<!-- STP:stp-philosophy:start --> ...philosophy...       <!-- STP:stp-philosophy:end -->
+<!-- STP:stp-plugins:start -->    ...companion plugins.. <!-- STP:stp-plugins:end -->
+<!-- STP:stp-rules:start -->      ...key rules...        <!-- STP:stp-rules:end -->
+<!-- STP:stp-dirmap:start -->     ...directory map...    <!-- STP:stp-dirmap:end -->
+<!-- STP:stp-hooks:start -->      ...hooks list...       <!-- STP:stp-hooks:end -->
+<!-- STP:stp-effort:start -->     ...effort levels...    <!-- STP:stp-effort:end -->
 ```
+
+User-owned sections (`## Project Conventions`, `## Standards Index`, custom sections) go OUTSIDE markers — never touched by `/stp:upgrade`.
+
 Read the actual version from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. The session-restore hook compares this marker against the installed plugin version and warns the user if outdated.
 
 **Check available research tools (silently — don't show to user):**

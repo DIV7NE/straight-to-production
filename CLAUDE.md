@@ -30,7 +30,7 @@ A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 14 commands, 3 agen
 - `/stp:progress` — "Where are we?" Status dashboard — what's done, next, warnings
 - `/stp:continue` — "Pick up where I left off." Reads state files, starts working immediately
 - `/stp:pause` — "I'm done for now." Saves context for next session
-- `/stp:upgrade` — "Update STP." Pulls latest + migrates
+- `/stp:upgrade` — "Update STP." Pulls latest + syncs companion plugins + refreshes CLAUDE.md sections + verifies hooks
 
 ## Required Companion Plugins
 STP requires the following plugins installed in every project it manages:

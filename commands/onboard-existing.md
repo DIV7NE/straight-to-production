@@ -81,12 +81,51 @@ AskUserQuestion(
 | **Append** | Existing content kept verbatim. STP sections (`## Project Conventions`, `## STP Standards Index`, `## Directory Map`) added at the bottom. May have conflicting rules if existing file overlaps. |
 | **Skip** | No changes. User manages manually. STP works but convention enforcement is weaker. |
 
-**Version marker (MANDATORY when creating/updating CLAUDE.md):**
+**Section markers (MANDATORY when creating/updating CLAUDE.md):**
 
-When writing STP sections to ANY CLAUDE.md (project or global), include this HTML comment at the top of the STP content:
+When writing STP sections to ANY CLAUDE.md, wrap each STP-managed section in HTML comment markers so `/stp:upgrade` can find and refresh them without touching user content:
+
 ```
 <!-- STP v0.2.0 -->
+<!-- STP:stp-header:start -->
+# Project Name — description
+## Architecture
+...
+<!-- STP:stp-header:end -->
+
+<!-- STP:stp-philosophy:start -->
+## Philosophy (NON-NEGOTIABLE)
+...
+<!-- STP:stp-philosophy:end -->
+
+<!-- STP:stp-plugins:start -->
+## Required Companion Plugins
+...
+<!-- STP:stp-plugins:end -->
+
+<!-- STP:stp-rules:start -->
+## Key Rules
+...
+<!-- STP:stp-rules:end -->
+
+<!-- STP:stp-dirmap:start -->
+## Directory Map
+...
+<!-- STP:stp-dirmap:end -->
+
+<!-- STP:stp-hooks:start -->
+## Hooks
+...
+<!-- STP:stp-hooks:end -->
+
+<!-- STP:stp-effort:start -->
+## Effort Levels
+...
+<!-- STP:stp-effort:end -->
 ```
+
+**User-owned sections** (`## Project Conventions`, `## Standards Index`, any custom sections) go OUTSIDE these markers — they are never touched by `/stp:upgrade`.
+
 Read the actual version from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. The session-restore hook compares this marker against the installed plugin version and warns if outdated.
 
 ### Step 1: Discover — Stack & Infrastructure
