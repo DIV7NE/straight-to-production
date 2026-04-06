@@ -67,15 +67,12 @@ Create `.stp/state/handoff.md` with ALL of:
 ### Step 4: Tell the User Exactly What to Do
 
 ```
-Handoff saved. All work committed.
+┌─── ✓ Handoff Saved ──────────────────────────────────┐
+│  All work committed. Context preserved.               │
+└──────────────────────────────────────────────────────┘
 
-━━━ Next steps ━━━
-
-1. Run this now:
-   /clear
-
-2. Then resume:
-   /stp:continue
+  ► Next: 1. /clear
+          2. /stp:continue
 ```
 
 ALWAYS fill in specific names and tasks. NEVER use generic placeholders.

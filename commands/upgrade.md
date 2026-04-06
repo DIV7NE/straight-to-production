@@ -162,6 +162,7 @@ STP uses HTML comment markers to delimit its managed sections. Every STP section
 | `stp-hooks` | Hooks enforcement gates |
 | `stp-research` | Research sources reference |
 | `stp-effort` | Effort Levels mapping |
+| `stp-output-format` | CLI Output Formatting rules + reference pointer |
 
 **USER-OWNED sections (NEVER touched by upgrade — not even read-and-rewrite):**
 - `## Project Conventions` — earned through decisions, bugs, and Critic findings
@@ -240,6 +241,16 @@ When working in STP-onboarded projects (identified by `.stp/` directory):
 - Use `/stp:build` for feature work, `/stp:continue` after context resets
 - STP documents supplement (not replace) GSD workflow — both can coexist
 ```
+
+### Step 5.5: Refresh Reference Files
+
+Re-run `setup-references.sh` to deploy any new or updated reference files (like `cli-output-format.md`) to the project's `.stp/references/`:
+
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/setup-references.sh" "${CLAUDE_PLUGIN_ROOT}" "."
+```
+
+This ensures new reference files added in later STP versions get deployed to existing projects. The script is idempotent — it overwrites existing files and creates new directories as needed.
 
 ### Step 6: Verify Hooks Are Active
 
@@ -321,29 +332,29 @@ Commands renamed in this version:
 Present a clean summary:
 
 ```
-━━━ STP Upgrade Complete ━━━
+╔═══════════════════════════════════════════════════════╗
+║  ✓ STP UPGRADE COMPLETE                               ║
+║  v[OLD_VER] → v[NEW_VER]                              ║
+╠───────────────────────────────────────────────────────╣
+║                                                       ║
+║  [✓/✗] Core files updated                             ║
+║  [✓/✗] Companion plugins (ui-ux-pro-max v[VER])      ║
+║  [✓/✗] MCP servers (Context7, Tavily, Context Mode,  ║
+║         Agent Browser)                                ║
+║  [✓/✗] Project CLAUDE.md sections refreshed           ║
+║  [✓/✗] Global CLAUDE.md (STP Awareness)              ║
+║  [✓/─] PRD.md format (structured / migrated)          ║
+║  [✓/─] Layout migration                               ║
+║  [✓/─] Hook scripts (all executable)                  ║
+║  [✓/✗] Statusline                                     ║
+║  [✓/─] Local patches                                  ║
+║                                                       ║
+║  What's new:                                          ║
+║  [2-3 sentence summary of changes]                    ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝
 
-Plugin: [old commit] → [new commit]
-Version: v[NEW_VER]
-
-Changes:
-[list of commits, or "Already up to date"]
-
-Synced:
-  [✓/✗] Companion plugins (ui-ux-pro-max v[VER])
-  [✓/✗] MCP servers (Context7, Tavily, Context Mode, Agent Browser)
-  [✓/✗] Project CLAUDE.md (Philosophy, Hooks, Verification Stack, Spec Format)
-  [✓/✗] Global CLAUDE.md (STP Awareness section)
-  [✓/─] PRD.md format (structured scenarios / legacy freeform / migrated)
-  [✓/─] Layout migration (already organized / migrated)
-  [✓/─] Hook scripts (all executable)
-  [✓/✗] Statusline (stp-statusline.js present and working)
-  [✓/─] Local patches (reapply reminder shown / none configured)
-
-What's new:
-[2-3 sentence summary of the most important changes from the commit log]
-
-Run /clear to load the new version.
+  ► Next: /clear to load the new version
 ```
 
 ## Edge Cases

@@ -52,55 +52,48 @@ From .stp/docs/CHANGELOG.md:
 ### Step 3: Present Status Report
 
 ```
-━━━ Project Status: [PROJECT NAME] ━━━
+╔═══════════════════════════════════════════════════════╗
+║  STP ► PROJECT STATUS                                 ║
+║  [PROJECT NAME]   v[X.Y.Z]                           ║
+╚═══════════════════════════════════════════════════════╝
 
-Version: [X.Y.Z]
-Branch: [current branch]
+┌─── Milestone Progress ───────────────────────────────┐
+│                                                       │
+│  Milestone [N]: [Name] — [done]/[total] ([%])        │
+│    ✓ Feature 1 (v0.1.1)                              │
+│    ✓ Feature 2 (v0.1.2)                              │
+│    ► Feature 3            ← NEXT                      │
+│    · Feature 4                                        │
+│                                                       │
+│  [■■■■■■░░░░] [done]/[total] · [%] complete          │
+│                                                       │
+└──────────────────────────────────────────────────────┘
 
-━━━ Milestone Progress ━━━
+┌─── Current State ────────────────────────────────────┐
+│                                                       │
+│  [ONE of these:]                                      │
+│                                                       │
+│  Active: [name] — [done]/[total] checklist items     │
+│    Next item: [first unchecked item]                  │
+│                                                       │
+│  OR  Paused: [summary from handoff.md]                │
+│       ► Resume: /stp:continue                         │
+│                                                       │
+│  OR  Ready for next feature:                          │
+│       ► /stp:work-quick [NEXT FEATURE NAME]            │
+│                                                       │
+└──────────────────────────────────────────────────────┘
 
-Milestone [N]: [Name] — [done]/[total] features ([%])
-  [x] Feature 1 (v0.1.1)
-  [x] Feature 2 (v0.1.2)
-  [ ] Feature 3            ← NEXT
-  [ ] Feature 4
+┌─── Recent Activity ──────────────────────────────────┐
+│  [Last 3 CHANGELOG entries, one line each]            │
+│  [Last commit: hash — message — time ago]             │
+└──────────────────────────────────────────────────────┘
 
-Overall: [done]/[total] features across [N] milestones ([%])
+┌─── Git Status ───────────────────────────────────────┐
+│  [git status summary, or "Clean — all committed"]     │
+└──────────────────────────────────────────────────────┘
 
-━━━ Current State ━━━
-
-[ONE of these, whichever applies:]
-
-Active feature: [name] — [done]/[total] checklist items
-  Next item: [first unchecked item from current-feature.md]
-
-  OR
-
-Paused: [summary from handoff.md]
-  Resume with: /stp:continue
-
-  OR
-
-Ready for next feature:
-  /stp:work-quick [NEXT FEATURE NAME from .stp/docs/PLAN.md]
-
-━━━ Recent Activity ━━━
-
-[Last 3 CHANGELOG entries, one line each]
-[Last commit: hash — message — time ago]
-
-━━━ Uncommitted Work ━━━
-
-[git status summary, or "Clean — all work committed"]
-
-━━━ What's Next ━━━
-
-[Specific actionable next step based on state:]
-- If active feature: "Continue working on [feature]. Next: [item]."
-- If paused: "Run /stp:continue to resume from where you left off."
-- If between features: "/stp:work-quick [next feature] — [1-line what it is]"
-- If milestone complete: "Milestone [N] done. Start Milestone [N+1]: /stp:work-quick [first feature]"
-- If all done: "All milestones complete. Run /stp:review for final evaluation."
+  ► Next: [Specific actionable step based on state]
 ```
 
 ### Step 4: Health Warnings (only if applicable)
@@ -108,17 +101,19 @@ Ready for next feature:
 Append warnings ONLY if real issues exist:
 
 ```
-━━━ Warnings ━━━
-
-[Only show these if they're true:]
-- Uncommitted changes: [N] files modified — commit or stash before switching context
-- No tests found — TDD is mandatory, run /stp:work-quick to get back on track
-- .stp/docs/PLAN.md missing — run /stp:plan to create architecture blueprint
-- .stp/docs/PRD.md missing — run /stp:new-project to define what you're building
-- .stp/docs/CONTEXT.md outdated — last updated [date], [N] features built since then
-- .stp/docs/ARCHITECTURE.md missing — run /stp:onboard-existing to map the codebase
-- .stp/docs/AUDIT.md stale — last refreshed [date], run /stp:review to pull fresh production data
-- .stp/state/handoff.md exists but is [N] days old — stale handoff, consider deleting
+┌─── ⚠ Warnings ───────────────────────────────────────┐
+│                                                       │
+│  [Only show these if they're true:]                   │
+│  ⚠ Uncommitted changes: [N] files modified            │
+│  ⚠ No tests found — TDD is mandatory                 │
+│  ⚠ PLAN.md missing — run /stp:plan                   │
+│  ⚠ PRD.md missing — run /stp:new-project              │
+│  ⚠ CONTEXT.md outdated — [N] features since update    │
+│  ⚠ ARCHITECTURE.md missing — run /stp:onboard-existing│
+│  ⚠ AUDIT.md stale — run /stp:review                   │
+│  ⚠ Handoff [N] days old — consider deleting            │
+│                                                       │
+└──────────────────────────────────────────────────────┘
 ```
 
 ## Rules

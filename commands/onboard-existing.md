@@ -136,6 +136,11 @@ When writing STP sections to ANY CLAUDE.md, wrap each STP-managed section in HTM
 ## Effort Levels
 ...
 <!-- STP:stp-effort:end -->
+
+<!-- STP:stp-output-format:start -->
+## CLI Output Formatting (ENFORCED)
+ALL STP command output MUST use the visual templates in `.stp/references/cli-output-format.md`. Every `/stp:` command starts with a Command Banner (╔═╗). Major results use double-line boxes. Evidence uses single-line boxes. Teach moments use ┊ prefix. Status symbols: ✓ ✗ ⚠ ★ ► ◆
+<!-- STP:stp-output-format:end -->
 ```
 
 **User-owned sections** (`## Project Conventions`, `## Standards Index`, any custom sections) go OUTSIDE these markers — they are never touched by `/stp:upgrade`.
@@ -169,19 +174,19 @@ Systematically analyze the project. Don't ask the user about the code — READ i
 **Present a summary** to the user (this is the ONLY verbal presentation — everything else goes to files):
 
 ```
-━━━ Codebase Analysis ━━━
-
-Stack: [full stack with versions]
-Files: [N] source files, [N] test files
-Models: [N] | Routes: [N] API + [N] pages
-Tests: [N] files, [N] tests — [PASS/FAIL count]
-Types: [clean / N errors]
-Version: [from git tags or package.json]
-
-Key findings:
-- [strength]
-- [concern]
-- [notable pattern]
+┌─── Codebase Analysis ────────────────────────────────┐
+│                                                       │
+│  Stack       [full stack with versions]               │
+│  Files       [N] source · [N] test                    │
+│  Models      [N] · Routes [N] API + [N] pages        │
+│  Tests       [N] files · [N] tests — [PASS/FAIL]     │
+│  Types       [clean / N errors]                        │
+│  Version     [from git tags or package.json]           │
+│                                                       │
+│  Key findings:                                        │
+│  · [strength]                                         │
+│  · [concern]                                          │
+│  · [notable pattern]                                  │
 
 What's your goal for this project?
 ```
@@ -493,23 +498,26 @@ Milestone 2: [New Feature Work]
 ### Step 8: Handoff
 
 ```
-━━━ Project onboarded ━━━
+╔═══════════════════════════════════════════════════════╗
+║  ✓ PROJECT ONBOARDED                                  ║
+║  [Project Name]                                       ║
+╠───────────────────────────────────────────────────────╣
+║                                                       ║
+║  Documents created:                                   ║
+║  · .stp/docs/ARCHITECTURE.md — [N] models, [N] routes ║
+║  · .stp/docs/AUDIT.md — [N] issues tracked            ║
+║  · .stp/docs/CONTEXT.md — concise AI reference        ║
+║  · .stp/docs/PRD.md — reverse-engineered requirements ║
+║  · .stp/docs/PLAN.md — [N] milestones, [N] tasks     ║
+║  · .stp/docs/CHANGELOG.md — project history           ║
+║  · CLAUDE.md — standards + conventions                ║
+║  · .stp/references/ — [N] production standards        ║
+║                                                       ║
+║  Baseline: [Critic summary — 1 line per criterion]    ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝
 
-Documents created:
-- .stp/docs/ARCHITECTURE.md — full codebase map ([N] models, [N] routes, [N] integrations)
-- .stp/docs/AUDIT.md — production health ([N] issues tracked)
-- .stp/docs/CONTEXT.md — concise AI reference
-- .stp/docs/PRD.md — reverse-engineered requirements
-- .stp/docs/PLAN.md — remediation plan ([N] milestones, [N] tasks)
-- .stp/docs/CHANGELOG.md — project history
-- VERSION — [version]
-- CLAUDE.md — standards + project conventions
-- .stp/references/ — [N] production standards
-
-Baseline: [Critic summary — 1 line per criterion]
-
-━━━ Next step ━━━
-/stp:work-quick [FIRST TASK from .stp/docs/PLAN.md]
+  ► Next: /stp:work-quick [FIRST TASK from PLAN.md]
 ```
 
 ## Rules

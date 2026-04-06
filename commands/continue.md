@@ -128,11 +128,15 @@ AskUserQuestion(
 Show a SHORT status (5 lines max), then START WORKING:
 
 ```
-━━━ Resuming: [Feature Name] ━━━
-
-Progress: [done]/[total] checklist items
-Last commit: [hash] — [message]
-Next task: [exact next item]
+╔═══════════════════════════════════════════════════════╗
+║  STP ► RESUMING                                       ║
+║  [Feature Name] — [done]/[total] items complete       ║
+╠───────────────────────────────────────────────────────╣
+║                                                       ║
+║  Last commit   [hash] — [message]                     ║
+║  Next task     [exact next item]                      ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝
 
 [Immediately begin working on the next task — no waiting for user input]
 ```

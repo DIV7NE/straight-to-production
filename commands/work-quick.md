@@ -257,7 +257,7 @@ Before finalizing the feature plan:
 - If using an API, verify the endpoint/method signature against Context7 or official docs
 - If using a config option, verify it's real (not hallucinated from training data)
 
-Teach: "I'm doing thorough research before writing any code. I'm checking what already exists in the codebase, researching how this feature should actually work, verifying every package and API I'll use is real, checking for security vulnerabilities specific to this type of feature, and finding opportunities to improve existing features along the way. This takes a few minutes but prevents days of fixing mistakes."
+  ┊ I'm doing thorough research before writing any code — checking what exists, how this should work, verifying every package is real, checking for security vulnerabilities. Takes minutes, prevents days of fixing mistakes.
 
 ### Step 3: Enrich + Correct the User
 
@@ -411,7 +411,7 @@ When the user says go:
    - Executors use ONLY: Read, Write, Edit, Bash, Glob, Grep
    - This keeps their 200K context free for actual code work
 
-   Teach: "I'm launching a team of builder agents — each works in its own isolated copy of the code. They can't interfere with each other. Each one has just the tools it needs to build (read, write, run tests) and nothing else. I'll review and merge their work when they're done."
+     ┊ Launching a team of builder agents — each in its own isolated copy of the code. They can't interfere with each other. I'll review and merge their work when they're done.
 
    **Wait for all team members to complete.** As each reports back:
    - Read their structured report (files, tests, decisions, issues)
@@ -462,22 +462,28 @@ When the user says go:
    - Verify .gitignore covers build output, deps, OS files, env files
    - Remove any empty placeholder files
    
-   Teach: "I'm doing a hygiene scan — cleaning up the garbage that accumulates during building. Unused imports, debug logging, commented-out code, duplicate functions. Think of it as washing the dishes after cooking — the meal is ready, but the kitchen needs to be clean."
+     ┊ Hygiene scan — cleaning up the garbage that accumulates during building. Unused imports, debug logging, commented-out code. Like washing dishes after cooking.
 
 9. **Review checkpoint.**
    Show the user what was built:
    ```
-   ━━━ Feature complete: [Name] ━━━
-
-   What was built:
-   - [Summary of what the executor created]
-   - [Backward integration changes]
-
-   What's different now:
-   [What the user would SEE in the app]
-
-   Tests: [N] new, [N] total, all passing
-   Type check: clean
+   ╔═══════════════════════════════════════════════════════╗
+   ║  ✓ FEATURE COMPLETE                                   ║
+   ║  [Feature Name] (v[X.Y.Z])                           ║
+   ╠───────────────────────────────────────────────────────╣
+   ║                                                       ║
+   ║  Built:                                               ║
+   ║  · [Summary of what the executor created]             ║
+   ║  · [Backward integration changes]                     ║
+   ║                                                       ║
+   ║  What's different now:                                ║
+   ║  · [What the user would SEE in the app]               ║
+   ║                                                       ║
+   ║  Tests    [N] new · [N] total · all passing           ║
+   ║  Types    clean                                       ║
+   ║  Hooks    8/8 gates passed                            ║
+   ║                                                       ║
+   ╚═══════════════════════════════════════════════════════╝
 
    AskUserQuestion(
      question: "Feature checkpoint — review what was built. Continue or flag issues?",
@@ -523,48 +529,49 @@ When the user says go:
 
    Present the QA report to the user:
    ```
-   ━━━ QA Report ━━━
-   ✓ AC1: User can create invoice — PASS
-   ✓ AC2: Invoice shows in list — PASS
-   ✗ Empty state: blank page instead of prompt — FIXED
-   ✓ Auth: redirects without login — PASS
-   ✓ Mobile: works at 375px — PASS
-   
-   All issues found were fixed. Ready for your review.
+   ┌─── QA Report ────────────────────────────────────────┐
+   │  ✓ AC1: User can create invoice                      │
+   │  ✓ AC2: Invoice shows in list                        │
+   │  ✗ Empty state: blank page instead of prompt → FIXED │
+   │  ✓ Auth: redirects without login                     │
+   │  ✓ Mobile: works at 375px                            │
+   │                                                       │
+   │  Result: ALL PASS (1 fixed during QA)                │
+   └──────────────────────────────────────────────────────┘
    ```
 
-   Teach: "I had a separate QA tester check the feature — it hasn't seen how the code was written, so it tests like a real user would. Same reason I use a separate Critic for code review — you catch more bugs when fresh eyes look at it."
+     ┊ A separate QA tester checked the feature — it hasn't seen how the code was written, so it tests like a real user would. Fresh eyes catch more bugs.
 
 11. **Guided Manual QA — the user tests the feature.**
 
    Automated tests prove the CODE works. Independent QA proves the FEATURES work. Manual QA proves the PRODUCT feels right. Present a test guide:
 
    ```
-   ━━━ QA: Test this feature ━━━
-
-   What was added/changed:
-   - [File 1] — [what it does, in plain language]
-   - [File 2] — [what changed]
-
-   How to see it:
-   [Exact command to run the app: npm run dev, python manage.py runserver, etc.]
-   [Exact URL or screen to navigate to]
-
-   Test these scenarios (do each one):
-   1. [Happy path] — [exact steps: click X, type Y, expect Z]
-   2. [Empty state] — [go to the page with no data, what do you see?]
-   3. [Error case] — [submit without required fields, what happens?]
-   4. [Edge case] — [try very long text, special characters, etc.]
-   5. [Mobile] — [resize browser to phone width, does it work?]
-   6. [Keyboard] — [Tab through the feature, can you reach everything?]
-
-   Look for:
-   - Does loading show while data loads? (not a blank screen)
-   - Do buttons disable during submission? (no double-click)
-   - Are error messages helpful? (not technical jargon)
-   - Does it feel right? (trust your gut — if something feels off, it is)
-
-   Report anything that doesn't look right — I'll fix it.
+   ┌─── Manual QA Guide ──────────────────────────────────┐
+   │                                                       │
+   │  What was added/changed:                              │
+   │  · [File 1] — [what it does, in plain language]       │
+   │  · [File 2] — [what changed]                          │
+   │                                                       │
+   │  How to see it:                                       │
+   │  · [Exact command: npm run dev, etc.]                  │
+   │  · [Exact URL or screen to navigate to]                │
+   │                                                       │
+   │  Test these scenarios:                                │
+   │  1. [Happy path] — click X, type Y, expect Z         │
+   │  2. [Empty state] — page with no data                │
+   │  3. [Error case] — submit without required fields     │
+   │  4. [Edge case] — very long text, special chars       │
+   │  5. [Mobile] — resize to phone width                  │
+   │  6. [Keyboard] — Tab through the feature              │
+   │                                                       │
+   │  Look for:                                            │
+   │  · Loading indicator while data loads?                │
+   │  · Buttons disable during submission?                 │
+   │  · Error messages helpful (not jargon)?               │
+   │  · Does it feel right? (trust your gut)               │
+   │                                                       │
+   └──────────────────────────────────────────────────────┘
 
    AskUserQuestion(
      question: "Manual QA complete — does everything look right?",
@@ -585,7 +592,7 @@ When the user says go:
    - Show the user the fix
    - Ask them to re-test that specific scenario
    
-   Teach: "Even though all automated tests pass, YOU need to actually use the feature. Automated tests check if the code works correctly — but they can't tell if the flow is confusing, if a button is in the wrong place, or if something just feels off. Your eyes catch what code can't."
+     ┊ Even though all automated tests pass, YOU need to use the feature. Tests check if code works — but can't tell if the flow is confusing or something feels off. Your eyes catch what code can't.
 
 **Fallback:** If the Sonnet executor gets stuck (reports errors it can't fix, or the merge has complex conflicts), Opus takes over and builds directly. Don't waste time — if delegation fails, do it yourself.
 
@@ -772,46 +779,62 @@ Present results including the Verified Complete table and any net-new gaps found
 Then:
 
 ```
-━━━ Milestone [N] complete ━━━
+╔═══════════════════════════════════════════════════════╗
+║  ★ MILESTONE [N] COMPLETE                             ║
+║  "[Milestone Name]"   v[X.Y.0]                       ║
+╠───────────────────────────────────────────────────────╣
+║                                                       ║
+║  Features   [N] built · 0 remaining                  ║
+║  Tests      [N] passing                               ║
+║  E2E        verified                                  ║
+║                                                       ║
+║  Critic:                                              ║
+║  · Functionality    [PASS/PARTIAL/FAIL]               ║
+║  · Design           [PASS/PARTIAL/FAIL]               ║
+║  · Security         [PASS/PARTIAL/FAIL]               ║
+║  · Accessibility    [PASS/PARTIAL/FAIL]               ║
+║  · Performance      [PASS/PARTIAL/FAIL]               ║
+║  · Production       [PASS/PARTIAL/FAIL]               ║
+║                                                       ║
+║  Priority fixes (if any):                             ║
+║  1. [Most critical]                                   ║
+║  2. [Second]                                          ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝
 
-[N] features built. Integration tests passing.
-
-Critic Report:
-[Summary of 6-criteria evaluation]
-
-Priority fixes (if any):
-1. [Most critical]
-2. [Second]
-
-Fix these now? Or continue to Milestone [N+1]:
-   /stp:work-quick [FIRST FEATURE of next milestone]
+  ► Next: /stp:work-quick [FIRST FEATURE of next milestone]
 ```
 
 If this is the **LAST milestone** (all milestones complete):
 ```
-━━━ ALL MILESTONES COMPLETE ━━━
-
-[Total features] built. [Total tests] passing. Integration verified.
-
-Critic Report:
-[Summary of final 6-criteria evaluation]
-
-Priority fixes (if any):
-1. [Most critical]
-2. [Second]
-
-Your project is feature-complete per the PRD.
-Fix any remaining issues, then you're ready to deploy.
+╔═══════════════════════════════════════════════════════╗
+║  ★ ALL MILESTONES COMPLETE                            ║
+║  [Project Name]   v[X.Y.0]                           ║
+╠───────────────────────────────────────────────────────╣
+║                                                       ║
+║  Total features    [N] built                          ║
+║  Total tests       [N] passing                        ║
+║  Integration       verified                           ║
+║                                                       ║
+║  Critic:                                              ║
+║  · [Summary of final 6-criteria evaluation]           ║
+║                                                       ║
+║  Your project is feature-complete per the PRD.        ║
+║  Fix remaining issues, then deploy.                   ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝
 ```
 
 If NO — more features remain in this milestone:
 
 ```
-Feature complete: [NAME]
-[N] of [M] features done in Milestone [current].
+┌─── ✓ Feature Complete ───────────────────────────────┐
+│  [NAME] — [N] of [M] done in Milestone [current]    │
+└──────────────────────────────────────────────────────┘
 
-━━━ Next ━━━
-/stp:work-quick [NEXT FEATURE in this milestone]
+  [■■■■■■░░░░] [N]/[M] features · Milestone [N]
+
+  ► Next: /stp:work-quick [NEXT FEATURE in this milestone]
 ```
 
 ALWAYS fill in specific names.

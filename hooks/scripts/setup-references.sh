@@ -20,6 +20,9 @@ cp "$PLUGIN_ROOT/references/accessibility/"*.md "$PROJECT_ROOT/.stp/references/a
 cp "$PLUGIN_ROOT/references/performance/"*.md "$PROJECT_ROOT/.stp/references/performance/" 2>/dev/null
 cp "$PLUGIN_ROOT/references/production/"*.md "$PROJECT_ROOT/.stp/references/production/" 2>/dev/null
 
+# Root-level reference files (not in subdirectories)
+cp "$PLUGIN_ROOT/references/cli-output-format.md" "$PROJECT_ROOT/.stp/references/" 2>/dev/null
+
 REF_COUNT=$(find "$PROJECT_ROOT/.stp/references" -name "*.md" | wc -l)
 echo "Copied $REF_COUNT reference files to .stp/references/"
 

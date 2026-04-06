@@ -146,31 +146,27 @@ Present research as facts with sources, not opinions.
 For every whiteboard, present at least 2 approaches:
 
 ```
-━━━ Option A: [Name] ━━━
+┌─── Option A: [Name] ────────────────────────────────┐
+│                                                       │
+│  How it works:   [2-3 sentences a non-expert gets]    │
+│  Who uses this:  [Real companies/products]             │
+│  Best for:       [When to pick this option]            │
+│  ⚠ Downside:    [Honest limitation]                   │
+│                                                       │
+└──────────────────────────────────────────────────────┘
 
-How it works: [2-3 sentences a non-expert understands]
+┌─── Option B: [Name] ────────────────────────────────┐
+│                                                       │
+│  How it works:   [2-3 sentences]                      │
+│  Who uses this:  [Real companies]                      │
+│  Best for:       [When to pick this]                   │
+│  ⚠ Downside:    [Honest limitation]                   │
+│                                                       │
+└──────────────────────────────────────────────────────┘
 
-Who uses this: [Real companies/products]
-
-Best for: [When to pick this option]
-
-⚠️ Downside: [Honest limitation]
-
-
-━━━ Option B: [Name] ━━━
-
-How it works: [2-3 sentences]
-
-Who uses this: [Real companies]
-
-Best for: [When to pick this]
-
-⚠️ Downside: [Honest limitation]
-
-
-━━━ My recommendation: [Option X] ━━━
-
-Why: [1-2 sentences explaining your pick for THIS specific project/context]
+┌─── ◆ Recommendation ────────────────────────────────┐
+│  [Option X] — [1-2 sentences for THIS project]        │
+└──────────────────────────────────────────────────────┘
 ```
 
 Teach along the way. If they don't know what WebSockets are, explain: "WebSockets are like a phone call between your app and the server — both sides can talk anytime. HTTP is like sending letters — you send a request, wait for a reply, repeat."
@@ -242,20 +238,22 @@ Before presenting to the user, review the design brief:
 Fix any issues. Then present to the user:
 
 ```
-━━━ Design brief written ━━━
+╔═══════════════════════════════════════════════════════╗
+║  ✓ DESIGN BRIEF WRITTEN                              ║
+║  [One-line summary of what was decided]               ║
+╠───────────────────────────────────────────────────────╣
+║                                                       ║
+║  Saved to .stp/state/design-brief.md                  ║
+║  [N] structured scenarios ready for build phase       ║
+║                                                       ║
+║  The build command picks this up automatically —      ║
+║  no need to re-explain what you want.                 ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝
 
-[One-line summary of what was decided]
-
-Saved to .stp/state/design-brief.md
-[N] structured scenarios ready for the build phase.
-
-Next:
-   /stp:work-full [FEATURE] — recommended for [reason from brief]
-   /stp:work-quick [FEATURE] — if scope is small (≤3 files, no new models)
-   /stp:work-adaptive [FEATURE] — let STP decide the depth
-
-The build command will pick up this design brief automatically —
-no need to re-explain what you want.
+  ► Next: /stp:work-full [FEATURE] — recommended for [reason]
+          /stp:work-quick [FEATURE] — if ≤3 files, no new models
+          /stp:work-adaptive [FEATURE] — let STP decide
 ```
 
 ## Rules

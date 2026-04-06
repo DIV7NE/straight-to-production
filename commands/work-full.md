@@ -472,13 +472,15 @@ Fix any issues inline. Don't present known gaps to the user.
 
 **Section 1: System Architecture (5c)**
 ```
-━━━ Architecture: System Design ━━━
-
-Components: [list with 1-line purpose each]
-Data flow: [how data moves through the system]
-Integrations: [external services]
-
-[Mermaid diagram pushed to whiteboard if running]
+┌─── Architecture: System Design ──────────────────────┐
+│                                                       │
+│  Components:    [list with 1-line purpose each]       │
+│  Data flow:     [how data moves through the system]   │
+│  Integrations:  [external services]                   │
+│                                                       │
+│  [Mermaid diagram pushed to whiteboard if running]    │
+│                                                       │
+└──────────────────────────────────────────────────────┘
 ```
 ```
 AskUserQuestion(
@@ -493,45 +495,56 @@ AskUserQuestion(
 
 **Section 2: Data Models + API Design (5d + 5e)**
 ```
-━━━ Architecture: Data & API ━━━
-
-Models: [table with fields, types, relationships]
-Endpoints: [routes with auth, request/response shapes]
-Migrations: [what changes in the database]
+┌─── Architecture: Data & API ─────────────────────────┐
+│                                                       │
+│  Models:      [fields, types, relationships]          │
+│  Endpoints:   [routes with auth, request/response]    │
+│  Migrations:  [what changes in the database]          │
+│                                                       │
+└──────────────────────────────────────────────────────┘
 ```
 Ask for approval. Wait.
 
 **Section 3: Auth + Error Handling + Security (5f + 5g + 5k)**
 ```
-━━━ Architecture: Auth & Safety ━━━
-
-Auth model: [provider, protected routes, authorization matrix]
-Error strategy: [format, propagation, tracking]
-Security risks: [attack surface, mitigations]
+┌─── Architecture: Auth & Safety ──────────────────────┐
+│                                                       │
+│  Auth model:       [provider, routes, authz matrix]   │
+│  Error strategy:   [format, propagation, tracking]    │
+│  Security risks:   [attack surface, mitigations]      │
+│                                                       │
+└──────────────────────────────────────────────────────┘
 ```
 Ask for approval. Wait.
 
 **Section 4: Build Plan + Tests (5i + 5j + 5h)**
 ```
-━━━ Architecture: Execution Plan ━━━
-
-Test strategy: [N] spec tests, [N] behavioral, [N] property-based
-Build order: Wave 1 → Wave 2 → ...
-Cross-cutting: [touchpoint map summary]
+┌─── Architecture: Execution Plan ─────────────────────┐
+│                                                       │
+│  Tests:    [N] spec · [N] behavioral · [N] property   │
+│  Waves:    Wave 1 → Wave 2 → ...                      │
+│  Touches:  [touchpoint map summary]                   │
+│                                                       │
+└──────────────────────────────────────────────────────┘
 ```
 Ask for approval. Wait.
 
 **After all sections approved, present the summary:**
 ```
-━━━ Architecture Blueprint Complete ━━━
-
-Scope: [1-2 sentences]
-Scale: [N] features, [N] files new, [N] modified, [N] models, [N] endpoints
-Tests: [N] total planned
-Waves: [N] parallel execution waves
-
-Full plan saved to .stp/docs/PLAN.md
-All sections approved. Ready to build.
+╔═══════════════════════════════════════════════════════╗
+║  ✓ ARCHITECTURE BLUEPRINT COMPLETE                    ║
+╠───────────────────────────────────────────────────────╣
+║                                                       ║
+║  Scope     [1-2 sentences]                            ║
+║  Scale     [N] features · [N] new · [N] modified      ║
+║  Models    [N] · Endpoints [N]                        ║
+║  Tests     [N] total planned                          ║
+║  Waves     [N] parallel execution waves               ║
+║                                                       ║
+║  Saved to .stp/docs/PLAN.md                           ║
+║  All sections approved. Ready to build.               ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝
 ```
 
 ```
@@ -640,17 +653,23 @@ Run `/simplify` on combined changes, then scan:
 
 Show the user what was built:
 ```
-━━━ Feature complete: [Name] ━━━
-
-What was built:
-- [Summary of what the executor created]
-- [Backward integration changes]
-
-What's different now:
-[What the user would SEE in the app]
-
-Tests: [N] new, [N] total, all passing
-Type check: clean
+╔═══════════════════════════════════════════════════════╗
+║  ✓ FEATURE COMPLETE                                   ║
+║  [Feature Name] (v[X.Y.Z])                           ║
+╠───────────────────────────────────────────────────────╣
+║                                                       ║
+║  Built:                                               ║
+║  · [Summary of what the executor created]             ║
+║  · [Backward integration changes]                     ║
+║                                                       ║
+║  What's different now:                                ║
+║  · [What the user would SEE in the app]               ║
+║                                                       ║
+║  Tests    [N] new · [N] total · all passing           ║
+║  Types    clean                                       ║
+║  Hooks    8/8 gates passed                            ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝
 ```
 
 ```
@@ -689,23 +708,26 @@ Agent(
 
 Present a test guide to the user:
 ```
-━━━ QA: Test this feature ━━━
-
-What was added/changed:
-- [File 1] — [what it does]
-
-How to see it:
-[Exact command + URL]
-
-Test these scenarios:
-1. [Happy path — exact steps]
-2. [Empty state — what shows with no data?]
-3. [Error case — submit without required fields]
-4. [Edge case — long text, special characters]
-5. [Mobile — resize to phone width]
-6. [Keyboard — Tab through everything]
-
-Look for: loading states, disabled buttons during submit, helpful error messages.
+┌─── Manual QA Guide ──────────────────────────────────┐
+│                                                       │
+│  What was added/changed:                              │
+│  · [File 1] — [what it does]                          │
+│                                                       │
+│  How to see it:                                       │
+│  · [Exact command + URL]                               │
+│                                                       │
+│  Test these scenarios:                                │
+│  1. [Happy path — exact steps]                        │
+│  2. [Empty state — what shows with no data?]          │
+│  3. [Error case — submit without required fields]     │
+│  4. [Edge case — long text, special characters]       │
+│  5. [Mobile — resize to phone width]                  │
+│  6. [Keyboard — Tab through everything]               │
+│                                                       │
+│  Look for: loading states, disabled buttons,          │
+│  helpful error messages                               │
+│                                                       │
+└──────────────────────────────────────────────────────┘
 ```
 
 ```
@@ -767,20 +789,25 @@ Agent(
 **After everything is built:**
 
 ```
-━━━ Development Complete ━━━
-
-What was built: [summary]
-Approach: [what was chosen]
-Files: [N] created, [N] modified
-Tests: [N] spec, [N] behavioral, [N] property-based, [N] integration — all passing
-Type check: clean
-
-Version: [new version]
-Conventions added: [N] new rules in CLAUDE.md (if any)
-Critic evaluation: [PASS/NEEDS WORK/FAIL]
-Cross-family review: [done/skipped]
-AUDIT.md: [updates made]
-ARCHITECTURE.md: [sections updated]
+╔═══════════════════════════════════════════════════════╗
+║  ✓ DEVELOPMENT COMPLETE                               ║
+║  [Feature Name]   v[X.Y.Z]                           ║
+╠───────────────────────────────────────────────────────╣
+║                                                       ║
+║  Built          [summary]                             ║
+║  Approach       [what was chosen]                     ║
+║  Files          [N] created · [N] modified            ║
+║  Tests          [N] spec · [N] behavioral ·           ║
+║                 [N] property · [N] integration        ║
+║  Types          clean                                 ║
+║                                                       ║
+║  Conventions    [N] new rules in CLAUDE.md            ║
+║  Critic         [PASS/NEEDS WORK/FAIL]                ║
+║  Cross-family   [done/skipped]                        ║
+║  AUDIT.md       [updates made]                        ║
+║  ARCHITECTURE   [sections updated]                    ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝
 ```
 
 ## Autopilot Mode

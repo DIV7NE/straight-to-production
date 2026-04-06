@@ -107,21 +107,23 @@ When the AI encounters a decision point (any place that would use AskUserQuestio
 ## After Completion
 
 ```
-━━━ Run in your terminal (not in Claude Code) ━━━
-
-Full cycle:
-bash [PLUGIN_ROOT]/hooks/scripts/stp-auto.sh --develop "description" 30
-
-Checklist only:
-bash [PLUGIN_ROOT]/hooks/scripts/stp-auto.sh 30
-
-Overnight:
-nohup bash [PLUGIN_ROOT]/hooks/scripts/stp-auto.sh 50 > .stp/auto.log 2>&1 &
-
-Check progress anytime:
-  tail -f .stp/auto.log
-  cat .stp/state/current-feature.md
-  git log --oneline -10
+┌─── ⚠ Run in your terminal (not in Claude Code) ─────┐
+│                                                       │
+│  Full cycle:                                          │
+│  bash [PLUGIN_ROOT]/hooks/scripts/stp-auto.sh \       │
+│    --develop "description" 30                         │
+│                                                       │
+│  Checklist only:                                      │
+│  bash [PLUGIN_ROOT]/hooks/scripts/stp-auto.sh 30      │
+│                                                       │
+│  Overnight:                                           │
+│  nohup bash [PLUGIN_ROOT]/hooks/scripts/stp-auto.sh \ │
+│    50 > .stp/auto.log 2>&1 &                          │
+│                                                       │
+│  Check progress:                                      │
+│    tail -f .stp/auto.log                              │
+│    cat .stp/state/current-feature.md                   │
+│    git log --oneline -10                               │
 
 In the morning:
   cat .stp/auto-eval-report.txt

@@ -211,7 +211,7 @@ Record findings in .stp/docs/PLAN.md under a `## Technical Research` section:
 
 This research INFORMS all subsequent phases. Architecture decisions made on stale knowledge lead to rewrites.
 
-Teach: "I'm researching the current state of every technology we're using — frameworks change fast, and what I learned in training might already be outdated. Better to check now than discover a deprecated pattern mid-build."
+  ┊ Researching the current state of every technology — frameworks change fast, and training data might be outdated. Better to check now than discover a deprecated pattern mid-build.
 
 ### Phase 2: System Architecture
 
@@ -274,7 +274,7 @@ For each model, also specify:
 - Rollback procedure (the reverse migration)
 - Seed data for development/testing
 
-Teach: "Migrations are version-controlled database changes. Instead of editing the database directly, we write a file that says 'create this table.' If something goes wrong, the rollback undoes it. This means your database changes are trackable, reversible, and reproducible."
+  ┊ Migrations are version-controlled database changes — instead of editing the DB directly, we write a file that says 'create this table.' Rollback undoes it. Trackable, reversible, reproducible.
 
 ### Phase 4: API/Route Design (if applicable)
 
@@ -322,7 +322,7 @@ Design the CENTRALIZED auth model — don't leave it endpoint-by-endpoint.
 - [Each webhook endpoint: how signatures are verified]
 ```
 
-Teach: "Auth is the #1 source of security vulnerabilities. Without a centralized design, each endpoint invents its own auth check — some will be wrong, some will be missing. We design it once here, then every endpoint follows the same pattern."
+  ┊ Auth is the #1 source of security vulnerabilities. Without centralized design, each endpoint invents its own auth check — some wrong, some missing. Design once, follow everywhere.
 
 ### Phase 4c: Error Handling Strategy
 
@@ -549,14 +549,11 @@ Features:
 - [ ] 12. Error tracking + monitoring setup
     - Integrate: Sentry (or equivalent) for production error tracking
     - Add: health check endpoint (GET /api/health or equivalent)
-    - Teach: "Error tracking is how you find out something broke in production
-      BEFORE your users email you. Sentry captures every error with a stack trace
-      and notifies you instantly."
+    - ┊ Error tracking tells you something broke in production BEFORE users email you. Sentry captures every error with a stack trace and notifies instantly.
 - [ ] 13. E2E test suite for primary workflow
     - Create: e2e/ directory with Playwright (web), Detox (mobile), or equivalent
     - Tests: the full primary workflow end-to-end (e.g., signup → create invoice → send → payment)
-    - Teach: "E2E tests drive a real browser through your app the way a user would.
-      If the signup → invoice → payment chain breaks, this catches it."
+    - ┊ E2E tests drive a real browser through your app like a user would. If the signup → invoice → payment chain breaks, this catches it.
 
 ### Milestone 4: Deploy Readiness (if applicable)
 Goal: Ready to go live
@@ -655,14 +652,23 @@ If the Critic finds issues, fix them in .stp/docs/PLAN.md and re-run verificatio
 After verification passes, ask the user to review:
 
 ```
-━━━ Plan ready (verified) ━━━
-
-.stp/docs/PLAN.md saved and verified by the Critic:
-- [N] milestones, [N] features, [N] files to create
-- Milestone 1 (Foundation): [brief]
-- Milestone 2 (Core): [brief]
-- Milestone 3 (Polish): [brief]
-- Verification: PASS — [any notes]
+╔═══════════════════════════════════════════════════════╗
+║  ✓ PLAN READY (VERIFIED)                              ║
+╠───────────────────────────────────────────────────────╣
+║                                                       ║
+║  .stp/docs/PLAN.md saved and verified by Critic       ║
+║                                                       ║
+║  Milestones    [N]                                    ║
+║  Features      [N]                                    ║
+║  Files         [N] to create                          ║
+║                                                       ║
+║  · Milestone 1 (Foundation): [brief]                  ║
+║  · Milestone 2 (Core): [brief]                        ║
+║  · Milestone 3 (Polish): [brief]                      ║
+║                                                       ║
+║  Verification: PASS — [any notes]                     ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝
 
 AskUserQuestion(
   question: "Architecture plan complete. Ready to start building?",
@@ -674,9 +680,7 @@ AskUserQuestion(
   ]
 )
 
-
-When ready:
-/stp:work-quick [FIRST FEATURE from Milestone 1]
+  ► Next: /stp:work-quick [FIRST FEATURE from Milestone 1]
 ```
 
 Wait for the user to approve. If they request changes, make them, re-verify, and ask again. Do NOT proceed to building until the user has approved the verified plan.

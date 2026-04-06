@@ -69,7 +69,7 @@ TaskCreate("Phase 5: Produce feature plan")
 3. Industry leaders (MEDIUM) — proven at scale
 4. Training data (LOWEST) — may be stale
 
-Teach: "Before proposing anything, I'm researching how this is actually done in production. My training data might be outdated — I'm checking the current docs, seeing how industry leaders solve this, and looking at what mistakes are common so we avoid them."
+  ┊ Before proposing anything, I research how this is actually done in production — checking current docs, how industry leaders solve this, and what mistakes to avoid.
 
 ### Phase 2: Explore Approaches — Present Options, Not Just One Answer
 
@@ -200,18 +200,20 @@ AskUserQuestion(
 
 Present findings:
 ```
-━━━ What you'd miss ━━━
-
-Security:      [findings or "Clean — no new attack surfaces"]
-Breaking risk: [N] existing features could be affected
-Performance:   [findings or "No concerns"]
-Edge cases:    [top 3]
-Past lessons:  [relevant patterns from AUDIT.md, or "None — new territory"]
-
-Things you didn't ask for but need:
-- [Gap 1 — why it matters to users]
-- [Gap 2 — why it matters to users]
-- [Gap 3 — why it matters to users]
+┌─── Impact Analysis ──────────────────────────────────┐
+│                                                       │
+│  Security       [findings or "Clean"]                 │
+│  Breaking risk  [N] features could be affected        │
+│  Performance    [findings or "No concerns"]            │
+│  Edge cases     [top 3]                                │
+│  Past lessons   [from AUDIT.md or "New territory"]     │
+│                                                       │
+│  Things you didn't ask for but need:                  │
+│  · [Gap 1 — why it matters to users]                  │
+│  · [Gap 2 — why it matters to users]                  │
+│  · [Gap 3 — why it matters to users]                  │
+│                                                       │
+└──────────────────────────────────────────────────────┘
 ```
 
 ```
@@ -287,16 +289,18 @@ Save the complete plan to `.stp/state/current-feature.md`:
 **Present to user:**
 
 ```
-━━━ Proposal Ready ━━━
-
-[Work type]: [Name]
-Approach: [Chosen approach]
-Scope: [N] new files, [N] modified, [N] tests
-Checklist: [N] items
-
-Plan saved to .stp/state/current-feature.md
-
-━━━ Next ━━━
+╔═══════════════════════════════════════════════════════╗
+║  ✓ PROPOSAL READY                                     ║
+║  [Work type]: [Name]                                  ║
+╠───────────────────────────────────────────────────────╣
+║                                                       ║
+║  Approach    [Chosen approach]                        ║
+║  Scope       [N] new · [N] modified · [N] tests       ║
+║  Checklist   [N] items                                ║
+║                                                       ║
+║  Saved to .stp/state/current-feature.md               ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝
 ```
 
 ```

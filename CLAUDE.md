@@ -1,7 +1,7 @@
 # STP — Ship To Production — Claude Code Plugin
 
 ## What This Is
-A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 15 commands, 3 agents, 25 reference files, 20 templates, visual whiteboard, wave-based parallel building.
+A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 15 commands, 3 agents, 26 reference files, 22 output templates, visual whiteboard, wave-based parallel building.
 
 ## Architecture
 - **Opus** = CTO (plans, researches, reviews, merges, teaches). Builds foundation work directly (DB, auth, config).
@@ -142,6 +142,17 @@ This applies to ALL STP commands and agents. The executor agents, QA agent, and 
 - /simplify + hygiene scan after every build
 - Version bump + CHANGELOG + CONTEXT.md update after every feature
 
+<!-- STP:stp-output-format:start -->
+## CLI Output Formatting (ENFORCED)
+ALL STP command output MUST use the visual templates in `.stp/references/cli-output-format.md`. Read it before displaying any status, progress, or completion information. Key rules:
+- Every `/stp:` command starts with a **Command Banner** (╔═╗ double-line box with command name + tagline)
+- Major events (feature complete, milestone, bug fixed) use **double-line boxes** (╔═╗)
+- Evidence/data (scans, reports, QA) use **single-line boxes** (┌─┐)
+- Teach moments use **dimmed prefix** (┊) — subtle, never outshine actual output
+- Status symbols: ✓ success, ✗ failure, ⚠ warning, ★ milestone, ► next step
+- Next steps always use `► Next: /stp:[command]` format
+<!-- STP:stp-output-format:end -->
+
 ## Directory Map (where everything lives, when to read it)
 
 ### .stp/docs/ — Project Documents
@@ -167,12 +178,13 @@ This applies to ALL STP commands and agents. The executor agents, QA agent, and 
 | ui-ux-pro-max/ | Design intelligence — styles, palettes, fonts, product-type reasoning, DESIGN-SYSTEM.md generation | ANY UI/UX work — invoke `/ui-ux-pro-max` BEFORE writing frontend code |
 
 ### .stp/references/ — Production Standards (read BEFORE writing code)
-| Directory | Read before touching... |
-|-----------|----------------------|
+| Directory/File | Read before touching... |
+|----------------|----------------------|
 | security/ | Auth, user input, API routes, secrets |
 | accessibility/ | UI components, forms, navigation |
 | performance/ | Data fetching, images, bundles |
 | production/ | Error handling, deploy, monitoring, edge cases |
+| cli-output-format.md | ANY command output — banners, status blocks, completions, QA reports |
 
 ### Root Files
 | File | Why at root |

@@ -127,6 +127,7 @@ When writing STP sections to ANY CLAUDE.md, wrap each STP-managed section in HTM
 <!-- STP:stp-dirmap:start -->     ...directory map...    <!-- STP:stp-dirmap:end -->
 <!-- STP:stp-hooks:start -->      ...hooks list...       <!-- STP:stp-hooks:end -->
 <!-- STP:stp-effort:start -->     ...effort levels...    <!-- STP:stp-effort:end -->
+<!-- STP:stp-output-format:start --> ...CLI output formatting... <!-- STP:stp-output-format:end -->
 ```
 
 User-owned sections (`## Project Conventions`, `## Standards Index`, custom sections) go OUTSIDE markers — never touched by `/stp:upgrade`.
@@ -566,7 +567,7 @@ why, and what alternatives were considered.]
    - Build verification
    
    This ensures quality is enforced REMOTELY, not just locally via hooks.
-   Teach: "This CI pipeline runs the same checks as the hooks, but on GitHub's servers. Even if you bypass the local hooks, the CI catches it before it reaches production."
+     ┊ This CI pipeline runs the same checks as the hooks, but on GitHub's servers. Even if you bypass local hooks, CI catches it before production.
 6. Initialize version tracking:
    - Create `VERSION` file containing `0.1.0`
    - Create `.stp/docs/CHANGELOG.md` with the initial entry:
@@ -593,7 +594,7 @@ why, and what alternatives were considered.]
      - .github/workflows/ci.yml — CI pipeline
      ```
    
-   Teach: "VERSION and .stp/docs/CHANGELOG.md track your project's evolution. Every time I complete a feature, the version bumps and the changelog records what was built, what tests were added, and what decisions were made. If I start a fresh session months from now, I read the changelog to understand the full history of your project."
+     ┊ VERSION and CHANGELOG.md track your project's evolution. Every feature bumps the version and records what was built, tested, and decided. Fresh sessions read this to understand full history.
 
 7. Create `.stp/docs/CONTEXT.md` — a live snapshot of the codebase that the AI reads to understand what exists RIGHT NOW:
    ```markdown
@@ -645,32 +646,33 @@ why, and what alternatives were considered.]
    
    .stp/docs/CONTEXT.md is the AI's map of the codebase. CHANGELOG tells it what happened. CONTEXT tells it what exists. Keep it under 150 lines — a snapshot, not documentation.
    
-   Teach: ".stp/docs/CONTEXT.md is like a building's floor plan. If I start a fresh session, I read it to know where everything is — which files exist, what the database looks like, what API endpoints are available, what patterns to follow. I update it every time I add something new."
+     ┊ CONTEXT.md is like a building's floor plan — fresh sessions read it to know where everything is: files, database, API endpoints, patterns. Updated every time something new is added.
 
 8. Initialize git if needed, first commit: `chore: initialize project with STP standards (v0.1.0)`
 
 ### Step 7: Handoff
 
 ```
-Project ready.
+╔═══════════════════════════════════════════════════════╗
+║  ✓ PROJECT CREATED                                    ║
+║  [Project Name]   v0.1.0                              ║
+╠───────────────────────────────────────────────────────╣
+║                                                       ║
+║  Documents created:                                   ║
+║  · .stp/docs/PRD.md — requirements                    ║
+║  · CLAUDE.md — standards + patterns                   ║
+║  · .stp/docs/CONTEXT.md — live codebase map           ║
+║  · VERSION — version tracking (0.1.0)                 ║
+║  · .stp/docs/CHANGELOG.md — project history           ║
+║  · .stp/references/ — production standards            ║
+║  · .github/workflows/ci.yml — CI pipeline             ║
+║  · Hooks active: types + tests + secrets              ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝
 
-What was created:
-- .stp/docs/PRD.md — your project's requirements (for you to read and share)
-- CLAUDE.md — project brain (spec + standards + patterns for Claude)
-- .stp/docs/CONTEXT.md — live codebase map (updated as we build)
-- VERSION — version tracking (0.1.0)
-- .stp/docs/CHANGELOG.md — project history (updated every feature)
-- .stp/references/ — production standards I'll check against
-- .github/workflows/ci.yml — CI pipeline (runs on every push)
-- Hooks active: type checking + test enforcement + secret detection
-
-━━━ Next step ━━━
-
-Plan the architecture before writing any code:
-   /stp:plan
-
-This will design the system architecture, data models, API,
-and create a verified implementation plan with milestones.
+  ► Next: /stp:plan
+          Design the system architecture, data models, API,
+          and create a verified implementation plan with milestones.
 ```
 
 ALWAYS direct to /stp:plan next. Code comes AFTER planning.

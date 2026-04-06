@@ -115,9 +115,11 @@ AskUserQuestion(
 
 If everything PASSED:
 ```
-━━━ All 7 criteria passed ━━━
+╔═══════════════════════════════════════════════════════╗
+║  ✓ REVIEW COMPLETE — ALL 7 CRITERIA PASSED            ║
+╚═══════════════════════════════════════════════════════╝
 
-Next feature: /stp:work-quick [NEXT FEATURE]
+  ► Next: /stp:work-quick [NEXT FEATURE]
 ```
 
 9. If the user says yes to fixes,, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.

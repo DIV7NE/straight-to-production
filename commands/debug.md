@@ -329,24 +329,23 @@ await waitFor(() => expect(screen.getByText('Loaded')).toBeInTheDocument());
 ### Present to user:
 
 ```
-━━━ Bug Fixed ━━━
+╔═══════════════════════════════════════════════════════╗
+║  ✓ BUG FIXED                                         ║
+║  [Symptom — what they reported]                       ║
+╠───────────────────────────────────────────────────────╣
+║                                                       ║
+║  Root cause   [1-line: the actual defect]             ║
+║  Fix          [1-line: what was changed]              ║
+║  Chain        [defect] → [infection] → [failure]      ║
+║                                                       ║
+║  Siblings     [N found and fixed / none]              ║
+║  Defense      [What prevents recurrence]              ║
+║  Tests        [N] new · [N] total · all passing       ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝
 
-Symptom:    [What they reported]
-Root cause: [1-line: the actual defect]
-Fix:        [1-line: what was changed]
-
-Chain: [defect] → [infection] → [failure]
-
-Pattern siblings: [N found and fixed / none]
-Defense:          [What prevents recurrence]
-Tests:            [N] new, [N] total, all passing
-
-━━━ Teach ━━━
-[1-2 sentences explaining what went wrong in a way that teaches the user
-about their codebase. e.g., "The analytics query wasn't scoped to the
-organization because server actions don't automatically inherit the auth
-context — unlike API routes which get it from middleware. This is a common
-gap when migrating from API routes to server actions."]
+  ┊ [1-2 sentences explaining what went wrong in a way that teaches
+     the user about their codebase]
 ```
 
 ## ESCALATION

@@ -74,18 +74,20 @@ if PRD_MATCH > 0:        SCORE += 1       # it's a planned feature
 ### Step 4: Present the Decision (transparent — show the evidence)
 
 ```
+┌─── Impact Scan ──────────────────────────────────────┐
+│                                                       │
+│  Files affected          [N]                          │
+│  Models/migrations       [yes/no — list if yes]       │
+│  Auth/payments/security  [yes/no — list if yes]       │
+│  New routes              [yes/no — list if yes]       │
+│  PRD match               [yes/no]                     │
+│                                                       │
+│  Score: [N] → [Classification]                        │
+│                                                       │
+└──────────────────────────────────────────────────────┘
+
 AskUserQuestion(
-  question: "Impact scan complete:
-  
-  Files affected: [N]
-  Models/migrations: [yes/no — list if yes]
-  Auth/payments/security: [yes/no — list if yes]  
-  New routes: [yes/no — list if yes]
-  PRD match: [yes/no]
-  
-  Score: [N] → [Classification]
-  
-  Recommendation: /stp:work-[quick/full] because [specific reason from scan]",
+  question: "Recommendation: /stp:work-[quick/full] because [specific reason from scan]",
   options: [
     "(Recommended) [mode] — [1-line justification from evidence]",
     "[alternative mode] — [when this makes sense]",
