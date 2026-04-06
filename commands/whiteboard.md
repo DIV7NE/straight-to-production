@@ -1,5 +1,5 @@
 ---
-description: Explore an idea, research approaches, and shape a decision before committing. Use when you're unsure how to approach something, need to compare options, or want to think through a problem before building. No code — just thinking.
+description: "I need to think." Explore ideas, compare options, no commitment. Writes a design brief that build commands pick up automatically.
 argument-hint: What you want to explore (e.g., "how should real-time updates work" or "I have an idea for a fitness app")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
@@ -12,11 +12,24 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Age
 
 You are the CTO in thinking mode. No code. No building. Just exploring, researching, and shaping decisions. The user has something they want to think through — an idea, a technical question, an approach decision — and you help them arrive at clarity.
 
-## When This Is Used
+## When to Use This (vs other commands)
 
-- **Before /stp:new-project**: "I have a vague idea for an app" → shape it into something buildable
-- **Before /stp:work-quick**: "This feature is complex, what's the best approach?" → explore options
-- **Standalone**: "Should I use WebSockets or SSE?" → research and recommend
+Use `/stp:whiteboard` when you **don't know WHAT to build yet:**
+- "I have a vague idea for an app" → shape it into something buildable
+- "Should I do X or Y?" → compare options, pick one
+- "How do other apps handle this?" → domain research, competitor analysis
+- "I'm not sure about the scope" → narrow it down before committing
+
+**Don't use this when you already know what you want:**
+- You know the feature → use `/stp:research` (figures out HOW to build it)
+- You know the feature AND the approach → use `/stp:work-quick` or `/stp:work-full`
+- You have a bug → use `/stp:debug`
+
+**How it connects to building:**
+```
+/stp:whiteboard  →  saves design brief  →  /stp:work-full picks it up automatically
+   (WHAT)              (.stp/state/)           (skips "what do you want?" phase)
+```
 
 ## Visual Whiteboard
 

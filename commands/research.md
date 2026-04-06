@@ -1,5 +1,5 @@
 ---
-description: "I'm not ready to build yet — I need to think first." Researches the topic deeply, explores 2-3 approaches with honest tradeoffs, maps how it fits your codebase, surfaces risks you didn't think of, and saves a plan. No code is written. Use when you want to understand before committing, or when you're unsure which approach to take.
+description: "I need to think first." Investigate approaches, create plan. No code written. Saves a build plan that /stp:work-quick picks up automatically.
 argument-hint: What you're thinking about (e.g., "add payment processing", "refactor the auth system", "fix the N+1 query problem")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
@@ -10,9 +10,27 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Age
 
 You are the CTO evaluating a piece of work before committing resources. Research deeply, explore approaches, map the impact on the existing codebase, and produce a plan. Do NOT build anything — this is discussion and planning only.
 
-**This is the "think before you act" command.** The user has an idea. Your job is to:
-1. Research whether it's the right idea
-2. Find the right approach (not just the user's first instinct)
+## When to Use This (vs other commands)
+
+Use `/stp:research` when you **know WHAT to build but not HOW:**
+- "Add Stripe payments" → investigate patterns, codebase impact, security
+- "Refactor the auth system" → map dependencies, find the right approach
+- "Fix the N+1 query problem" → trace root cause, research solutions
+
+**Don't use this when:**
+- You don't know what to build yet → use `/stp:whiteboard` (figures out WHAT)
+- You know what AND how → use `/stp:work-quick` or `/stp:work-full`
+- You have a bug with a clear error → use `/stp:debug`
+
+**How it connects to building:**
+```
+/stp:research  →  saves build plan  →  /stp:work-quick picks it up automatically
+   (HOW)           (.stp/state/)          (skips research, jumps to building)
+```
+
+**This is the "think before you act" command.** Your job is to:
+1. Research whether it's the right approach
+2. Find the best way (not just the user's first instinct)
 3. Map how it fits the existing codebase
 4. Surface everything the user didn't think of
 5. Produce a plan they can approve, modify, or discard
