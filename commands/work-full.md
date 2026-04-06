@@ -264,7 +264,21 @@ python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<product_type> <industry
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
 ```
 
-3. Ask the user to review the preview at localhost:3333 — color swatches, font previews, layout wireframe, style recommendation, and anti-patterns are all rendered live.
+3. **STOP and wait for the user to review.** Do NOT continue until the user has seen the whiteboard and approved.
+
+```
+AskUserQuestion(
+  question: "Design system preview is live at http://localhost:3333 — take a look at the colors, fonts, layout, and style. Is this how you imagined it?",
+  options: [
+    "Yes, this is what I had in mind — continue",
+    "Close but needs changes — [describe what to adjust]",
+    "Not what I imagined — try a different direction",
+    "Chat about this"
+  ]
+)
+```
+
+If changes requested → regenerate, update explore-data.json, ask again. Iterate until approved.
 
 4. After approval, persist:
 ```bash
@@ -330,12 +344,23 @@ This is the FULL `/stp:plan` cycle embedded in `/stp:work-full`. No shortcuts. E
 
 **Visual whiteboard** — offer the whiteboard for live diagrams during planning:
 
-"I'll be designing the architecture with diagrams — user flows, data models, API sequences. Want me to open the visual whiteboard so you can see them live? (http://localhost:3333)"
+```
+AskUserQuestion(
+  question: "I'll be designing the architecture with diagrams — user flows, data models, API sequences. Want me to open the visual whiteboard so you can see them live in your browser?",
+  options: [
+    "(Recommended) Yes, open the whiteboard at http://localhost:3333",
+    "No, just show diagrams in the terminal",
+    "Chat about this"
+  ]
+)
+```
 
 If accepted:
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
 ```
+
+Wait for the user to confirm they've opened http://localhost:3333 before proceeding. Diagrams will update live as each sub-phase completes — the user watches the architecture take shape in real time. Each section still gets its own approval gate in Phase 5m.
 
 Throughout Phase 5, push all diagrams to `.stp/explore-data.json` — the whiteboard polls every 2 seconds and renders them live. If UI/UX work is involved, the design system preview (color swatches, font samples, layout wireframe) will also render in the whiteboard.
 

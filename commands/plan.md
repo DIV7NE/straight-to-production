@@ -38,12 +38,23 @@ Mark each `in_progress` → `completed` as you work through phases. If research 
 
 At the start of this command, offer the whiteboard:
 
-"I'll be designing the architecture with diagrams — user flows, data models, API sequences. Want me to open the visual whiteboard so you can see them live in your browser? (Requires opening http://localhost:3333)"
+```
+AskUserQuestion(
+  question: "I'll be designing the architecture with diagrams — user flows, data models, API sequences. Want me to open the visual whiteboard so you can see them live in your browser?",
+  options: [
+    "(Recommended) Yes, open the whiteboard at http://localhost:3333",
+    "No, just show diagrams inline",
+    "Chat about this"
+  ]
+)
+```
 
 If they accept, start the whiteboard server:
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
 ```
+
+Wait for the user to confirm they've opened http://localhost:3333 before proceeding.
 
 Then throughout this command, write diagram data to `.stp/whiteboard-data.json` as you produce each phase. The whiteboard polls this file every 2 seconds and renders Mermaid diagrams live.
 

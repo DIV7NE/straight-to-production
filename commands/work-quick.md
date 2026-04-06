@@ -101,7 +101,21 @@ Then write a design preview section to `.stp/explore-data.json` (see whiteboard.
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
 ```
 
-Ask the user to approve the design system at localhost:3333 before proceeding to build.
+**STOP and wait for the user to review.** Do NOT continue until approved.
+
+```
+AskUserQuestion(
+  question: "Design system preview is live at http://localhost:3333 — take a look. Is this how you imagined it?",
+  options: [
+    "Yes, this is what I had in mind — continue",
+    "Close but needs changes — [describe what to adjust]",
+    "Not what I imagined — try a different direction",
+    "Chat about this"
+  ]
+)
+```
+
+If changes requested → regenerate, update explore-data.json, ask again. Iterate until approved.
 
 **If the feature is NOT UI-related, skip this step entirely.**
 

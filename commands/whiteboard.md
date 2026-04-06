@@ -87,7 +87,21 @@ The whiteboard will render it live with color swatches, font previews, and layou
 }
 ```
 
-**3. Ask the user to review the preview in the whiteboard** (localhost:3333). Let them approve, tweak, or request alternatives before moving to option comparison.
+**3. STOP and wait for the user to review.** Do NOT continue until the user has seen the whiteboard and approved.
+
+```
+AskUserQuestion(
+  question: "Design system preview is live at http://localhost:3333 — take a look. Is this how you imagined it?",
+  options: [
+    "Yes, this is what I had in mind — continue",
+    "Close but needs changes — [describe what to adjust]",
+    "Not what I imagined — start over with different direction",
+    "Chat about this"
+  ]
+)
+```
+
+If changes requested → regenerate the design system, update explore-data.json, ask again. Iterate until approved. Only then proceed.
 
 **4. Persist the approved design system:**
 ```bash
