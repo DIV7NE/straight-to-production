@@ -529,6 +529,20 @@
           wrapper.className = 'diagram-container';
           // Mermaid SVG is trusted output from the library
           wrapper.appendChild(new DOMParser().parseFromString(svg, 'image/svg+xml').documentElement);
+          var dlBtn = document.createElement('button');
+          dlBtn.className = 'diagram-export-btn';
+          dlBtn.title = 'Download SVG';
+          var dlIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          dlIcon.setAttribute('viewBox', '0 0 16 16');
+          dlIcon.setAttribute('fill', 'none');
+          dlIcon.setAttribute('stroke', 'currentColor');
+          dlIcon.setAttribute('stroke-width', '1.5');
+          var dlPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          dlPath.setAttribute('d', 'M8 2v8m0 0l-3-3m3 3l3-3M3 13h10');
+          dlIcon.appendChild(dlPath);
+          dlBtn.appendChild(dlIcon);
+          dlBtn.addEventListener('click', function() { downloadSvg(wrapper); });
+          wrapper.appendChild(dlBtn);
           block.replaceWith(wrapper);
         } catch (e) {
           const errMsg = document.createElement('pre');
@@ -885,6 +899,93 @@
       }
 
       return card;
+    }
+
+    function downloadSvg(container) {
+      var svg = container.querySelector('svg:not(.diagram-export-btn svg)');
+      if (!svg) return;
+      var label = container.previousElementSibling;
+      var name = (label && label.classList.contains('diagram-label'))
+        ? label.textContent.trim().replace(/[^a-zA-Z0-9\-_ ]/g, '').replace(/\s+/g, '-').toLowerCase()
+        : 'diagram';
+      var svgClone = svg.cloneNode(true);
+      svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      // Inject dark background so SVG renders correctly standalone
+      var bgStyle = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+      bgStyle.textContent = 'svg { background: #1e1e1e; }';
+      svgClone.insertBefore(bgStyle, svgClone.firstChild);
+      var svgData = new XMLSerializer().serializeToString(svgClone);
+      var blob = new Blob([svgData], { type: 'image/svg+xml' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'stp-' + name + '.svg';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportWhiteboard() {
+      var nav = document.getElementById('nav');
+      var content = document.getElementById('content');
+      if (!nav.children.length) return;
+
+      var css = document.querySelector('style').textContent;
+      var date = new Date().toISOString().slice(0, 10);
+      var status = document.getElementById('statusText').textContent;
+
+      // Capture Google Font links for design system typography
+      var fontLinks = '';
+      document.querySelectorAll('link[href*="fonts.googleapis"]').forEach(function(link) {
+        fontLinks += '  <link rel="stylesheet" href="' + link.getAttribute('href') + '">\n';
+      });
+
+      // Clone content and strip export buttons for clean output
+      var contentClone = content.cloneNode(true);
+      contentClone.querySelectorAll('.diagram-export-btn').forEach(function(btn) { btn.remove(); });
+
+      var html = '<!DOCTYPE html>\n<html lang="en">\n<head>\n'
+        + '  <meta charset="UTF-8">\n'
+        + '  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
+        + '  <title>STP Whiteboard \u2014 ' + sanitize(status) + '</title>\n'
+        + fontLinks
+        + '  <style>' + css + '\n'
+        + '    .export-btn { display: none; }\n'
+        + '    .status-dot { animation: none; background: var(--text-muted); }\n'
+        + '  </style>\n'
+        + '</head>\n<body>\n'
+        + '  <header>\n'
+        + '    <div class="logo">\n'
+        + '      <div class="logo-icon">P</div>\n'
+        + '      <span>STP Whiteboard</span>\n'
+        + '    </div>\n'
+        + '    <div class="status">\n'
+        + '      <div class="status-dot idle"></div>\n'
+        + '      <span>' + sanitize(status) + ' \u2014 exported ' + date + '</span>\n'
+        + '    </div>\n'
+        + '  </header>\n'
+        + '  <nav id="nav">' + nav.innerHTML + '</nav>\n'
+        + '  <div class="content" id="content">' + contentClone.innerHTML + '</div>\n'
+        + '  <script>\n'
+        + '    document.querySelectorAll("nav button").forEach(function(btn, i) {\n'
+        + '      btn.addEventListener("click", function() {\n'
+        + '        document.querySelectorAll("nav button").forEach(function(b, j) {\n'
+        + '          b.classList.toggle("active", j === i);\n'
+        + '        });\n'
+        + '        document.querySelectorAll(".section").forEach(function(s, j) {\n'
+        + '          s.classList.toggle("active", j === i);\n'
+        + '        });\n'
+        + '      });\n'
+        + '    });\n'
+        + '  <\/script>\n'
+        + '</body>\n</html>';
+
+      var blob = new Blob([html], { type: 'text/html' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'stp-whiteboard-' + date + '.html';
+      a.click();
+      URL.revokeObjectURL(url);
     }
 
     async function loadData() {

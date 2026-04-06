@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codebase Map</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface-2: #1e1e1e;
+      --surface-3: #262626;
+      --border: #2a2a2a;
+      --text: #e4e4e7;
+      --text-muted: #71717a;
+      --text-dim: #52525b;
+      --accent: #3b82f6;
+      --accent-dim: rgba(59, 130, 246, 0.15);
+      --green: #22c55e;
+      --green-dim: rgba(34, 197, 94, 0.12);
+      --yellow: #eab308;
+      --yellow-dim: rgba(234, 179, 8, 0.12);
+      --red: #ef4444;
+      --red-dim: rgba(239, 68, 68, 0.12);
+      --purple: #a855f7;
+      --purple-dim: rgba(168, 85, 247, 0.12);
+      --cyan: #06b6d4;
+      --cyan-dim: rgba(6, 182, 212, 0.12);
+      --orange: #f97316;
+      --orange-dim: rgba(249, 115, 22, 0.12);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 24px;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .logo-text {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .logo-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .meta {
+      font-size: 12px;
+      color: var(--text-dim);
+      text-align: right;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stack-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .stack-tag {
+      padding: 4px 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    nav button {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    nav button:hover { color: var(--text); }
+    nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .content { padding: 24px; max-width: 1400px; margin: 0 auto; }
+
+    .tab { display: none; animation: fadeIn 0.2s ease; }
+    .tab.active { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .section-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .card-badge {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .diagram-container {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin: 16px 0;
+      overflow-x: auto;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Model cards */
+    .model-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 12px;
+    }
+
+    .model-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .model-name {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .model-domain {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .model-fields {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .field-tag {
+      padding: 2px 6px;
+      background: var(--surface-3);
+      border-radius: 3px;
+      font-size: 11px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      color: var(--text-muted);
+    }
+
+    .model-relations {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    .model-relations span {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Route tables */
+    .route-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .route-table th {
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .route-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .route-method {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+
+    .method-GET { background: var(--green-dim); color: var(--green); }
+    .method-POST { background: var(--accent-dim); color: var(--accent); }
+    .method-PUT, .method-PATCH { background: var(--yellow-dim); color: var(--yellow); }
+    .method-DELETE { background: var(--red-dim); color: var(--red); }
+    .method-PAGE { background: var(--purple-dim); color: var(--purple); }
+
+    .route-path {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+    }
+
+    .route-auth {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .auth-yes { background: var(--green-dim); color: var(--green); }
+    .auth-no { background: var(--surface-3); color: var(--text-dim); }
+
+    .route-purpose {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .domain-group {
+      margin-bottom: 24px;
+    }
+
+    .domain-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
+    }
+
+    /* Component cards */
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+    }
+
+    .component-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .component-name {
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      margin-bottom: 6px;
+    }
+
+    .component-used-in {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .component-used-in span {
+      color: var(--text-muted);
+    }
+
+    .shared-badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: var(--purple-dim);
+      color: var(--purple);
+      font-weight: 600;
+      margin-left: 6px;
+      text-transform: uppercase;
+    }
+
+    /* Integration cards */
+    .integration-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 12px;
+    }
+
+    .integration-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .integration-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .integration-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .integration-type {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: var(--cyan-dim);
+      color: var(--cyan);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .integration-purpose {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .env-vars {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .env-var {
+      padding: 2px 6px;
+      background: var(--surface-3);
+      border-radius: 3px;
+      font-size: 11px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      color: var(--orange);
+    }
+
+    /* Mermaid source (pre-render) */
+    .mermaid-source { display: none; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Domain color coding */
+    .domain-auth { background: var(--green-dim); color: var(--green); }
+    .domain-core { background: var(--accent-dim); color: var(--accent); }
+    .domain-billing { background: var(--yellow-dim); color: var(--yellow); }
+    .domain-content { background: var(--purple-dim); color: var(--purple); }
+    .domain-admin { background: var(--red-dim); color: var(--red); }
+    .domain-infra { background: var(--cyan-dim); color: var(--cyan); }
+    .domain-default { background: var(--surface-3); color: var(--text-muted); }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <header id="header"></header>
+  <nav id="nav"></nav>
+  <div class="content" id="content"></div>
+  <footer id="footer"></footer>
+
+  <script id="codebase-data" type="application/json">__CODEBASE_DATA__</script>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'dark',
+      themeVariables: {
+        darkMode: true,
+        background: '#1e1e1e',
+        primaryColor: '#3b82f6',
+        primaryTextColor: '#e4e4e7',
+        primaryBorderColor: '#2a2a2a',
+        lineColor: '#71717a',
+        secondaryColor: '#1e3a5f',
+        tertiaryColor: '#141414',
+        fontFamily: '-apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+        fontSize: '14px',
+      }
+    });
+
+    var DATA = JSON.parse(document.getElementById('codebase-data').textContent);
+
+    var DOMAIN_COLORS = {
+      auth: 'domain-auth', core: 'domain-core', billing: 'domain-billing',
+      content: 'domain-content', admin: 'domain-admin', infra: 'domain-infra'
+    };
+
+    function domainClass(domain) {
+      return DOMAIN_COLORS[(domain || '').toLowerCase()] || 'domain-default';
+    }
+
+    // --- Header ---
+    function renderHeader() {
+      var h = document.getElementById('header');
+      var s = DATA.stack || {};
+      var st = DATA.stats || {};
+
+      var top = document.createElement('div');
+      top.className = 'header-top';
+
+      var logo = document.createElement('div');
+      logo.className = 'logo';
+      var icon = document.createElement('div');
+      icon.className = 'logo-icon';
+      icon.textContent = (DATA.projectName || 'P')[0].toUpperCase();
+      var textWrap = document.createElement('div');
+      var title = document.createElement('div');
+      title.className = 'logo-text';
+      title.textContent = DATA.projectName || 'Codebase Map';
+      var sub = document.createElement('div');
+      sub.className = 'logo-sub';
+      sub.textContent = 'Architecture Map';
+      textWrap.appendChild(title);
+      textWrap.appendChild(sub);
+      logo.appendChild(icon);
+      logo.appendChild(textWrap);
+
+      var meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = 'Generated ' + (DATA.generatedAt || '') + (DATA.version ? ' \u00b7 v' + DATA.version : '');
+
+      top.appendChild(logo);
+      top.appendChild(meta);
+      h.appendChild(top);
+
+      // Stats
+      var statsBar = document.createElement('div');
+      statsBar.className = 'stats-bar';
+      var statItems = [
+        [st.sourceFiles, 'Source Files'], [st.testFiles, 'Test Files'],
+        [st.models, 'Models'], [st.apiRoutes, 'API Routes'],
+        [st.pageRoutes, 'Pages'], [st.components, 'Components']
+      ];
+      statItems.forEach(function(item) {
+        if (item[0] == null) return;
+        var stat = document.createElement('div');
+        stat.className = 'stat';
+        var val = document.createElement('span');
+        val.className = 'stat-value';
+        val.textContent = item[0];
+        var label = document.createElement('span');
+        label.className = 'stat-label';
+        label.textContent = item[1];
+        stat.appendChild(val);
+        stat.appendChild(label);
+        statsBar.appendChild(stat);
+      });
+      h.appendChild(statsBar);
+
+      // Stack tags
+      var stackBar = document.createElement('div');
+      stackBar.className = 'stack-bar';
+      Object.keys(s).forEach(function(key) {
+        if (!s[key]) return;
+        var tag = document.createElement('span');
+        tag.className = 'stack-tag';
+        tag.textContent = s[key];
+        stackBar.appendChild(tag);
+      });
+      h.appendChild(stackBar);
+    }
+
+    // --- Tabs ---
+    var TABS = [
+      { id: 'overview', label: 'Overview' },
+      { id: 'models', label: 'Data Models' },
+      { id: 'routes', label: 'Routes' },
+      { id: 'components', label: 'Components' },
+      { id: 'integrations', label: 'Integrations' },
+      { id: 'dependencies', label: 'Dependencies' }
+    ];
+
+    var activeTab = 'overview';
+
+    function renderNav() {
+      var nav = document.getElementById('nav');
+      TABS.forEach(function(tab) {
+        var btn = document.createElement('button');
+        btn.textContent = tab.label;
+        if (tab.id === activeTab) btn.classList.add('active');
+        btn.addEventListener('click', function() {
+          activeTab = tab.id;
+          document.querySelectorAll('nav button').forEach(function(b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          document.querySelectorAll('.tab').forEach(function(t) {
+            t.classList.toggle('active', t.id === 'tab-' + tab.id);
+          });
+        });
+        nav.appendChild(btn);
+      });
+    }
+
+    // --- Diagram rendering ---
+    async function renderDiagram(container, code) {
+      if (!code) {
+        container.classList.add('empty-state');
+        container.textContent = 'No diagram data';
+        return;
+      }
+      var id = 'mermaid-' + Math.random().toString(36).substr(2, 9);
+      try {
+        var result = await mermaid.render(id, code);
+        var wrapper = document.createElement('div');
+        wrapper.className = 'diagram-container';
+        wrapper.appendChild(new DOMParser().parseFromString(result.svg, 'image/svg+xml').documentElement);
+        container.appendChild(wrapper);
+      } catch (e) {
+        var pre = document.createElement('pre');
+        pre.style.cssText = 'color:#ef4444;font-size:12px;padding:12px;';
+        pre.textContent = 'Diagram error: ' + e.message;
+        container.appendChild(pre);
+      }
+    }
+
+    // --- Overview tab ---
+    function renderOverview() {
+      var tab = document.createElement('div');
+      tab.className = 'tab active';
+      tab.id = 'tab-overview';
+
+      var title = document.createElement('h2');
+      title.className = 'section-title';
+      title.textContent = 'System Architecture';
+      tab.appendChild(title);
+
+      var sub = document.createElement('p');
+      sub.className = 'section-subtitle';
+      sub.textContent = 'High-level overview of how the system components connect';
+      tab.appendChild(sub);
+
+      var diagramEl = document.createElement('div');
+      tab.appendChild(diagramEl);
+
+      if (DATA.diagrams && DATA.diagrams.architecture) {
+        renderDiagram(diagramEl, DATA.diagrams.architecture);
+      }
+
+      return tab;
+    }
+
+    // --- Models tab ---
+    function renderModels() {
+      var tab = document.createElement('div');
+      tab.className = 'tab';
+      tab.id = 'tab-models';
+
+      var title = document.createElement('h2');
+      title.className = 'section-title';
+      title.textContent = 'Data Models';
+      tab.appendChild(title);
+
+      var sub = document.createElement('p');
+      sub.className = 'section-subtitle';
+      sub.textContent = 'Database schema, entity relationships, and domain groupings';
+      tab.appendChild(sub);
+
+      // ER Diagram
+      if (DATA.diagrams && DATA.diagrams.dataModel) {
+        var diagramEl = document.createElement('div');
+        tab.appendChild(diagramEl);
+        renderDiagram(diagramEl, DATA.diagrams.dataModel);
+      }
+
+      // Model cards
+      if ((!DATA.models || !DATA.models.length) && !(DATA.diagrams && DATA.diagrams.dataModel)) {
+        var empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.textContent = 'No model data';
+        tab.appendChild(empty);
+        return tab;
+      }
+
+      if (DATA.models && DATA.models.length) {
+        var grid = document.createElement('div');
+        grid.className = 'model-grid';
+
+        DATA.models.forEach(function(m) {
+          var card = document.createElement('div');
+          card.className = 'model-card';
+
+          var name = document.createElement('div');
+          name.className = 'model-name';
+          var nameText = document.createTextNode(m.name);
+          name.appendChild(nameText);
+          if (m.domain) {
+            var badge = document.createElement('span');
+            badge.className = 'model-domain ' + domainClass(m.domain);
+            badge.textContent = m.domain;
+            name.appendChild(badge);
+          }
+          card.appendChild(name);
+
+          if (m.fields && m.fields.length) {
+            var fields = document.createElement('div');
+            fields.className = 'model-fields';
+            m.fields.forEach(function(f) {
+              var tag = document.createElement('span');
+              tag.className = 'field-tag';
+              tag.textContent = f;
+              fields.appendChild(tag);
+            });
+            card.appendChild(fields);
+          }
+
+          if (m.relations && m.relations.length) {
+            var rels = document.createElement('div');
+            rels.className = 'model-relations';
+            var arrow = document.createTextNode('\u2192 ');
+            rels.appendChild(arrow);
+            m.relations.forEach(function(r, i) {
+              if (i > 0) rels.appendChild(document.createTextNode(', '));
+              var s = document.createElement('span');
+              s.textContent = r;
+              rels.appendChild(s);
+            });
+            card.appendChild(rels);
+          }
+
+          grid.appendChild(card);
+        });
+
+        tab.appendChild(grid);
+      }
+
+      return tab;
+    }
+
+    // --- Routes tab ---
+    function renderRoutes() {
+      var tab = document.createElement('div');
+      tab.className = 'tab';
+      tab.id = 'tab-routes';
+
+      var title = document.createElement('h2');
+      title.className = 'section-title';
+      title.textContent = 'Routes';
+      tab.appendChild(title);
+
+      var sub = document.createElement('p');
+      sub.className = 'section-subtitle';
+      sub.textContent = 'API endpoints and page routes grouped by domain';
+      tab.appendChild(sub);
+
+      var routes = DATA.routes || {};
+
+      if ((!routes.api || !routes.api.length) && (!routes.pages || !routes.pages.length)) {
+        var empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.textContent = 'No route data';
+        tab.appendChild(empty);
+        return tab;
+      }
+
+      function buildRouteTable(routeList, label) {
+        if (!routeList || !routeList.length) return;
+
+        var card = document.createElement('div');
+        card.className = 'card';
+
+        var header = document.createElement('div');
+        header.className = 'card-header';
+        var cardTitle = document.createElement('div');
+        cardTitle.className = 'card-title';
+        cardTitle.textContent = label;
+        var countBadge = document.createElement('span');
+        countBadge.className = 'card-badge';
+        countBadge.style.cssText = 'background:var(--accent-dim);color:var(--accent)';
+        countBadge.textContent = routeList.length + ' routes';
+        header.appendChild(cardTitle);
+        header.appendChild(countBadge);
+        card.appendChild(header);
+
+        // Group by domain
+        var groups = {};
+        routeList.forEach(function(r) {
+          var d = r.domain || 'Other';
+          if (!groups[d]) groups[d] = [];
+          groups[d].push(r);
+        });
+
+        Object.keys(groups).sort().forEach(function(domain) {
+          var group = document.createElement('div');
+          group.className = 'domain-group';
+
+          var domainLabel = document.createElement('div');
+          domainLabel.className = 'domain-label';
+          domainLabel.textContent = domain;
+          group.appendChild(domainLabel);
+
+          var table = document.createElement('table');
+          table.className = 'route-table';
+          var thead = document.createElement('thead');
+          var headerRow = document.createElement('tr');
+          ['Method', 'Path', 'Auth', 'Purpose'].forEach(function(h) {
+            var th = document.createElement('th');
+            th.textContent = h;
+            headerRow.appendChild(th);
+          });
+          thead.appendChild(headerRow);
+          table.appendChild(thead);
+
+          var tbody = document.createElement('tbody');
+          groups[domain].forEach(function(r) {
+            var tr = document.createElement('tr');
+
+            var tdMethod = document.createElement('td');
+            if (r.method) {
+              var methodSpan = document.createElement('span');
+              methodSpan.className = 'route-method method-' + (r.method || 'GET');
+              methodSpan.textContent = r.method;
+              tdMethod.appendChild(methodSpan);
+            }
+            tr.appendChild(tdMethod);
+
+            var tdPath = document.createElement('td');
+            tdPath.className = 'route-path';
+            tdPath.textContent = r.path;
+            tr.appendChild(tdPath);
+
+            var tdAuth = document.createElement('td');
+            var authSpan = document.createElement('span');
+            authSpan.className = 'route-auth ' + (r.auth ? 'auth-yes' : 'auth-no');
+            authSpan.textContent = r.auth ? 'Auth' : 'Public';
+            tdAuth.appendChild(authSpan);
+            tr.appendChild(tdAuth);
+
+            var tdPurpose = document.createElement('td');
+            tdPurpose.className = 'route-purpose';
+            tdPurpose.textContent = r.purpose || '';
+            tr.appendChild(tdPurpose);
+
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+          group.appendChild(table);
+          card.appendChild(group);
+        });
+
+        tab.appendChild(card);
+      }
+
+      buildRouteTable(routes.api, 'API Routes');
+      buildRouteTable(routes.pages, 'Page Routes');
+
+      return tab;
+    }
+
+    // --- Components tab ---
+    function renderComponents() {
+      var tab = document.createElement('div');
+      tab.className = 'tab';
+      tab.id = 'tab-components';
+
+      var title = document.createElement('h2');
+      title.className = 'section-title';
+      title.textContent = 'Components';
+      tab.appendChild(title);
+
+      var sub = document.createElement('p');
+      sub.className = 'section-subtitle';
+      sub.textContent = 'Major UI components grouped by domain';
+      tab.appendChild(sub);
+
+      if (!DATA.components || !DATA.components.length) {
+        var empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.textContent = 'No component data';
+        tab.appendChild(empty);
+        return tab;
+      }
+
+      // Group by domain
+      var groups = {};
+      DATA.components.forEach(function(c) {
+        var d = c.domain || 'Other';
+        if (!groups[d]) groups[d] = [];
+        groups[d].push(c);
+      });
+
+      Object.keys(groups).sort().forEach(function(domain) {
+        var domainLabel = document.createElement('div');
+        domainLabel.className = 'domain-label';
+        domainLabel.textContent = domain;
+        domainLabel.style.marginTop = '16px';
+        tab.appendChild(domainLabel);
+
+        var grid = document.createElement('div');
+        grid.className = 'component-grid';
+        grid.style.marginTop = '8px';
+
+        groups[domain].forEach(function(c) {
+          var card = document.createElement('div');
+          card.className = 'component-card';
+
+          var name = document.createElement('div');
+          name.className = 'component-name';
+          name.textContent = c.name;
+          if (c.shared) {
+            var badge = document.createElement('span');
+            badge.className = 'shared-badge';
+            badge.textContent = 'Shared';
+            name.appendChild(badge);
+          }
+          card.appendChild(name);
+
+          if (c.usedIn && c.usedIn.length) {
+            var used = document.createElement('div');
+            used.className = 'component-used-in';
+            used.appendChild(document.createTextNode('Used in: '));
+            var s = document.createElement('span');
+            s.textContent = c.usedIn.join(', ');
+            used.appendChild(s);
+            card.appendChild(used);
+          }
+
+          grid.appendChild(card);
+        });
+
+        tab.appendChild(grid);
+      });
+
+      return tab;
+    }
+
+    // --- Integrations tab ---
+    function renderIntegrations() {
+      var tab = document.createElement('div');
+      tab.className = 'tab';
+      tab.id = 'tab-integrations';
+
+      var title = document.createElement('h2');
+      title.className = 'section-title';
+      title.textContent = 'External Integrations';
+      tab.appendChild(title);
+
+      var sub = document.createElement('p');
+      sub.className = 'section-subtitle';
+      sub.textContent = 'Third-party services, APIs, and infrastructure connections';
+      tab.appendChild(sub);
+
+      if (!DATA.integrations || !DATA.integrations.length) {
+        var empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.textContent = 'No integration data';
+        tab.appendChild(empty);
+        return tab;
+      }
+
+      var grid = document.createElement('div');
+      grid.className = 'integration-grid';
+
+      DATA.integrations.forEach(function(integ) {
+        var card = document.createElement('div');
+        card.className = 'integration-card';
+
+        var header = document.createElement('div');
+        header.className = 'integration-header';
+        var name = document.createElement('div');
+        name.className = 'integration-name';
+        name.textContent = integ.name;
+        header.appendChild(name);
+        if (integ.type) {
+          var type = document.createElement('span');
+          type.className = 'integration-type';
+          type.textContent = integ.type;
+          header.appendChild(type);
+        }
+        card.appendChild(header);
+
+        if (integ.purpose) {
+          var purpose = document.createElement('div');
+          purpose.className = 'integration-purpose';
+          purpose.textContent = integ.purpose;
+          card.appendChild(purpose);
+        }
+
+        if (integ.envVars && integ.envVars.length) {
+          var vars = document.createElement('div');
+          vars.className = 'env-vars';
+          integ.envVars.forEach(function(v) {
+            var tag = document.createElement('span');
+            tag.className = 'env-var';
+            tag.textContent = v;
+            vars.appendChild(tag);
+          });
+          card.appendChild(vars);
+        }
+
+        grid.appendChild(card);
+      });
+
+      tab.appendChild(grid);
+      return tab;
+    }
+
+    // --- Dependencies tab ---
+    function renderDependencies() {
+      var tab = document.createElement('div');
+      tab.className = 'tab';
+      tab.id = 'tab-dependencies';
+
+      var title = document.createElement('h2');
+      title.className = 'section-title';
+      title.textContent = 'Feature Dependencies';
+      tab.appendChild(title);
+
+      var sub = document.createElement('p');
+      sub.className = 'section-subtitle';
+      sub.textContent = 'How features and domains connect to each other';
+      tab.appendChild(sub);
+
+      if (DATA.diagrams && DATA.diagrams.featureDeps) {
+        var diagramEl = document.createElement('div');
+        tab.appendChild(diagramEl);
+        renderDiagram(diagramEl, DATA.diagrams.featureDeps);
+      } else {
+        var empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.textContent = 'No dependency graph data';
+        tab.appendChild(empty);
+      }
+
+      return tab;
+    }
+
+    // --- Footer ---
+    function renderFooter() {
+      var f = document.getElementById('footer');
+      f.textContent = 'Generated by STP Codebase Mapping \u00b7 ' + (DATA.generatedAt || '') + ' \u00b7 ' + (DATA.projectName || '');
+    }
+
+    // --- Init ---
+    renderHeader();
+    renderNav();
+
+    var content = document.getElementById('content');
+    content.appendChild(renderOverview());
+    content.appendChild(renderModels());
+    content.appendChild(renderRoutes());
+    content.appendChild(renderComponents());
+    content.appendChild(renderIntegrations());
+    content.appendChild(renderDependencies());
+
+    renderFooter();
+  </script>
+</body>
+</html>
