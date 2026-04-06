@@ -125,6 +125,7 @@
     .card-text { font-size: 14px; line-height: 1.6; color: var(--text-muted); }
 
     .diagram-container {
+      position: relative;
       background: var(--surface-2);
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -375,6 +376,64 @@
     .empty-state h3 { font-size: 16px; color: var(--text); margin-bottom: 8px; }
     .empty-state p { font-size: 14px; }
 
+    /* Export UI */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .export-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .export-btn:hover {
+      color: var(--text);
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    .export-btn svg { width: 14px; height: 14px; }
+
+    .diagram-export-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s, border-color 0.15s, color 0.15s;
+      z-index: 10;
+    }
+
+    .diagram-container:hover .diagram-export-btn { opacity: 1; }
+
+    .diagram-export-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .diagram-export-btn svg { width: 16px; height: 16px; }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -406,9 +465,15 @@
       <div class="logo-icon">P</div>
       <span>STP Whiteboard</span>
     </div>
-    <div class="status">
-      <div class="status-dot idle" id="statusDot"></div>
-      <span id="statusText">Waiting for data...</span>
+    <div class="header-actions">
+      <button class="export-btn" id="exportBtn" onclick="exportWhiteboard()" title="Export as self-contained HTML">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m0 0l-3-3m3 3l3-3M3 13h10"/></svg>
+        Export
+      </button>
+      <div class="status">
+        <div class="status-dot idle" id="statusDot"></div>
+        <span id="statusText">Waiting for data...</span>
+      </div>
     </div>
   </header>
 

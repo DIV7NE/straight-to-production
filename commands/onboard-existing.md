@@ -465,6 +465,14 @@ This is an EXISTING project being onboarded. Read all generated documents:
 
 Run the full 7-criteria evaluation. Be extra thorough — this is the baseline.
 Flag everything. Translate every finding to business impact.
+
+CRITICAL: Follow the Claim Verification Gate (Step 5.5) rigorously. For any finding
+claiming code is "broken," "fails," or "doesn't work," you MUST trace the actual
+execution path before reporting it. Onboarding an existing codebase has HIGH
+false-positive risk — unfamiliar code with fallback patterns, dead code branches,
+and legacy compatibility layers will trigger grep patterns that aren't actual bugs.
+Read the full function, find all callers, trace whether the flagged code is reachable.
+Downgrade unreachable code findings to NOTE, don't report them as FAIL.
 ```
 
 Present findings to the user. Append the Critic's summary to AUDIT.md under `## Baseline Quality Assessment`.

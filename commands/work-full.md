@@ -775,8 +775,8 @@ If YES:
 Agent(
   name="critic-milestone",
   model="sonnet",
-  prompt="Evaluate this milestone. MANDATORY: Follow the Double-Check Protocol — 2 iteration minimum.
-  1. Restate the goal, 2. Define 'complete', 3. List angles, 4. Iteration 1, 5. Iteration 2, 6. Synthesize.
+  prompt="Evaluate this milestone. MANDATORY: Follow the Double-Check Protocol — 2 iteration minimum + claim verification.
+  1. Restate the goal, 2. Define 'complete', 3. List angles, 4. Iteration 1, 5. Iteration 2, 5.5. Verify Behavioral Claims (trace execution paths for any 'broken/fails/doesn't work' finding — downgrade unreachable code from FAIL to NOTE), 6. Synthesize.
   Grade against .stp/docs/PRD.md + .stp/docs/PLAN.md + 7 criteria + 6-layer verification.
   Run specification verification, test quality analysis, and mutation challenge.
   Flag NET-NEW GAPS: features where infrastructure exists but no UI/API/purchase flow was wired."

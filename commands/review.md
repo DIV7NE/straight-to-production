@@ -26,13 +26,14 @@ Dispatch the `stp-critic` agent (Sonnet 4.6) to evaluate the project. Self-evalu
 ```
 Evaluate this project against its requirements and technical plan.
 
-MANDATORY: Follow the Double-Check Protocol — 2 iteration minimum.
+MANDATORY: Follow the Double-Check Protocol — 2 iteration minimum + claim verification.
 1. Restate the goal from the PRD in your own words
 2. Define every condition that makes this "complete"
 3. List every verification angle BEFORE checking anything
 4. Execute Iteration 1 — check every angle
 5. Execute Iteration 2 — re-check with deeper understanding, find what Iteration 1 missed
-6. Synthesize — Verified Complete (with evidence), Gaps (regressions), Gaps (net-new)
+5.5. Verify Behavioral Claims — for any finding claiming code is "broken/fails/doesn't work," TRACE the execution path: read the full function, find all callers, check reachability. Downgrade unreachable code from FAIL to NOTE. Pattern findings (console.log, hardcoded secrets) are exempt.
+6. Synthesize — Verified Complete (with evidence), Gaps (regressions), Gaps (net-new), Behavioral Claims Verified
 
 Read these documents FIRST:
 - .stp/docs/PRD.md — what was supposed to be built (features, scope, architecture decisions)

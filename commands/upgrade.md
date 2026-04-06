@@ -14,7 +14,8 @@ Pull the latest version of STP from GitHub and sync EVERYTHING in the current pr
 
 | Layer | What | How |
 |-------|------|-----|
-| **Plugin code** | Commands, agents, hooks, references, templates, whiteboard | `git pull` on plugin directory |
+| **Plugin code** | Commands, agents, hooks, references, templates, whiteboard | Auto-update (git pull, or download + overwrite for marketplace) |
+| **Agent prompts** | Critic (Claim Verification Gate), executor, QA | Part of plugin code — auto-updated via `git pull` |
 | **Companion plugins** | ui-ux-pro-max and any future required plugins | Auto-install if missing |
 | **Project CLAUDE.md** | Philosophy, Required Plugins, Key Rules, Hooks, Directory Map | Refresh STP sections, preserve user's Project Conventions |
 | **Global CLAUDE.md** | STP version marker + STP Awareness section | Refresh STP block only |
@@ -55,23 +56,33 @@ NEW_HEAD=$(cd "$PLUGIN_DIR" && git rev-parse --short HEAD 2>/dev/null)
 ```
 Show what changed: `git log --oneline "$CURRENT".."$NEW_HEAD"`
 
-**Marketplace install (no .git) → re-install from marketplace:**
+**Marketplace install (no .git) → download and overwrite in place:**
+
+No manual steps. No uninstall/reinstall. Just download the latest and swap.
+
+```bash
+TEMP_DIR=$(mktemp -d)
+OLD_VER=$(cat "$PLUGIN_DIR/VERSION" 2>/dev/null || echo "unknown")
+
+git clone --depth 1 --branch main https://github.com/DIV7NE/stp.git "$TEMP_DIR/stp" 2>&1
+if [ $? -eq 0 ]; then
+  rm -rf "$TEMP_DIR/stp/.git"
+  # Safe swap: backup → replace → verify → cleanup backup
+  cp -r "$PLUGIN_DIR" "${PLUGIN_DIR}.bak"
+  find "$PLUGIN_DIR" -mindepth 1 -delete 2>/dev/null
+  cp -a "$TEMP_DIR/stp/." "$PLUGIN_DIR/"
+  chmod +x "$PLUGIN_DIR/hooks/scripts/"*.sh 2>/dev/null
+  NEW_VER=$(cat "$PLUGIN_DIR/VERSION" 2>/dev/null || echo "unknown")
+  rm -rf "$TEMP_DIR" "${PLUGIN_DIR}.bak"
+  echo "upgrade: $OLD_VER → $NEW_VER"
+else
+  rm -rf "$TEMP_DIR"
+  echo "upgrade: FAILED — network error"
+  echo "Manual fallback: /plugin uninstall stp && /plugin install stp@pilot-dev"
+fi
 ```
-The plugin was installed via Claude Code marketplace. To upgrade:
 
-Option 1 (recommended): Re-install from marketplace
-  /plugin uninstall stp
-  /plugin install stp@pilot-dev
-
-Option 2 (developer): Symlink to the git repo for instant updates
-  rm -rf [PLUGIN_DIR]
-  git clone https://github.com/DIV7NE/stp.git /path/to/stp
-  ln -s /path/to/stp [PLUGIN_DIR]
-  
-  This gives you instant access to every commit — no re-install needed.
-```
-
-Use AskUserQuestion to let the user choose. If they pick Option 2, run the commands.
+If the download fails, show the manual fallback as a one-liner — not a multi-step process. Do NOT use AskUserQuestion for the plugin update itself.
 
 Regardless of install type, still run all remaining sync steps — the project may be behind even if the plugin is current.
 

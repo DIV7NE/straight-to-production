@@ -7,7 +7,7 @@ A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 15 commands, 3 agen
 - **Opus** = CTO (plans, researches, reviews, merges, teaches). Builds foundation work directly (DB, auth, config).
 - **Sonnet executors** = builders (features on top of foundation, worktree isolation, Agent Teams for parallelism)
 - **Sonnet QA** = independent tester (tests running app against PRD acceptance criteria)
-- **Sonnet Critic** = code reviewer (7 criteria + Double-Check Protocol + 6-layer verification)
+- **Sonnet Critic** = code reviewer (7 criteria + Double-Check Protocol + Claim Verification Gate + 6-layer verification)
 
 ## 6-Layer Verification Stack
 Each layer catches what the others miss. LLM review (Critic) is Layer 5, not Layer 1.
@@ -18,7 +18,7 @@ Each layer catches what the others miss. LLM review (Critic) is Layer 5, not Lay
 | 2. Deterministic analysis | Hollow test detection, ghost coverage, placeholder scanning | AST/grep | AI slop in tests, tautological asserts, mock-only suites |
 | 3. Mutation challenge | Flip operators, remove guards, change boundaries — do tests catch it? | Adversarial | Tests that look good but verify nothing (57% kill rate for AI tests) |
 | 4. Property-based tests | Invariants for all inputs: round-trip, conservation, idempotency | Automated | Edge cases AI never considered |
-| 5. Cross-family AI review | Critic (Claude) + non-Claude models with role-specific lenses | LLM | Architectural drift, wrong assumptions, correlated blind spots |
+| 5. Cross-family AI review | Critic (Claude, with Claim Verification Gate) + non-Claude models with role-specific lenses | LLM | Architectural drift, wrong assumptions, correlated blind spots, false-positive behavioral claims |
 | 6. Production verification | Canary deploys, metric monitoring | Runtime | Load failures, emergent interactions |
 
 **Key principle:** The Critic handles Layer 5 (structural/architectural review). Behavioral verification (Layer 1) is deterministic — specs pass or fail, no opinions. Using LLM review for behavioral checking is structurally circular.

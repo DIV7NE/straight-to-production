@@ -42,6 +42,17 @@ The Critic runs in a verification loop of **at least 2 iterations**. One pass is
 - Angles you missed the first time
 - Cross-cutting concerns (does feature A still work after feature B was added?)
 
+**5.5. Verify Behavioral Claims (MANDATORY)** — For every finding that claims code is "broken," "fails," "doesn't work," "never reaches," or "is a show-stopper":
+1. **Read the function** containing the flagged code — not just the flagged line, the ENTIRE function
+2. **Find ALL callers** — grep for the function/variable name to trace who invokes it
+3. **Trace the execution path** — is there an early return, conditional check, alternative data path, or higher-priority code branch that runs BEFORE the flagged line? Does the caller even reach this code?
+4. **If the flagged code is unreachable** (dead code, fallback never triggered, guarded by earlier return, alternative path always taken): **downgrade** from FAIL/CRITICAL to NOTE — "dead code, cleanup recommended"
+5. **If the flagged code IS reachable** and the behavior claim is confirmed: keep the finding at its original severity with the execution path as evidence
+
+**Why this exists:** Grep finds code that EXISTS but cannot determine if code EXECUTES. Claiming "palm reading is broken because localStorage is used in React Native" without checking that route params are checked first (making localStorage a dead fallback) produces false positives that erode trust. Every behavioral claim requires execution path evidence — not just pattern existence.
+
+**Exempt from this step:** Pattern-existence findings like "console.log in production code," "hardcoded secret," or "missing alt text" — these are valid regardless of reachability because they indicate quality/security issues even as dead code.
+
 **6. Synthesize** — Merge findings from both iterations. Separate into:
 - **Verified Complete** — with evidence
 - **Gaps Found (regressions)** — things that broke
@@ -292,6 +303,12 @@ For features involving these categories, check whether property-based tests exis
 |-------|--------|----------|
 | [e.g., Checkout flow] | PASS/FAIL | [what you verified] |
 | ... | ... | ... |
+
+### Behavioral Claims Verified (Step 5.5)
+| Claim | Execution Path Traced | Reachable? | Verdict |
+|-------|----------------------|------------|---------|
+| [e.g., "localStorage broken on Android"] | [e.g., "route params checked first at PalmResult:138, returns before localStorage fallback at :155"] | NO — dead code | Downgraded to NOTE |
+| [e.g., "auth middleware bypassed on /api/x"] | [e.g., "middleware.ts:23 runs on every request, no conditional skip found"] | YES — confirmed | FAIL maintained |
 
 ### 1. Functionality: [PASS/FAIL/PARTIAL]
 [Finding with file:line]
