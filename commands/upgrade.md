@@ -341,6 +341,7 @@ Present a clean summary:
 ║  [✓/✗] Companion plugins (ui-ux-pro-max v[VER])      ║
 ║  [✓/✗] MCP servers (Context7, Tavily, Context Mode,  ║
 ║         Agent Browser)                                ║
+║  [✓/✗] Reference files refreshed (.stp/references/)   ║
 ║  [✓/✗] Project CLAUDE.md sections refreshed           ║
 ║  [✓/✗] Global CLAUDE.md (STP Awareness)              ║
 ║  [✓/─] PRD.md format (structured / migrated)          ║
