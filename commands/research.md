@@ -1,5 +1,5 @@
 ---
-description: "I need to think first." Investigate approaches, create plan. No code written. Saves a build plan that /stp:work-quick picks up automatically.
+description: "I know what I want, investigate how to build it." Codebase impact analysis → library research (Context7) → industry patterns (Tavily) → security review → 2-3 approaches with tradeoffs → saves build plan → /stp:work-quick picks it up automatically.
 argument-hint: What you're thinking about (e.g., "add payment processing", "refactor the auth system", "fix the N+1 query problem")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---

@@ -1,5 +1,5 @@
 ---
-description: "Quick build — skip the architecture cycle." For small-to-medium tasks (≤3 files, no new models, no auth changes). Cycle: context → inline research → plan checklist → TDD build → QA → version bump. Use when scope is clear and you want speed. Hooks still enforce all quality gates. If research reveals unexpected complexity, auto-suggests upgrading to /stp:work-full.
+description: "Just do it, skip the ceremony." Context → inline research → plan checklist → TDD build → /simplify → QA agent → manual QA → version bump + docs. Hooks still fire. Auto-suggests upgrading to /stp:work-full if research reveals unexpected complexity.
 argument-hint: What you want (e.g., "add Stripe payments", "fix the Sentry errors on /dashboard", "refactor auth middleware", "update invoice PDF export")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---

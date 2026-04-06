@@ -1,5 +1,5 @@
 ---
-description: "Let STP decide the right depth." Runs an evidence-based impact scan on your task, then auto-selects the right thoroughness level — from inline fix to full architecture cycle. Cycle: impact scan → classify → route to quick or full mode → build. Use when you're not sure how complex the task is, or when you want STP to make the call.
+description: "I have work to do, you figure out how thorough to be." Impact scan (files, models, auth paths) → scores complexity → routes to /stp:work-quick or /stp:work-full with evidence → user confirms.
 argument-hint: What you want done (e.g., "fix the billing bug", "add PDF export", "rebuild the auth system")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---

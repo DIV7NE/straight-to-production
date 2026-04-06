@@ -1,5 +1,5 @@
 ---
-description: "I need to think." Explore ideas, compare options, no commitment. Writes a design brief that build commands pick up automatically.
+description: "I have an idea, help me think through it." Explores the problem space → compares 2-3 approaches with tradeoffs → user picks a direction → writes structured design brief → build commands pick it up automatically.
 argument-hint: What you want to explore (e.g., "how should real-time updates work" or "I have an idea for a fitness app")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
