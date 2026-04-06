@@ -57,9 +57,26 @@ If ANY false → continue with full `/stp:work-full` cycle. No downshift offered
 - `.stp/docs/PLAN.md` — is this already planned? Which milestone?
 - `.stp/docs/ARCHITECTURE.md` — what exists that relates to this work?
 
-**Then ask focused product questions using AskUserQuestion.** The user is the PM — ask about WHAT and WHY, never HOW:
+**Scope decomposition gate (check BEFORE asking questions):**
+Before asking detailed questions, assess scope. If the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately:
+```
+AskUserQuestion(
+  question: "This is a multi-subsystem project. I recommend decomposing it before planning any single part. Here are the independent pieces I see: [list]. Which should we build first?",
+  options: [
+    "(Recommended) [Subsystem A] first — [why: foundation for others]",
+    "[Subsystem B] first — [why: highest user value]",
+    "Plan all of them together — I want the full architecture",
+    "Chat about this"
+  ]
+)
+```
+Each subsystem gets its own spec → plan → build cycle. Don't plan a sprawling system in one pass.
 
-Example for "update stripe payments and pricing":
+**Then ask focused product questions — ONE AT A TIME.** The user is the PM — ask about WHAT and WHY, never HOW. Prefer multiple choice when possible.
+
+**ONE question per message. Wait for the answer before asking the next.**
+
+Example flow:
 ```
 AskUserQuestion(
   question: "Let me understand exactly what you need. Which of these describes the scope?",
@@ -72,14 +89,28 @@ AskUserQuestion(
   ]
 )
 ```
+Wait. Then:
+```
+AskUserQuestion(
+  question: "What's driving this change?",
+  options: [
+    "Business pivot — new pricing strategy",
+    "User feedback — current pricing is confusing",
+    "Compliance — legal/regulatory requirement",
+    "Something else — let me explain",
+    "Chat about this"
+  ]
+)
+```
+Wait. Then ask constraints if needed.
 
-Follow up with specifics until you can fill in:
+**Fill in these details across 2-4 questions (not all at once):**
 - **What** exactly changes (features, behavior, data)
 - **Why** (business reason — this shapes technical decisions)
 - **Who** is affected (users, admins, API consumers)
 - **Constraints** (budget, timeline, backward compatibility, data migration)
 
-**Keep it to 2-3 questions max.** Don't interrogate — get enough to proceed, then let research fill the gaps. If uncertain about a technical detail, make the decision yourself (you're the CTO) and note it in the plan for user review.
+If uncertain about a technical detail, make the decision yourself (you're the CTO) and note it in the plan for user review.
 
 ### Phase 2: CONTEXT — Understand the Current State
 
@@ -380,50 +411,99 @@ This prevents building features in isolation but forgetting to connect them ever
 - Conventions: from CLAUDE.md Project Conventions
 - Past lessons: from AUDIT.md Patterns & Lessons
 
-#### 5l. Plan Self-Verification
+#### 5l. Plan Self-Review (automated completeness check before user sees it)
 
-Before presenting, verify internally:
-- Does every acceptance criterion have a corresponding executable spec test?
-- Does every feature appear in the touchpoint map?
-- Does the build order respect dependencies?
-- Are all impacted existing features accounted for?
-- Do the conventions from CLAUDE.md apply correctly?
-- Does AUDIT.md have any relevant warnings?
+Before presenting ANY section to the user, run this self-review:
 
-**Present to user:**
+1. **Placeholder scan:** Any "TBD", "TODO", incomplete sections, vague requirements like "handle errors appropriately"? Fix them with concrete specifics.
+2. **Internal consistency:** Do any sub-phases contradict each other? Does the data model match the API design? Does auth design match the route protection?
+3. **Scope check:** Is this focused enough for a single build cycle, or does it need decomposition into sub-projects?
+4. **Ambiguity check:** Could any requirement be interpreted two different ways? Pick one and make it explicit.
+5. **YAGNI check:** Did you add features the user didn't ask for? Remove them unless they're security/auth/error-handling essentials.
+6. **Spec coverage:** Does every acceptance criterion have a corresponding executable spec test in the test strategy?
+7. **Touchpoint completeness:** Does every feature appear in the cross-cutting concerns map?
+8. **Convention compliance:** Do the conventions from CLAUDE.md apply correctly?
+9. **Lesson check:** Does AUDIT.md Patterns & Lessons have any relevant warnings?
 
+Fix any issues inline. Don't present known gaps to the user.
+
+#### 5m. Section-by-Section Design Approval (incremental, not dump-all-at-once)
+
+**Do NOT present the entire architecture blueprint in one message.** Present each major section, get approval, then move to the next. This catches misunderstandings early before they compound.
+
+**Present in this order, one section per message:**
+
+**Section 1: System Architecture (5c)**
 ```
-━━━ Architecture Blueprint ━━━
+━━━ Architecture: System Design ━━━
 
-Scope: [what's being built — 1-2 sentences]
-Approach: [chosen approach]
-Scale: [N] features, [N] files new, [N] files modified, [N] models, [N] endpoints
-Tests: [N] spec tests, [N] behavioral, [N] property-based, [N] integration
-Milestones: [N] (if multi-feature)
+Components: [list with 1-line purpose each]
+Data flow: [how data moves through the system]
+Integrations: [external services]
+
+[Mermaid diagram pushed to whiteboard if running]
+```
+```
+AskUserQuestion(
+  question: "System architecture — does this structure make sense?",
+  options: [
+    "Looks right, continue to data models",
+    "Change something — [describe]",
+    "Chat about this"
+  ]
+)
+```
+
+**Section 2: Data Models + API Design (5d + 5e)**
+```
+━━━ Architecture: Data & API ━━━
+
+Models: [table with fields, types, relationships]
+Endpoints: [routes with auth, request/response shapes]
+Migrations: [what changes in the database]
+```
+Ask for approval. Wait.
+
+**Section 3: Auth + Error Handling + Security (5f + 5g + 5k)**
+```
+━━━ Architecture: Auth & Safety ━━━
+
+Auth model: [provider, protected routes, authorization matrix]
+Error strategy: [format, propagation, tracking]
+Security risks: [attack surface, mitigations]
+```
+Ask for approval. Wait.
+
+**Section 4: Build Plan + Tests (5i + 5j + 5h)**
+```
+━━━ Architecture: Execution Plan ━━━
+
+Test strategy: [N] spec tests, [N] behavioral, [N] property-based
+Build order: Wave 1 → Wave 2 → ...
+Cross-cutting: [touchpoint map summary]
+```
+Ask for approval. Wait.
+
+**After all sections approved, present the summary:**
+```
+━━━ Architecture Blueprint Complete ━━━
+
+Scope: [1-2 sentences]
+Scale: [N] features, [N] files new, [N] modified, [N] models, [N] endpoints
+Tests: [N] total planned
 Waves: [N] parallel execution waves
 
-Architecture: [1-sentence summary — e.g., "Next.js app router + Supabase RLS + Stripe webhooks"]
-
-Build order:
-  Wave 1: [features — why parallel]
-  Wave 2: [features — depends on Wave 1]
-  ...
-
-Risk: [top concern and mitigation]
-Tools: [what we're using — Stripe MCP, Context7, etc.]
-
 Full plan saved to .stp/docs/PLAN.md
+All sections approved. Ready to build.
 ```
 
 ```
 AskUserQuestion(
-  question: "Architecture blueprint ready. [N] features across [N] waves. Full plan saved to .stp/docs/PLAN.md. Proceed to build?",
+  question: "All architecture sections approved. Proceed to build?",
   options: [
-    "(Recommended) Approved — start building",
-    "Modify — I want to adjust [something]",
-    "Review full plan — open .stp/docs/PLAN.md",
+    "(Recommended) Start building — launch Phase 6",
+    "Review full plan in .stp/docs/PLAN.md first",
     "Save for later — I'll run /stp:work-quick when ready",
-    "Discard — changed my mind",
     "Chat about this"
   ]
 )
