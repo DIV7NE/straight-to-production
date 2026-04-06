@@ -11,6 +11,56 @@ All STP command output MUST use these templates for a consistent, polished CLI e
 | Dimmed teach | `┊` | Subtle: teach moments, context notes |
 | Symbols | `✓ ✗ ⚠ ★ ► ◆` | Status: success, failure, warning, milestone, next, key point |
 
+## Color Palette (ANSI — professional, not garish)
+
+Output ALL formatted blocks via `echo -e` through the Bash tool to render colors. This is MANDATORY — monochrome box-drawing is not enough.
+
+| Element | ANSI Code | Color | Use for |
+|---------|-----------|-------|---------|
+| Borders (double-line) | `\033[36m` | Cyan | ╔═╗║╚═╝ on major event boxes |
+| Borders (single-line) | `\033[2;36m` | Dim cyan | ┌─┐│└─┘ on info boxes |
+| STP brand + command name | `\033[1;36m` | Bold cyan | "STP ►" and command name in banners |
+| Titles / key values | `\033[1;37m` | Bold white | Feature names, project names, headings inside boxes |
+| Success | `\033[32m` | Green | ✓ symbols, "PASS", "COMPLETE" |
+| Error | `\033[31m` | Red | ✗ symbols, "FAIL", "BLOCK" |
+| Warning | `\033[33m` | Yellow | ⚠ symbols, "PARTIAL", "WARN" |
+| Milestone star | `\033[1;33m` | Bold yellow | ★ symbol |
+| Next step arrow | `\033[34m` | Blue | ► symbol and command text |
+| Teach moment | `\033[2;35m` | Dim magenta | ┊ prefix and teach text |
+| Labels (left column) | `\033[37m` | White | Key names in key-value pairs |
+| Values (right column) | `\033[0m` | Default | Values after labels |
+| Reset | `\033[0m` | — | After every colored segment |
+
+### How to Render
+
+Use `echo -e` via the Bash tool for ALL formatted output blocks. Build the string with embedded ANSI codes:
+
+```bash
+echo -e "\033[36m╔═══════════════════════════════════════════════════════╗\033[0m"
+echo -e "\033[36m║\033[0m  \033[1;36mSTP ► WORK-QUICK\033[0m                                    \033[36m║\033[0m"
+echo -e "\033[36m║\033[0m  \033[2m\"Just do it, skip the ceremony.\"\033[0m                     \033[36m║\033[0m"
+echo -e "\033[36m╚═══════════════════════════════════════════════════════╝\033[0m"
+```
+
+For single-line info boxes:
+```bash
+echo -e "\033[2;36m┌─── \033[0;37mImpact Scan\033[2;36m ──────────────────────────────────────┐\033[0m"
+echo -e "\033[2;36m│\033[0m  \033[37mFiles affected\033[0m     7                                 \033[2;36m│\033[0m"
+echo -e "\033[2;36m│\033[0m  \033[37mModels\033[0m             \033[32mno\033[0m                                \033[2;36m│\033[0m"
+echo -e "\033[2;36m│\033[0m  \033[37mAuth/security\033[0m      \033[31myes (middleware.ts)\033[0m               \033[2;36m│\033[0m"
+echo -e "\033[2;36m└──────────────────────────────────────────────────────┘\033[0m"
+```
+
+For success symbols: `\033[32m✓\033[0m` (green check)
+For error symbols: `\033[31m✗\033[0m` (red cross)
+For warnings: `\033[33m⚠\033[0m` (yellow warning)
+For next steps: `\033[34m► Next:\033[0m /stp:work-quick [feature]`
+For teach moments: `\033[2;35m  ┊ Explanation text here\033[0m`
+
+### Fallback
+
+If `echo -e` is not available or output must be inline text (not via Bash), fall back to the monochrome box-drawing templates below. The structure is the same — just without color.
+
 ## Templates
 
 ### 1. Command Banner (EVERY command start)

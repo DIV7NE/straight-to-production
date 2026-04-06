@@ -145,12 +145,13 @@ This applies to ALL STP commands and agents. The executor agents, QA agent, and 
 <!-- STP:stp-output-format:start -->
 ## CLI Output Formatting (ENFORCED)
 ALL STP command output MUST use the visual templates in `.stp/references/cli-output-format.md`. Read it before displaying any status, progress, or completion information. Key rules:
-- Every `/stp:` command starts with a **Command Banner** (╔═╗ double-line box with command name + tagline)
-- Major events (feature complete, milestone, bug fixed) use **double-line boxes** (╔═╗)
-- Evidence/data (scans, reports, QA) use **single-line boxes** (┌─┐)
-- Teach moments use **dimmed prefix** (┊) — subtle, never outshine actual output
-- Status symbols: ✓ success, ✗ failure, ⚠ warning, ★ milestone, ► next step
-- Next steps always use `► Next: /stp:[command]` format
+- **Output formatted blocks via `echo -e` (Bash tool)** to render ANSI colors — monochrome is NOT acceptable
+- Every `/stp:` command starts with a **Command Banner** (╔═╗ cyan double-line box with command name + tagline)
+- Major events (feature complete, milestone, bug fixed) use **cyan double-line boxes** (╔═╗)
+- Evidence/data (scans, reports, QA) use **dim cyan single-line boxes** (┌─┐)
+- Teach moments use **dim magenta prefix** (┊) — subtle, never outshine actual output
+- Color palette: cyan borders, bold white titles, green ✓, red ✗, yellow ⚠, bold yellow ★, blue ► next steps
+- Always `\033[0m` reset after every colored segment
 <!-- STP:stp-output-format:end -->
 
 ## Directory Map (where everything lives, when to read it)
