@@ -33,9 +33,14 @@ TaskCreate("Step 7: Remediation plan → .stp/docs/PLAN.md")
 ```bash
 # Plugin check
 [ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ] && echo "ui-ux-pro-max: installed" || echo "ui-ux-pro-max: MISSING"
+
+# Statusline check
+[ -f "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stp-statusline.js" ] && echo "statusline: available" || echo "statusline: MISSING"
 ```
 
 If `ui-ux-pro-max: MISSING` → install automatically: `npm i -g uipro-cli && uipro init --ai claude`. This is a required companion plugin — do NOT skip.
+
+If `statusline: MISSING` → warn: "STP statusline script not found. The status bar won't show project version, active feature, or context usage. This usually means the plugin installation is incomplete. Try `/stp:upgrade` or reinstall the plugin."
 
 **MCP server check:** Attempt a Context7 `resolve-library-id` call and a Tavily `tavily_search` call. If either fails, prompt the user to install:
 - Context7: `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest`

@@ -247,15 +247,20 @@ STP hooks are defined in the plugin's `hooks.json` and loaded automatically by C
 
 ```bash
 # Verify hook scripts exist and are executable
-for script in stop-verify.sh post-edit-check.sh pre-compact-save.sh session-restore.sh migrate-layout.sh; do
+for script in stop-verify.sh post-edit-check.sh pre-compact-save.sh session-restore.sh migrate-layout.sh stp-statusline.sh; do
   [ -x "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/$script" ] && echo "$script: OK" || echo "$script: MISSING/NOT EXECUTABLE"
 done
+
+# Verify statusline JS (the actual statusline engine)
+[ -f "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stp-statusline.js" ] && echo "stp-statusline.js: OK" || echo "stp-statusline.js: MISSING"
 ```
 
 If any are missing or not executable, fix:
 ```bash
 chmod +x "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/"*.sh
 ```
+
+If `stp-statusline.js` is MISSING → warn: "STP statusline script not found. The status bar won't display project info. The plugin installation may be incomplete — try reinstalling."
 
 ### Step 7: Reapply Local Patches (if configured)
 
@@ -332,6 +337,7 @@ Synced:
   [✓/─] PRD.md format (structured scenarios / legacy freeform / migrated)
   [✓/─] Layout migration (already organized / migrated)
   [✓/─] Hook scripts (all executable)
+  [✓/✗] Statusline (stp-statusline.js present and working)
   [✓/─] Local patches (reapply reminder shown / none configured)
 
 What's new:
