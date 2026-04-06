@@ -35,6 +35,18 @@ TaskCreate("Phase 6: Execute — TDD build")
 
 Before researching anything, understand the requirements. The user has an idea — it might be vague, specific, or somewhere in between. Your job is to get clarity.
 
+**Check for existing design brief (from /stp:whiteboard):**
+```bash
+[ -f ".stp/state/design-brief.md" ] && echo "design_brief: exists" || echo "design_brief: none"
+```
+
+**If a design brief exists:** The user already brainstormed this on the whiteboard. Read `.stp/state/design-brief.md` — it has the problem, decision, structured requirements (Given/When/Then), approaches considered, constraints, and scope. Tell the user: "Found a design brief from `/stp:whiteboard` — picking up where the brainstorming left off." Skip to Phase 2 (Context) with the brief's requirements as your input. The understanding phase is already done.
+
+**If a research plan exists (from /stp:research):**
+Check `.stp/state/current-feature.md` — if it has research findings + approach + build order, skip to Phase 5 (Plan). Tell the user: "Found a research plan — skipping straight to architecture."
+
+**If neither exists:** proceed with the understanding phase below.
+
 **Scale-adaptive check (evidence-based — not gut feeling):** After understanding the task, run the Impact Scan from CLAUDE.md's Task Routing section:
 ```bash
 # Count files, check for model/migration/auth involvement

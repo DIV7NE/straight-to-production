@@ -50,6 +50,12 @@ Read .stp/docs/PLAN.md for this feature's requirements, test cases, and dependen
 
 If .stp/docs/PLAN.md exists and this feature is listed, use the plan's test cases and dependencies. If .stp/docs/PLAN.md doesn't exist or this feature isn't in it, create the plan inline (but recommend running `/stp:plan` first for complex projects).
 
+**Check for existing design brief (from /stp:whiteboard):**
+```bash
+[ -f ".stp/state/design-brief.md" ] && echo "design_brief: exists" || echo "design_brief: none"
+```
+If a design brief exists: read it — the user already brainstormed the problem, decision, structured requirements, and scope. Use the brief's requirements as context and skip directly to Step 2 (Research). Tell the user: "Found a design brief from `/stp:whiteboard` — using its requirements and jumping to research."
+
 If `.stp/state/current-feature.md` already exists, check if it was created by `/stp:research`:
 
 **If it has research findings + approach + build order (from /stp:research):**

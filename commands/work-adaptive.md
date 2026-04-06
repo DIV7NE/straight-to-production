@@ -21,6 +21,7 @@ Read the user's request. Extract:
 - **Keywords** for the impact scan (domain terms, file names, feature areas)
 
 Read existing context if available:
+- `.stp/state/design-brief.md` — was this brainstormed on the whiteboard? If yes, the understanding phase is already done. Use the brief's requirements and scope to inform the impact scan.
 - `.stp/docs/PRD.md` — is this feature already defined?
 - `.stp/docs/PLAN.md` — is this already planned? Which milestone?
 - `.stp/docs/ARCHITECTURE.md` — what exists in this area?

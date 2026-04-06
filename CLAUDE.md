@@ -89,7 +89,7 @@ AskUserQuestion(
 **Quality + operations:**
 - `/stp:review` — "Grade my work." Separate AI evaluates against 7 criteria
 - `/stp:autopilot` — "Build overnight." Same as /stp:work-full but AI decides everything
-- `/stp:whiteboard` — "I need to think." Explore ideas, compare options, no commitment
+- `/stp:whiteboard` — "I need to think." Explore ideas, compare options → writes structured design brief → build commands pick it up automatically
 
 **Session management:**
 - `/stp:progress` — "Where are we?" Status dashboard — what's done, next, warnings

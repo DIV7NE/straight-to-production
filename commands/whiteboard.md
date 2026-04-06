@@ -165,27 +165,70 @@ AskUserQuestion(
 
 ONE question. Wait.
 
-### Step 5: Capture the Decision
+### Step 5: Write Structured Design Brief
 
-Save the decision to the appropriate place:
+Save the decision as a **structured design brief** — not freeform notes. This is the bridge between whiteboarding and building. `/stp:work-full` and `/stp:work-quick` detect this file and skip their understanding phase.
 
-- **If this feeds into /stp:new-project**: Note it for the PRD. Say: "Got it. When you run `/stp:new-project`, I'll build this into the architecture."
-- **If this feeds into /stp:work-quick**: Save to `.stp/whiteboard-[topic].md` for reference during building. Say: "Decision saved. Reference it with `/stp:work-quick [feature name]`."
-- **If standalone**: Save to `.stp/whiteboard-[topic].md`. Say: "Decision captured in .stp/whiteboard-[topic].md for future reference."
+Write to `.stp/state/design-brief.md`:
 
-### Step 6: Next Step
+```markdown
+# Design Brief: [Topic]
+Created: [DATE] via /stp:whiteboard
 
-Always end with what to do next:
+## Problem
+[What the user wants to solve — 2-3 sentences]
+
+## Decision
+[The chosen approach — what was decided and why]
+
+## Requirements (structured scenarios)
+- Given [precondition], When [action], Then [expected outcome] (SHALL)
+- Given [precondition], When [edge case], Then [graceful behavior] (SHOULD)
+[Convert the whiteboard conclusions into Given/When/Then + RFC 2119 format]
+
+## Approaches Considered
+1. **[Chosen approach]** — [why chosen]
+2. **[Alternative]** — [why not chosen, honest downside of chosen approach]
+
+## Constraints
+- [Any constraints discovered during whiteboarding]
+
+## Open Questions
+- [Anything unresolved that the build phase should investigate]
+
+## Scope
+- **In scope:** [what's being built]
+- **Out of scope:** [what's explicitly deferred]
+
+## Recommended Next Step
+[/stp:work-full or /stp:work-quick — with reasoning]
+```
+
+### Step 6: Self-Review the Brief
+
+Before presenting to the user, review the design brief:
+1. **Placeholder scan:** Any "TBD" or vague requirements? Fix them.
+2. **Ambiguity check:** Could any requirement be interpreted two ways? Make it explicit.
+3. **YAGNI check:** Did you add requirements the user didn't ask for? Remove them.
+4. **Scenario coverage:** Do the Given/When/Then scenarios cover the core decision and its edge cases?
+
+Fix any issues. Then present to the user:
 
 ```
-━━━ Decision captured ━━━
+━━━ Design brief written ━━━
 
 [One-line summary of what was decided]
 
+Saved to .stp/state/design-brief.md
+[N] structured scenarios ready for the build phase.
+
 Next:
-   /stp:new-project [if shaping a new project idea]
-   /stp:plan [if this was about architecture approach]
-   /stp:work-quick [FEATURE] [if this was about a specific feature]
+   /stp:work-full [FEATURE] — recommended for [reason from brief]
+   /stp:work-quick [FEATURE] — if scope is small (≤3 files, no new models)
+   /stp:work-adaptive [FEATURE] — let STP decide the depth
+
+The build command will pick up this design brief automatically —
+no need to re-explain what you want.
 ```
 
 ## Rules
