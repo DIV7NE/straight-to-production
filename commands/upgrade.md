@@ -207,21 +207,13 @@ STP sections refreshed in CLAUDE.md:
 
 #### If project CLAUDE.md has NO STP markers (legacy)
 
-This project was set up before marker-based sections. The ENTIRE file is treated as user content.
+This project was set up before marker-based sections. The ENTIRE file is treated as user content. Handle automatically — no question needed:
 
-```
-AskUserQuestion(
-  question: "Your project CLAUDE.md doesn't have STP section markers. I need to add STP sections (Philosophy, Plugins, Hooks, etc.) to bring it up to date. Your existing content will be fully preserved.",
-  options: [
-    "(Recommended) Add STP sections — wrap them in markers and append after your existing content. Nothing you wrote changes.",
-    "Replace entirely — generate a fresh STP CLAUDE.md. WARNING: your custom content will be lost.",
-    "Skip — don't touch my CLAUDE.md. I'll add STP sections manually.",
-    "Chat about this"
-  ]
-)
-```
+1. Read the existing file (all user content preserved at the top)
+2. Append all STP marker-wrapped sections at the end
+3. Report: "Added STP section markers to CLAUDE.md. Your existing content is preserved above."
 
-If "Add STP sections": read the existing file, append all STP marker-wrapped sections at the end. The user's original content remains untouched at the top.
+This is always safe and reversible — the user's content stays untouched, STP sections go at the bottom with markers for future upgrades.
 
 #### If NO project CLAUDE.md exists
 
