@@ -16,6 +16,8 @@
 #   Gate 4: No hardcoded secrets → BLOCK
 #   Gate 5: Placeholder/mock patterns → WARN
 #   Gate 6: Hollow test detection → WARN (tautological asserts, assertion-free tests)
+#   Gate 9: Schema drift detection → BLOCK (ORM schema changed without migration)
+#   Gate 10: Scope reduction detection → WARN (PRD requirements missing from PLAN)
 # SLOW (seconds):
 #   Gate 7: Type/compile errors → BLOCK
 #   Gate 8: Test failures → BLOCK (skipped if Gate 7 failed)
@@ -193,6 +195,80 @@ if [ -f "$FEATURE_FILE" ]; then
     echo "WARNING: Test files with zero assertions found:" >&2
     echo -e "$ASSERTION_FREE" >&2
     echo "Tests without assertions are not testing anything." >&2
+  fi
+fi
+
+# ── Gate 9: Schema drift detection (ORM schema changed without migration) ──
+if command -v git &>/dev/null && git rev-parse --is-inside-work-tree &>/dev/null 2>&1; then
+  # All uncommitted changes (staged + unstaged) vs last commit
+  CHANGED_FILES=$( { git diff --name-only HEAD 2>/dev/null; git diff --cached --name-only HEAD 2>/dev/null; } | sort -u )
+
+  if [ -n "$CHANGED_FILES" ]; then
+    # Known ORM schema file patterns (specific to avoid matching Zod/form/API schemas)
+    SCHEMA_CHANGED=$(echo "$CHANGED_FILES" | grep -iE \
+      '\.prisma$|\.entity\.(ts|js)$|/models\.py$|schema\.rb$|drizzle/.*schema|db/schema\.(ts|js)$|database/schema\.(ts|js)$' | \
+      grep -v "node_modules" | grep -v ".venv" | grep -v "test" | grep -v "spec" | grep -v "mock" | head -5)
+
+    if [ -n "$SCHEMA_CHANGED" ]; then
+      # Check if migration files also changed
+      MIGRATION_CHANGED=$(echo "$CHANGED_FILES" | grep -iE 'migration|migrate|alembic/versions' | head -5)
+
+      if [ -z "$MIGRATION_CHANGED" ]; then
+        echo "BLOCKED: ORM schema files changed without corresponding migrations:" >&2
+        echo "$SCHEMA_CHANGED" | sed 's/^/  /' >&2
+        echo "Generate migrations before completing. Schema drift causes silent data bugs." >&2
+        HAS_ERRORS=true
+        HAS_TECHNICAL_ERRORS=true
+      fi
+    fi
+  fi
+fi
+
+# ── Gate 10: Scope reduction detection (PRD requirements vs PLAN coverage) ──
+if [ -f "$DOCS_DIR/PRD.md" ] && [ -f "$DOCS_DIR/PLAN.md" ]; then
+  # Count mandatory requirements (SHALL/MUST per RFC 2119)
+  PRD_MUSTS=$(grep -cE '\bSHALL\b|\bMUST\b' "$DOCS_DIR/PRD.md" 2>/dev/null || echo "0")
+
+  # Only check when PRD has enough requirements to be meaningful
+  if [ "$PRD_MUSTS" -gt 2 ]; then
+    COVERED=0
+    UNCOVERED_REQS=""
+
+    while IFS= read -r line; do
+      # Extract key terms (3+ char words, skip stop words and RFC 2119 keywords)
+      TERMS=$(echo "$line" | tr '[:upper:]' '[:lower:]' | \
+        grep -oE '\b[a-z]{3,}\b' | \
+        grep -vE '^(the|and|for|with|that|this|from|shall|must|when|then|given|have|been|will|are|not|any|all|each|can|may|should|system|user|before|after|during)$' | \
+        head -5)
+
+      FOUND=false
+      for term in $TERMS; do
+        if grep -qi "$term" "$DOCS_DIR/PLAN.md" 2>/dev/null; then
+          FOUND=true
+          break
+        fi
+      done
+
+      if [ "$FOUND" = true ]; then
+        COVERED=$((COVERED + 1))
+      else
+        UNCOVERED_REQS="$UNCOVERED_REQS\n  $(echo "$line" | sed 's/^[[:space:]]*//' | head -c 120)"
+      fi
+    done < <(grep -E '\bSHALL\b|\bMUST\b' "$DOCS_DIR/PRD.md" 2>/dev/null)
+
+    COVERAGE_PCT=0
+    if [ "$PRD_MUSTS" -gt 0 ]; then
+      COVERAGE_PCT=$(( (COVERED * 100) / PRD_MUSTS ))
+    fi
+
+    if [ "$COVERAGE_PCT" -lt 70 ]; then
+      echo "WARNING: Possible scope reduction — $COVERED/$PRD_MUSTS PRD requirements (${COVERAGE_PCT}%) found in PLAN.md." >&2
+      if [ -n "$UNCOVERED_REQS" ]; then
+        echo "Potentially dropped:" >&2
+        echo -e "$UNCOVERED_REQS" | head -5 >&2
+      fi
+      echo "Verify PLAN.md covers all mandatory (SHALL/MUST) requirements from PRD.md." >&2
+    fi
   fi
 fi
 

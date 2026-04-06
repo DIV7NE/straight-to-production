@@ -268,7 +268,7 @@ On any new session: read CHANGELOG.md (with spec deltas) for evolution history, 
 ## Statusline
 Node.js statusline (stp-statusline.js) registered in ~/.claude/settings.json globally. Shows: model + effort level, project version, active feature + progress, current milestone, context usage bar with compaction threshold (green/yellow/orange/red).
 
-## Hooks (8 enforcement gates)
+## Hooks (10 enforcement gates)
 1. Unchecked feature items → BLOCK
 2. PLAN.md should exist → WARN
 3. Source files without tests → BLOCK
@@ -277,6 +277,8 @@ Node.js statusline (stp-statusline.js) registered in ~/.claude/settings.json glo
 6. Hollow test detection → WARN (tautological asserts, assertion-free test files)
 7. Type/compile errors → BLOCK
 8. Test failures → BLOCK
+9. Schema drift detection → BLOCK (ORM schema files changed without corresponding migration files — catches Prisma, TypeORM, Django, Rails, Drizzle)
+10. Scope reduction detection → WARN (cross-references PRD.md SHALL/MUST requirements against PLAN.md — warns at <70% keyword coverage with >2 requirements)
 
 ## Research
 All research sources in RESEARCH-SOURCES.md. Key: Anthropic harness blog, Vercel AGENTS.md (100% vs 53%), Phil Schmid "Build to Delete", OX Security AI anti-patterns.
