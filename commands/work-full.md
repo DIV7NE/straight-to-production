@@ -1,5 +1,5 @@
 ---
-description: "Full development cycle — zero compromise." Complete cycle from idea to shipped code. Cycle: understand → tools → research → UI/UX design system → full architecture blueprint (12 sub-phases: domain research, technical research, system architecture, data models, API design, auth design, error strategy, cross-cutting concerns, test strategy, wave execution, risk mitigation, self-verification) → TDD build with executor agents → QA → Critic evaluation → version bump. Use for features touching 3+ files, new models, auth/payments, or anything where you want the best possible outcome.
+description: "Full development cycle — zero compromise." Complete cycle from idea to shipped code. Cycle: understand → tools → research → UI/UX design system → full architecture blueprint (13 sub-phases with section-by-section approval) → TDD build with executor agents → QA → Critic evaluation → version bump. Use for features touching 3+ files, new models, auth/payments, or anything where you want the best possible outcome.
 argument-hint: What you want done (e.g., "update stripe payments and pricing", "add real-time notifications", "rebuild the entire auth system")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---

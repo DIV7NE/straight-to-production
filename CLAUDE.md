@@ -81,7 +81,7 @@ AskUserQuestion(
 
 **Doing work:**
 - `/stp:work-adaptive` — "Let STP decide." Impact scan → auto-classifies → routes to quick or full mode. Use when unsure about scope.
-- `/stp:work-full` — "Full cycle, zero compromise." Understand → tools → research → architecture blueprint (12 sub-phases) → TDD build → QA → Critic. For 3+ files, new models, auth/payments.
+- `/stp:work-full` — "Full cycle, zero compromise." Understand → tools → research → architecture blueprint (13 sub-phases with section-by-section approval) → TDD build → QA → Critic. For 3+ files, new models, auth/payments.
 - `/stp:work-quick` — "Just do it." Context → research → build → QA → ship. For small tasks (≤3 files, no new models). Hooks still fire.
 - `/stp:research` — "I need to think first." Investigate approaches, create plan. No code written.
 - `/stp:debug` — "Something is broken." Root cause analysis → evidence-based fix → defense-in-depth
