@@ -83,12 +83,17 @@ TaskCreate("Step 7: Observation summary → .stp/docs/PLAN.md (no action items)"
 # Plugin check (read-only)
 [ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ] && echo "ui-ux-pro-max: installed" || echo "ui-ux-pro-max: MISSING"
 
+# Vercel Agent Browser check (read-only — CLI + Claude Code skill)
+command -v agent-browser >/dev/null 2>&1 && echo "agent-browser-cli: installed" || echo "agent-browser-cli: MISSING"
+[ -f ".claude/skills/agent-browser/SKILL.md" ] && echo "agent-browser-skill: installed" || echo "agent-browser-skill: MISSING"
+
 # Statusline check (read-only)
 [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stp-statusline.js" ] && echo "statusline: available" || echo "statusline: MISSING"
 ```
 
 **Handling missing companions:**
 - `ui-ux-pro-max: MISSING` → record in AUDIT.md under `## Onboarding Environment Notes`. Tell the user (in the final handoff) that they can install it later with `npm i -g uipro-cli && uipro init --ai claude`. **Do NOT auto-install.** Onboarding does not need it (no UI is being built — only mapped).
+- `agent-browser-cli: MISSING` OR `agent-browser-skill: MISSING` → record in AUDIT.md. Tell the user (in the final handoff) they can install it later with the 3-step sequence: `npm install -g agent-browser && agent-browser install && npx skills add vercel-labs/agent-browser`. **Do NOT auto-install.** Onboarding doesn't run QA — the absence is fine for read-only exploration. Required for `/stp:work-full`, `/stp:debug`, and `/stp:review` afterward.
 - `statusline: MISSING` → record in AUDIT.md. Tell user (in handoff) they can fix via `/stp:upgrade` later. Do NOT touch the install.
 
 **MCP server check:** Attempt a Context7 `resolve-library-id` call and a Tavily `tavily_search` call to see if they respond. If either fails, record the absence in AUDIT.md under `## Onboarding Environment Notes` and continue without them. Tell the user (in the final handoff) they can install later with:

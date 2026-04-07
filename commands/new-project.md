@@ -35,6 +35,10 @@ ls *.json 2>/dev/null | head -3
 # Required companion plugins
 [ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ] && echo "ui-ux-pro-max: installed" || echo "ui-ux-pro-max: MISSING"
 
+# Vercel Agent Browser (CLI + Claude Code skill — required for QA agent and /stp:review)
+command -v agent-browser >/dev/null 2>&1 && echo "agent-browser: installed ($(agent-browser --version 2>/dev/null || echo unknown))" || echo "agent-browser: MISSING"
+[ -f ".claude/skills/agent-browser/SKILL.md" ] && echo "agent-browser-skill: installed" || echo "agent-browser-skill: MISSING"
+
 # Statusline
 [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stp-statusline.js" ] && echo "statusline: available" || echo "statusline: MISSING"
 
@@ -50,6 +54,30 @@ echo "mcp-check: Context7 and Tavily availability will be verified by attempting
 - If existing code files detected → "This folder has existing code. Did you mean `/stp:onboard-existing`?"
 - Note which runtimes are available — this informs stack recommendations (don't recommend Python if only Node is installed)
 - If `ui-ux-pro-max: MISSING` → install automatically: `npm i -g uipro-cli && uipro init --ai claude`. This is a required companion plugin — do NOT skip.
+- **If `agent-browser: MISSING` OR `agent-browser-skill: MISSING`** → ask the user to install Vercel Agent Browser. STP's QA agent and `/stp:review` need browser access to test the running app like a real user. Without it, QA falls back to API/curl-only testing — significantly weaker for any project with UI.
+  ```
+  AskUserQuestion(
+    question: "Vercel Agent Browser is not installed. STP's QA agent and /stp:review use it to test your app like a real user (click buttons, fill forms, verify rendered state, take screenshots). Without it, QA is limited to API-level testing. Install now?",
+    options: [
+      "(Recommended) Yes — install agent-browser CLI + skill (npm + Chrome for Testing download)",
+      "Skip — I'll install later (QA quality will be reduced for UI work)",
+      "Already installed differently — let me verify",
+      "Chat about this"
+    ]
+  )
+  ```
+  If the user picks "Yes", run the install in 3 steps and report each result:
+  ```bash
+  # Step 1: install the CLI globally
+  npm install -g agent-browser
+
+  # Step 2: download Chrome for Testing (required for headless browsing)
+  agent-browser install
+
+  # Step 3: install the Claude Code skill (teaches the snapshot-ref workflow)
+  npx skills add vercel-labs/agent-browser
+  ```
+  After install: re-run the verification (`command -v agent-browser` + `[ -f ".claude/skills/agent-browser/SKILL.md" ]`) and confirm both are now present. If either step fails (network, permissions, missing Rust toolchain on a from-source path), surface the error verbatim and tell the user to follow the manual steps at https://github.com/vercel-labs/agent-browser. Do NOT silently continue with a half-installed Agent Browser — that produces confusing failures during QA later.
 - If `statusline: MISSING` → warn: "STP statusline script not found. The status bar won't show project version, active feature, or context usage. This usually means the plugin installation is incomplete. Try `/stp:upgrade` or reinstall the plugin."
 - **MCP server check:** Attempt a Context7 `resolve-library-id` call and a Tavily `tavily_search` call. If either fails:
   ```
