@@ -29,7 +29,7 @@ echo "Copied $REF_COUNT reference files to .stp/references/"
 if [ -f "$PROJECT_ROOT/.gitignore" ]; then
   if ! grep -q "^\.stp/$" "$PROJECT_ROOT/.gitignore" 2>/dev/null; then
     echo "" >> "$PROJECT_ROOT/.gitignore"
-    echo "# STP — Ship To Production standards references (plugin manages these)" >> "$PROJECT_ROOT/.gitignore"
+    echo "# STP — Straight To Production standards references (plugin manages these)" >> "$PROJECT_ROOT/.gitignore"
     echo ".stp/" >> "$PROJECT_ROOT/.gitignore"
     echo "Added .stp/ to .gitignore"
   fi

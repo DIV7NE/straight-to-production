@@ -1,4 +1,4 @@
-# STP — Ship To Production
+# STP — Straight To Production
 
 **Your CTO in a plugin.**
 

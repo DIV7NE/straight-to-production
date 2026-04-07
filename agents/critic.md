@@ -304,7 +304,7 @@ For features involving these categories, check whether property-based tests exis
 ### 10. Report Format
 
 ```
-## STP — Ship To Production Evaluation Report
+## STP — Straight To Production Evaluation Report
 
 ### Goal Restatement
 [What was supposed to be built — in your own words, not copied from PRD]
