@@ -189,6 +189,7 @@ STP uses HTML comment markers to delimit its managed sections. Every STP section
 | Marker ID | Section |
 |-----------|---------|
 | `stp-header` | Title + version + architecture description |
+| `stp-confirmation-gate` | Pre-Work Confirmation Gate — MANDATORY AskUserQuestion before any STP work |
 | `stp-philosophy` | Philosophy (NON-NEGOTIABLE) — production-only rules |
 | `stp-plugins` | Required Companion Plugins table |
 | `stp-commands` | Commands list |

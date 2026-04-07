@@ -147,8 +147,9 @@ AskUserQuestion(
 When writing STP sections to ANY CLAUDE.md, wrap each STP-managed section in HTML comment markers so `/stp:upgrade` can find and refresh them without touching user content:
 
 ```
-<!-- STP v0.2.0 -->
+<!-- STP v0.3.0 -->
 <!-- STP:stp-header:start -->     ...header/arch...     <!-- STP:stp-header:end -->
+<!-- STP:stp-confirmation-gate:start --> ...pre-work confirmation gate (mandatory AskUserQuestion)... <!-- STP:stp-confirmation-gate:end -->
 <!-- STP:stp-philosophy:start --> ...philosophy...       <!-- STP:stp-philosophy:end -->
 <!-- STP:stp-plugins:start -->    ...companion plugins.. <!-- STP:stp-plugins:end -->
 <!-- STP:stp-rules:start -->      ...key rules...        <!-- STP:stp-rules:end -->

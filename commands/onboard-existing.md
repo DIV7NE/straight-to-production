@@ -156,12 +156,21 @@ AskUserQuestion(
 When writing STP sections to ANY CLAUDE.md, wrap each STP-managed section in HTML comment markers so `/stp:upgrade` can find and refresh them without touching user content:
 
 ```
-<!-- STP v0.2.0 -->
+<!-- STP v0.3.0 -->
 <!-- STP:stp-header:start -->
 # Project Name — description
 ## Architecture
 ...
 <!-- STP:stp-header:end -->
+
+<!-- STP:stp-confirmation-gate:start -->
+## Pre-Work Confirmation Gate (MANDATORY)
+Before ANY STP command writes code, modifies files, or runs destructive
+actions, Claude MUST present the plan and call AskUserQuestion with a
+"(Recommended)" option listed FIRST. Exceptions: user said "just do it"
+in session, answered a prior AskUserQuestion covering this work, the
+action is read-only, or `/stp:autopilot` is active.
+<!-- STP:stp-confirmation-gate:end -->
 
 <!-- STP:stp-philosophy:start -->
 ## Philosophy (NON-NEGOTIABLE)

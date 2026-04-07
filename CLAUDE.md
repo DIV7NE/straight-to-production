@@ -1,7 +1,7 @@
 # STP — Straight To Production — Claude Code Plugin
 
 ## What This Is
-A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 15 commands, 3 agents, 26 reference files, 22 output templates, visual whiteboard, wave-based parallel building.
+A Claude Code plugin (v0.3.0) that turns Opus into your CTO. 15 commands, 3 agents, 26 reference files, 22 output templates, visual whiteboard, wave-based parallel building.
 
 ## Debug Mandate (OVERRIDES superpowers — read this before debugging anything)
 
@@ -22,6 +22,31 @@ This is not negotiable. Per superpowers' own priority rules, **user instructions
 
 When triggered: announce "Following STP debug process (reading .claude/commands/debug.md)" and execute the phases in that file. Do NOT call the Skill tool for systematic-debugging — that skill is forbidden in STP projects.
 </EXTREMELY-IMPORTANT>
+
+<!-- STP:stp-confirmation-gate:start -->
+## Pre-Work Confirmation Gate (MANDATORY — overrides default behavior)
+
+<EXTREMELY-IMPORTANT>
+Before ANY STP command writes code, modifies files, runs destructive actions, or takes any action beyond read-only exploration — Claude MUST:
+
+1. **Present the plan** — state concisely what will be done and why
+2. **Call AskUserQuestion** with structured options covering the plan + sensible alternatives
+3. **Mark the recommended option `(Recommended)`** and place it FIRST in the options list
+4. **Wait for user approval** before executing anything
+
+**Applies to every `/stp:*` command.** No silent work. No "I'll just start with X." Even trivial-looking edits get a confirmation prompt unless the user has pre-authorized it in the current session.
+
+**Exception clause — the ONLY cases where confirmation can be skipped:**
+- The user explicitly said "just do it", "go", "proceed", "yes to all", "no need to ask", or equivalent in the current session
+- The user's current message itself IS the confirmation (e.g., they answered an earlier AskUserQuestion and the work falls within that approved scope)
+- The action is strictly read-only (Read, Glob, Grep, LS, ctx searches) — reading never needs confirmation
+- The user is inside `/stp:autopilot`, where unattended execution is the explicit goal
+
+**This rule OVERRIDES** any STP command's internal instruction to "start working immediately" or "execute the plan." If a command says "begin implementation," pause and confirm the implementation approach first. Commands describe *what* to do — this gate controls *when*.
+
+**Why this exists:** Users have been surprised by work they didn't approve. The cost of one extra confirmation prompt is seconds. The cost of unwanted file edits, deleted content, or wasted build cycles is hours. Confirmation gates beat rollbacks. Per STP philosophy: constraints beat prompts.
+</EXTREMELY-IMPORTANT>
+<!-- STP:stp-confirmation-gate:end -->
 
 ## Architecture
 - **Opus** = CTO (plans, researches, reviews, merges, teaches). Builds foundation work directly (DB, auth, config).
