@@ -48,6 +48,8 @@ TaskCreate("Version bump + docs update")
 
 Read .stp/docs/PLAN.md for this feature's requirements, test cases, and dependencies. Read CLAUDE.md for stack patterns AND the `## Project Conventions` section — these are the project-specific rules that MUST be followed. Every convention was earned through a decision or a bug. Violating them means repeating history.
 
+**Read .stp/docs/PRD.md `## System Constraints` — MANDATORY enforcement gate.** Every constraint in this section is a SHALL/MUST rule the system must follow forever. They were added by previous features and bug fixes via delta merge-back. Examples: "system MUST scope all multi-tenant queries by `organizationId`", "uploads MUST validate MIME type server-side". Before writing any code, list every constraint that applies to this feature's surface area. Each one becomes a non-negotiable check during build AND a verification point during QA. If a constraint conflicts with the new feature, surface it to the user with `AskUserQuestion` — do not silently violate it. Constraints are how STP prevents repeating past bugs.
+
 If .stp/docs/PLAN.md exists and this feature is listed, use the plan's test cases and dependencies. If .stp/docs/PLAN.md doesn't exist or this feature isn't in it, create the plan inline (but recommend running `/stp:plan` first for complex projects).
 
 **Check for existing design brief (from /stp:whiteboard):**

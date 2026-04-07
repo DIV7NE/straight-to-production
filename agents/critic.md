@@ -207,6 +207,22 @@ Before any subjective review, verify the code against its external specification
 1. Do the implemented tests match the planned test cases?
 2. Are there planned test cases that were never implemented?
 
+**System Constraint Compliance (MANDATORY — separate from spec verification):**
+
+Read `.stp/docs/PRD.md` `## System Constraints` section. This section accumulates SHALL/MUST rules from past features and bug fixes via delta merge-back. Every constraint listed there MUST be obeyed by the new code — regardless of whether it was introduced in this feature or inherited from prior work.
+
+For each constraint that touches the affected area:
+1. Identify the rule (e.g., "All multi-tenant queries SHALL be scoped by `organizationId`")
+2. Find the new/changed code in the affected area
+3. Verify the new code complies with the constraint (read the actual implementation, not the commit message)
+4. Verify there is a test that would fail if the constraint were violated (otherwise the compliance is unverified)
+5. Report:
+   - ✓ Constraint enforced + test exists
+   - ⚠ Constraint enforced but no test (downgrade to OBSERVATION — not blocking, but flagged)
+   - ✗ Constraint NOT enforced in new code → FAIL: "Pre-existing constraint violated by new code"
+
+Constraint violations are CRITICAL findings — they mean a previously-fixed bug class is being reintroduced. Past pain becomes future pain when constraints are recorded but not enforced.
+
 **Report as:**
 ```
 SPECIFICATION VERIFICATION:

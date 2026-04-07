@@ -71,6 +71,8 @@ This fast-path can resolve known issues in seconds instead of minutes.
 | Source | What you're looking for | How |
 |--------|------------------------|-----|
 | `.stp/docs/ARCHITECTURE.md` | Dependency map for the affected area — what connects to what | Read the Feature Dependency Map section |
+| `.stp/docs/PRD.md` `## System Constraints` | **MANDATORY enforcement gate.** SHALL/MUST rules from past features and bug fixes. The bug may be caused by violating one of these — and your fix must not introduce a new violation. List every constraint that touches the affected area. | Search the section for keywords from the affected route/feature |
+| `CLAUDE.md` `## Project Conventions` | Project-specific rules earned through past decisions and bugs. The bug may be caused by violating one of these. | Search for conventions touching the affected area |
 | `.stp/docs/AUDIT.md` | Known issues — is this already tracked? Related errors? | Search for the affected route/component |
 | `.stp/docs/CONTEXT.md` | Quick reference — stack, key patterns, build commands | Skim for relevant sections |
 | Error message / stack trace | Exact failure point — file, line, function | Read what the user provided or what Sentry shows |
@@ -276,9 +278,15 @@ await waitFor(() => expect(screen.getByText('Loaded')).toBeInTheDocument());
 3. **Pattern siblings fixed** — same bug can't exist elsewhere
 4. **Defense layers in place** — bug can't recur
 
-5. **Update .stp/docs/AUDIT.md:**
+### Phase 4b: DOCUMENT (MANDATORY — never skip)
+
+A bug fix changes shipped behavior. It MUST flow through STP's full documentation cycle just like a feature build, because (1) future commands read these files to make decisions, (2) the spec delta records what the bug exposed about the system's true assumptions, and (3) README/CONTEXT must always reflect what's actually shipped. Do not skip any of these — if a step has nothing to update, write "no change" and move on.
+
+5. **Bump patch version.** Read `VERSION`, increment patch (e.g. `0.3.4` → `0.3.5`), write back. A bug fix is a release.
+
+6. **Update .stp/docs/AUDIT.md** with the bug fix entry:
    ```markdown
-   ## Bug Fix — [DATE] — [Bug Title]
+   ## Bug Fix — [DATE] — [Bug Title]  (v[NEW_VERSION])
    
    ### Symptom
    [What the user reported]
@@ -299,7 +307,7 @@ await waitFor(() => expect(screen.getByText('Loaded')).toBeInTheDocument());
    [Issue resolved / marked — if applicable]
    ```
 
-6. **Extract the generalizable lesson** and append to AUDIT.md's Patterns & Lessons section:
+7. **Extract the generalizable lesson** and append to AUDIT.md's Patterns & Lessons section:
    ```markdown
    ## Patterns & Lessons
    
@@ -318,29 +326,78 @@ await waitFor(() => expect(screen.getByText('Loaded')).toBeInTheDocument());
 
    These lessons are the REAL value. The specific fix matters today; the lesson matters forever.
 
-7. **Capture convention in CLAUDE.md** if this bug reveals a project-specific rule.
-
-   If the root cause was something a developer could easily repeat, add it to `## Project Conventions`:
+8. **CHANGELOG entry** in `.stp/docs/CHANGELOG.md` (newest first). A bug fix gets its own versioned entry with a spec delta:
    ```markdown
-   - **[Rule name]**: [What to always/never do]
-     - Why: Bug — [brief root cause]
-     - Applies when: [When to think of this]
-     - Added: [DATE] via /stp:debug
+   ## [v[NEW_VERSION]] — [DATE] — fix: [short title]
+   
+   ### Summary
+   [1-2 sentences: what was broken, what was fixed]
+   
+   ### Root Cause
+   [1 line — the actual defect, not the symptom]
+   
+   ### Files Changed
+   - [file:line — what changed]
+   
+   ### Tests Added
+   - [Reproduction test — file]
+   - [Sibling tests — files]
+   
+   ### Spec Delta
+   - **Added:** [defense layers, validation, new constraints, new tests, new hooks]
+   - **Changed:** [assumptions this bug invalidated — e.g., "we assumed server actions inherit org context — they don't"]
+   - **Constraints introduced:** [new SHALL/MUST rules the system must follow forever]
+   - **Dependencies created:** [if defense layer added a new module/util/middleware]
+   
+   ### Stats
+   - Tests: [N] new · [N] total · all passing
+   - Type check: clean
    ```
 
-   Example: "Always scope Prisma queries by `organizationId` in server actions — server actions don't inherit auth middleware context. Applies when: writing any server action that queries org-specific data."
+9. **Delta merge-back (MANDATORY).** The bug fix's spec delta is NOT just history — it must propagate into the canonical docs:
+   - **Added** items → ARCHITECTURE.md (new validation, middleware, defense modules go in the relevant section)
+   - **Changed** items → ARCHITECTURE.md (replace outdated assumptions — e.g., update the auth flow diagram if the bug exposed a hidden gap)
+   - **Constraints introduced** → PRD.md `## System Constraints` section (e.g., "The system MUST scope all multi-tenant queries by `organizationId` — RFC 2119 SHALL")
+   - **Dependencies created** → ARCHITECTURE.md Feature Dependency Map
+   - **If the bug exposed a missing acceptance criterion** → add it as a new Given/When/Then scenario in the relevant PRD.md SPEC section. Example: `Given a user from org A, When they query their data, Then the system SHALL return ONLY records belonging to org A` — bugs often reveal specs that should have been written from day one.
 
-   This is how bugs become RULES. The next developer (or AI session) reads CLAUDE.md and avoids the mistake from day one.
+10. **Capture convention in CLAUDE.md** if this bug reveals a project-specific rule. Append to `## Project Conventions`:
+    ```markdown
+    - **[Rule name]**: [What to always/never do]
+      - Why: Bug — [brief root cause] (v[NEW_VERSION])
+      - Applies when: [When to think of this]
+      - Added: [DATE] via /stp:debug
+    ```
 
-8. **Update .stp/docs/ARCHITECTURE.md** if the fix changed structure (new validation layer, new middleware, changed data flow).
+    Example: "Always scope Prisma queries by `organizationId` in server actions — server actions don't inherit auth middleware context. Applies when: writing any server action that queries org-specific data."
 
-9. **Commit:** `fix: [specific description] — root cause: [1-line explanation]`
+    This is how bugs become RULES. The next developer (or AI session) reads CLAUDE.md and avoids the mistake from day one.
+
+11. **Update .stp/docs/ARCHITECTURE.md** for any structural change beyond what the delta merge-back already handled (new validation layer, new middleware, changed data flow, new dependency edges in the Feature Dependency Map). If nothing structural changed, write "no change" in your task notes and move on.
+
+12. **Update .stp/docs/CONTEXT.md** — the snapshot of what currently exists:
+    - If a new file was created (defense module, middleware, util) → add it to the file map
+    - If a pattern changed (e.g., "all server actions now require explicit org scoping") → update the patterns section
+    - If new env vars or config were introduced as part of the fix → document them
+    - If something in Known Issues / Tech Debt was fixed → remove it
+    - Keep CONTEXT.md under 150 lines. Replace, don't append.
+
+13. **Update README.md if user-visible behavior, setup, or configuration changed.** Bugs that introduce new env vars, change install steps, alter API contracts, or fix documented behavior require README changes. Then VERIFY the README is accurate (every claim still matches the code). If the bug was internal-only (no user-visible surface), write "README — no change needed (internal fix)" in your task notes.
+
+14. **Update .stp/docs/PLAN.md** if the bug was tracked there:
+    - If the bug appeared as a known issue or remediation task in any milestone → mark it `[x]` with `(fixed v[NEW_VERSION])`
+    - If a new follow-up emerged from the fix (e.g., "audit other places for the same pattern") → add it to the appropriate milestone as a new `[ ]` task
+    - PLAN.md must reflect ALL known issues — fixed or open.
+
+15. **Delete `.stp/state/current-feature.md` and `.stp/state/handoff.md`** if they exist. The debug session is complete; clear the workspace state.
+
+16. **Commit:** `fix: [specific description] (v[NEW_VERSION]) — root cause: [1-line explanation]`
 
 ### Present to user:
 
 ```
 ╔═══════════════════════════════════════════════════════╗
-║  ✓ BUG FIXED                                         ║
+║  ✓ BUG FIXED   v[NEW_VERSION]                        ║
 ║  [Symptom — what they reported]                       ║
 ╠───────────────────────────────────────────────────────╣
 ║                                                       ║
@@ -351,6 +408,17 @@ await waitFor(() => expect(screen.getByText('Loaded')).toBeInTheDocument());
 ║  Siblings     [N found and fixed / none]              ║
 ║  Defense      [What prevents recurrence]              ║
 ║  Tests        [N] new · [N] total · all passing       ║
+║                                                       ║
+║  Docs updated:                                        ║
+║  · VERSION       [old → new]                         ║
+║  · CHANGELOG     [v[NEW_VERSION] entry + spec delta] ║
+║  · AUDIT.md      [bug fix + lesson]                  ║
+║  · CLAUDE.md     [N new conventions / no change]     ║
+║  · ARCHITECTURE  [sections updated / no change]      ║
+║  · CONTEXT.md    [updated / no change]               ║
+║  · PRD.md        [N new constraints / no change]     ║
+║  · PLAN.md       [issue marked fixed / no change]    ║
+║  · README.md     [updated / no change needed]        ║
 ║                                                       ║
 ╚═══════════════════════════════════════════════════════╝
 
@@ -404,3 +472,4 @@ AskUserQuestion(
 - ALWAYS add defense-in-depth. A fix without prevention is a future regression.
 - ALWAYS persist findings to AUDIT.md. The next session should know what was investigated and fixed.
 - ALWAYS teach. The user should understand their codebase better after every debug session.
+- ALWAYS run the full Phase 4b documentation cycle. A bug fix is a release: VERSION bumps, CHANGELOG entry with spec delta, delta merge-back into ARCHITECTURE/PRD, CONTEXT/README/PLAN/CLAUDE.md updates, state file cleanup. Skipping any step leaves the project's documentation lying about its current state — and future commands read those docs as truth. "No change needed" is an acceptable answer for individual steps, but it must be a *deliberate* answer, not silence.

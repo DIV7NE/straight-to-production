@@ -1,14 +1,61 @@
 ---
-description: Onboard an existing project into STP. Fully maps the codebase architecture, persists all findings to disk, verifies accuracy, runs baseline quality assessment, and creates a remediation plan. Use when you have an existing codebase you want STP to manage.
+description: Onboard an existing project into STP. READ-ONLY exploration that maps the codebase architecture, persists all findings to .stp/docs/, verifies accuracy, and produces an observation report. NEVER modifies source code, NEVER fixes anything, NEVER refactors. Use when you have an existing codebase you want STP to understand.
 argument-hint: Optional focus (e.g., "just assess quality" or "only generate docs")
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
 
 > **Recommended effort: `/effort max`** — Full architecture mapping requires maximum thinking depth.
 
-# STP: Onboard Existing Project
+# STP: Onboard Existing Project (READ-ONLY)
 
-You are the CTO taking over an existing project. Your job is to understand EVERYTHING that exists, write it all down, verify what you wrote, assess quality, and create a plan. The user may not know what state their project is in — that's what you're here to find out.
+You are the CTO **observing** an existing project. Your job is to understand EVERYTHING that exists, write it all down to STP's docs, verify what you wrote, and produce a **read-only observation report**. The user may not know what state their project is in — that's what you're here to find out.
+
+## READ-ONLY MANDATE (NON-NEGOTIABLE — read this twice)
+
+<EXTREMELY-IMPORTANT>
+**This command is EXPLORATION ONLY. You MUST NOT modify, fix, refactor, "improve," or "clean up" ANY source code, config, schema, migration, dependency, test, or any file outside of `.stp/`, `CLAUDE.md`, `VERSION`, and (with explicit user permission) `~/.claude/CLAUDE.md`.**
+
+**Forbidden actions during onboarding (no exceptions):**
+- Editing, rewriting, or "fixing" any source file (.ts/.tsx/.js/.jsx/.py/.rs/.go/.rb/.java/.css/.html/etc.)
+- Editing schema files, migrations, lockfiles, package.json, tsconfig.json, env files, or any project config
+- Running formatters, linters with `--fix`, codemods, or auto-migration tools
+- Installing, removing, upgrading, or "auditing-and-fixing" dependencies (`npm audit fix`, `pip install`, etc.)
+- Running build/test commands with side effects (`db:push`, `migrate`, `seed`, `format`, `--write`)
+- Creating ANY file outside the allowlist below
+- Spawning subagents that have Edit/Write/Bash permissions to modify code
+- Suggesting fixes inline as code blocks the user could copy-paste — observations only, never solutions
+
+**Allowlisted writes (the ONLY paths you may write to):**
+- `.stp/**` (any file under .stp — docs, state, references)
+- `CLAUDE.md` (project-level, only with user permission per Step 0)
+- `VERSION` (only if missing)
+- `~/.claude/CLAUDE.md` (global, only with user permission per Step 0)
+- `.gitignore` — APPEND-ONLY, and ONLY indirectly via the `setup-references.sh` script in Step 1, which appends `.stp/` so the references directory isn't committed. You yourself must NEVER directly edit `.gitignore`. If the script's append fails, that's an observation, not a problem to fix manually.
+
+**Allowlisted Bash commands (read-only inspection only):**
+- `mkdir -p .stp/...` (only inside .stp/)
+- `find`, `ls`, `wc`, `cat`, `head`, `tail`, `stat` — read-only
+- `git log`, `git tag`, `git shortlog`, `git status`, `git diff`, `git show` — read-only git
+- `grep`, `rg` — search
+- Test/typecheck commands in **read mode only** (`npm test`, `tsc --noEmit`, `pytest --collect-only` or non-mutating runs). If a test command would mutate state (DB writes, file generation), SKIP it and note the limitation.
+- The setup-references.sh script (only writes into .stp/references/)
+
+**Forbidden Bash commands:**
+- ANY `rm`, `mv`, `cp` outside `.stp/`
+- ANY package manager mutation (`npm install`, `pnpm add`, `pip install`, `cargo add`, etc.)
+- ANY `git add`, `git commit`, `git push`, `git checkout -b`, `git reset`, `git stash` — leave the working tree untouched
+- ANY database command that mutates (`db:push`, `migrate`, `seed`, `psql -c "INSERT..."`)
+- ANY `format`, `--fix`, `--write`, codemod, or auto-migration
+- ANY `chmod`, `chown`, or permission change
+
+**If you find a bug, security issue, or production problem during exploration:**
+1. Document it in `.stp/docs/AUDIT.md` under "Observations" — describe what you saw, where, and the potential impact.
+2. Do NOT fix it.
+3. Do NOT propose a code patch.
+4. The user runs `/stp:debug` or `/stp:work-full` afterward if they want it fixed.
+
+**This mandate overrides any STP philosophy that pushes toward action. During onboarding, the work IS the documentation. The fix-it work happens in separate, explicit follow-up commands chosen by the user.**
+</EXTREMELY-IMPORTANT>
 
 **Critical rule: EVERY finding gets written to disk immediately.** Do NOT accumulate findings in conversation and present them verbally. Persist as you go. If compaction fires mid-onboarding, every completed analysis step is already saved.
 
@@ -17,36 +64,40 @@ You are the CTO taking over an existing project. Your job is to understand EVERY
 ## Task Tracking (MANDATORY)
 
 ```
-TaskCreate("Step 1: Stack + infrastructure discovery")
+TaskCreate("Step 1: Stack + infrastructure discovery (read-only)")
 TaskCreate("Step 2: Full architecture mapping → .stp/docs/ARCHITECTURE.md")
 TaskCreate("Step 3: Production audit (Sentry/Stripe/Vercel) → .stp/docs/AUDIT.md")
-TaskCreate("Step 4: Verify all findings against actual code")
+TaskCreate("Step 4: Verify documented findings against actual code")
 TaskCreate("Step 5: Generate project documents (CONTEXT, PRD, CHANGELOG)")
-TaskCreate("Step 6: Baseline quality assessment (Critic)")
-TaskCreate("Step 7: Remediation plan → .stp/docs/PLAN.md")
+TaskCreate("Step 6: Baseline observation report (Critic in read-only mode)")
+TaskCreate("Step 7: Observation summary → .stp/docs/PLAN.md (no action items)")
 ```
 
 ## Process
 
-### Pre-Step: Required Companion Plugins & MCP Servers (check BEFORE anything else)
+### Pre-Step: Companion Plugins & MCP Servers (DETECT — do not install)
+
+**This step is detection only.** Onboarding is read-only — it does NOT install plugins, MCP servers, or anything else. Missing companions become observations the user can act on after onboarding finishes.
 
 ```bash
-# Plugin check
+# Plugin check (read-only)
 [ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ] && echo "ui-ux-pro-max: installed" || echo "ui-ux-pro-max: MISSING"
 
-# Statusline check
+# Statusline check (read-only)
 [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stp-statusline.js" ] && echo "statusline: available" || echo "statusline: MISSING"
 ```
 
-If `ui-ux-pro-max: MISSING` → install automatically: `npm i -g uipro-cli && uipro init --ai claude`. This is a required companion plugin — do NOT skip.
+**Handling missing companions:**
+- `ui-ux-pro-max: MISSING` → record in AUDIT.md under `## Onboarding Environment Notes`. Tell the user (in the final handoff) that they can install it later with `npm i -g uipro-cli && uipro init --ai claude`. **Do NOT auto-install.** Onboarding does not need it (no UI is being built — only mapped).
+- `statusline: MISSING` → record in AUDIT.md. Tell user (in handoff) they can fix via `/stp:upgrade` later. Do NOT touch the install.
 
-If `statusline: MISSING` → warn: "STP statusline script not found. The status bar won't show project version, active feature, or context usage. This usually means the plugin installation is incomplete. Try `/stp:upgrade` or reinstall the plugin."
-
-**MCP server check:** Attempt a Context7 `resolve-library-id` call and a Tavily `tavily_search` call. If either fails, prompt the user to install:
+**MCP server check:** Attempt a Context7 `resolve-library-id` call and a Tavily `tavily_search` call to see if they respond. If either fails, record the absence in AUDIT.md under `## Onboarding Environment Notes` and continue without them. Tell the user (in the final handoff) they can install later with:
 - Context7: `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest`
 - Tavily: `claude mcp add tavily -- npx -y tavily-mcp@latest` (requires TAVILY_API_KEY)
 
-These are required for STP's research phases. Without them, architecture decisions use potentially stale training data.
+**Do NOT execute these install commands during onboarding** — they mutate the user's Claude config, which violates the Read-Only Mandate. The user runs them themselves if they want them.
+
+Onboarding works without MCP servers. Missing them means architecture mapping uses only what's already in the codebase (which is the truth anyway). The trade-off is acceptable for read-only mode.
 
 ### Step 0: CLAUDE.md Handling (check BEFORE any analysis)
 
@@ -174,9 +225,10 @@ Systematically analyze the project. Don't ask the user about the code — READ i
 - `git tag` for existing versions
 - `git shortlog -sn` for contributors
 
-**Tests & type checking:**
-- Run the test suite — how many pass/fail?
-- Run type checker — clean or errors?
+**Tests & type checking (READ-ONLY MODE):**
+- Run the test suite ONLY if it has no side effects. If the test command writes to a database, generates files, mutates state, calls external paid APIs, or runs migrations as part of setup — **SKIP it** and write `tests not run during onboarding — would mutate state` to AUDIT.md `## Onboarding Environment Notes`. Onboarding never trades read-only safety for a metric.
+- For type checking, prefer the non-emit form (`tsc --noEmit`, `mypy`, `pyright`, `cargo check`). If the only available command writes build artifacts, skip it and note "typecheck not run — would write build artifacts" in AUDIT.md.
+- Test/typecheck output is observation only — never edit code in response to failures during onboarding. Failures become observations in AUDIT.md, never fixes.
 
 **Present a summary** to the user (this is the ONLY verbal presentation — everything else goes to files):
 
@@ -199,12 +251,12 @@ What's your goal for this project?
 ```
 
 AskUserQuestion(
-  question: "What's your goal for this project?",
+  question: "Onboarding will produce a read-only observation report — no code changes. After it finishes, what direction do you expect to take? (This only shapes how findings are organized in the report — onboarding itself never modifies code.)",
   options: [
-    "(Recommended) Production quality — fix issues, harden security, clean up debt",
-    "New features — add functionality",
-    "Both — fix critical issues then build new features",
-    "Just explore — help me understand this codebase",
+    "(Recommended) Not sure yet — give me a complete picture and I'll decide after reading the report",
+    "Production hardening (later) — group observations by severity and risk",
+    "New features (later) — group observations by integration points and extension surface",
+    "Pure understanding — I just want to know how this codebase works",
     "Chat about this"
   ]
 )
@@ -344,10 +396,15 @@ Updated: [DATE]
 ## Security Observations
 [From code analysis: auth gaps, exposed endpoints, hardcoded values]
 
-## Remediation Priority (from this audit)
-1. [Most critical — immediate fix needed]
-2. [High priority — fix this week]
-3. [Medium — fix when building in that area]
+## Observations Sorted by Severity (no action items — read-only)
+- **CRITICAL** — [observations the user should look at first when they decide what to act on; describe what was seen, where, and the potential impact — never "fix this"]
+- **HIGH** — [observations]
+- **MEDIUM** — [observations]
+- **LOW** — [observations]
+- **NOTE** — [things worth knowing but not urgent]
+
+## Onboarding Environment Notes
+[Anything onboarding could not do safely: tests skipped because they would mutate state, MCP servers unavailable, missing companion plugins, etc. This is the "what you should know about how this report was generated" section.]
 ```
 
 If no MCP services are connected, skip this step (note in AUDIT.md: "No production services connected during onboarding").
@@ -375,7 +432,7 @@ If no MCP services are connected, skip this step (note in AUDIT.md: "No producti
    grep -c "^model " prisma/schema.prisma 2>/dev/null
    ```
 
-3. **Fix any inaccuracies** in ARCHITECTURE.md immediately.
+3. **Correct any inaccuracies in ARCHITECTURE.md immediately.** ("Correct" means edit the documentation file in `.stp/docs/` to match what the source code actually says — NOT edit the source code to match the documentation. Source code is the source of truth here. If the doc is wrong, fix the doc. If the code is wrong, that's an observation for AUDIT.md, never an edit.)
 
 4. **Add verification timestamp:**
    ```
@@ -451,98 +508,180 @@ Now generate the remaining documents from verified findings:
   
   These conventions are what make a new developer (or AI session) immediately productive. Without them, every session reinvents the wheel or breaks consistency.
 
-### Step 6: Assess — Baseline Quality Check
+### Step 6: Assess — Baseline Quality Observation (READ-ONLY)
 
-Spawn the `stp-critic` agent:
+Spawn the `stp-critic` agent **in observation mode**. The Critic must NOT propose fixes, write code, edit files, or take any action — its job here is to look and report.
 
 ```
-This is an EXISTING project being onboarded. Read all generated documents:
+This is an EXISTING project being onboarded into STP. You are running in
+READ-ONLY OBSERVATION MODE — this is the most important constraint of this run.
+
+Read all generated documents:
 - .stp/docs/ARCHITECTURE.md — full codebase map
 - .stp/docs/CONTEXT.md — concise reference
 - .stp/docs/PRD.md — reverse-engineered requirements
 - .stp/docs/AUDIT.md — production health (if exists)
 - CLAUDE.md — standards
 
-Run the full 7-criteria evaluation. Be extra thorough — this is the baseline.
-Flag everything. Translate every finding to business impact.
+Run the full 7-criteria evaluation. Produce an OBSERVATION REPORT only.
 
-CRITICAL: Follow the Claim Verification Gate (Step 5.5) rigorously. For any finding
-claiming code is "broken," "fails," or "doesn't work," you MUST trace the actual
-execution path before reporting it. Onboarding an existing codebase has HIGH
-false-positive risk — unfamiliar code with fallback patterns, dead code branches,
+ABSOLUTE CONSTRAINTS (non-negotiable):
+- DO NOT edit, write, or modify ANY file outside of appending to .stp/docs/AUDIT.md.
+- DO NOT propose code patches, diffs, or "here's how to fix it" code blocks.
+- DO NOT run any command that mutates state (no formatters, no --fix, no installs).
+- DO NOT spawn subagents that have edit permissions.
+- DO NOT recommend that the user run /stp:debug, /stp:work-full, or any fix command
+  inside your report — the parent command handles handoff.
+- Your output is observations + severity + business impact ONLY. The shape is:
+    "What I saw" → "Where" (file:line) → "Why it might matter" → "Severity"
+  Never "what to do about it."
+
+CRITICAL false-positive guard: Follow the Claim Verification Gate (Step 5.5) rigorously.
+For any finding claiming code is "broken," "fails," or "doesn't work," you MUST trace
+the actual execution path before reporting it. Onboarding an existing codebase has
+HIGH false-positive risk — unfamiliar code with fallback patterns, dead code branches,
 and legacy compatibility layers will trigger grep patterns that aren't actual bugs.
 Read the full function, find all callers, trace whether the flagged code is reachable.
-Downgrade unreachable code findings to NOTE, don't report them as FAIL.
+Downgrade unreachable code findings to NOTE. If you cannot verify a behavioral claim
+by reading source, DROP the finding entirely — do not speculate.
+
+Output format: return your report as your final message. The parent command will
+write it to .stp/docs/AUDIT.md — you do NOT have Write tool access and MUST NOT
+attempt to use Bash redirection (echo >>, tee, sed) to mutate any file.
+
+Each observation in your returned report: file:line, what you saw, severity
+(CRITICAL/HIGH/MEDIUM/LOW/NOTE), why it might matter to the business. Nothing more.
 ```
 
-Present findings to the user. Append the Critic's summary to AUDIT.md under `## Baseline Quality Assessment`.
+When the Critic returns its report, **the parent command (you, Opus)** appends it verbatim to `.stp/docs/AUDIT.md` under a new `## Baseline Observations — [DATE]` section using the Write tool. Then present a 1-line summary per severity tier to the user. **Do not act on any finding. Do not propose fixes inline. Do not start working on any observation.**
 
-### Step 7: Plan — Remediation + Next Steps
+### Step 7: Summarize — Observation Report (NOT a remediation plan)
 
-Based on ALL findings (Critic + AUDIT.md + ARCHITECTURE.md gaps), create `.stp/docs/PLAN.md`:
+Create `.stp/docs/PLAN.md` as an **observation summary**, not an action plan. This document catalogs what was found so the user can decide what to do next in a separate, explicit command. STP does NOT decide what to fix during onboarding — the user does, later.
 
-**If goal is "fix issues / production quality":**
+**Format (use exactly this structure — no checkbox tasks, no milestones, no "fix this"):**
+
+```markdown
+# Onboarding Observation Report — [Project Name]
+Generated: [DATE] by /stp:onboard-existing (read-only)
+
+> This report is OBSERVATIONS ONLY. No work has been planned, scheduled, or
+> started. Nothing in this file is a commitment to do anything. The user
+> decides what (if anything) to act on, and via which follow-up command.
+
+## What This Project Is
+[2-3 sentences from PRD.md — what it does, who it's for]
+
+## State of the Codebase
+- Stack: [summary]
+- Size: [N files, N models, N routes, N pages]
+- Tests: [N files, pass/fail summary, coverage if known]
+- Types: [clean / N errors]
+- Last activity: [from git log]
+
+## Observations by Area
+(Each observation has: where it was seen, what was seen, severity, why it might matter. NO recommendations, NO fixes, NO action items.)
+
+### Architecture & Code Health
+- **[OBS-001]** [file:line] — [what you observed]
+  - Severity: [CRITICAL | HIGH | MEDIUM | LOW | NOTE]
+  - Why it might matter: [business/technical impact]
+
+### Security Surface
+- **[OBS-NNN]** ...
+
+### Testing & Verification
+- **[OBS-NNN]** ...
+
+### Production Health (from AUDIT.md if MCP services connected)
+- **[OBS-NNN]** ...
+
+### Dependencies & Supply Chain
+- **[OBS-NNN]** ...
+
+### Documentation & Onboarding Friction
+- **[OBS-NNN]** ...
+
+## Severity Tally
+- CRITICAL: [N]
+- HIGH: [N]
+- MEDIUM: [N]
+- LOW: [N]
+- NOTE: [N]
+
+## Possible Next Commands (user chooses — STP does not auto-route)
+The user can decide, after reading this report, to run any of:
+- `/stp:debug` — investigate and fix a specific observation (one at a time)
+- `/stp:work-full` — design and build a feature, treating relevant observations as constraints
+- `/stp:plan` — design a remediation plan from these observations (this is where milestones get created — NOT here)
+- `/stp:whiteboard` — think through tradeoffs before committing to any direction
+- Do nothing — the report is yours; you may simply use it as reference
+
+## What Was NOT Done
+- No source files were edited.
+- No dependencies were added, removed, or upgraded.
+- No tests were written.
+- No bugs were fixed.
+- No refactors were performed.
+- No git commits were made.
 ```
-Milestone 1: Critical Fixes
-- [ ] [Sentry critical errors — code bugs]
-- [ ] [Security issues from Critic]
-- [ ] [Deploy pipeline fix if broken]
 
-Milestone 2: Test & Quality
-- [ ] [Missing test coverage for critical paths]
-- [ ] [Accessibility gaps]
-- [ ] [Performance issues]
+**Hard rules for this step:**
+- PLAN.md MUST contain the "What This Project Is" + "Observations" + "What Was NOT Done" sections, in that order.
+- PLAN.md MUST NOT contain checkbox tasks (`- [ ]`), milestones, schedules, or "we will fix X."
+- PLAN.md MUST NOT contain code blocks showing "the fix."
+- Observations are numbered (OBS-001, OBS-002, …) so the user can reference them later when running follow-up commands.
 
-Milestone 3: Production Polish
-- [ ] [Error handling gaps]
-- [ ] [Loading/empty states]
-- [ ] [Monitoring/alerting gaps from AUDIT.md]
-```
+### Step 8: Handoff (READ-ONLY — present, do not act)
 
-**If goal is "new features":**
-```
-Milestone 1: Quick Fixes (critical only from AUDIT.md)
-- [ ] [Only critical production bugs]
-
-Milestone 2: [New Feature Work]
-- [ ] [Features — with integration points from ARCHITECTURE.md]
-```
-
-**If goal is "both":** Interleave — fix related issues when building in that area.
-
-### Step 8: Handoff
+Show the user what was generated. Do NOT suggest a specific next command — list the options and let them decide.
 
 ```
 ╔═══════════════════════════════════════════════════════╗
-║  ✓ PROJECT ONBOARDED                                  ║
+║  ✓ PROJECT MAPPED (READ-ONLY)                         ║
 ║  [Project Name]                                       ║
 ╠───────────────────────────────────────────────────────╣
 ║                                                       ║
-║  Documents created:                                   ║
+║  Documents created (no source code was modified):     ║
 ║  · .stp/docs/ARCHITECTURE.md — [N] models, [N] routes ║
-║  · .stp/docs/AUDIT.md — [N] issues tracked            ║
+║  · .stp/docs/AUDIT.md — [N] observations              ║
 ║  · .stp/docs/CONTEXT.md — concise AI reference        ║
 ║  · .stp/docs/PRD.md — reverse-engineered requirements ║
-║  · .stp/docs/PLAN.md — [N] milestones, [N] tasks     ║
+║  · .stp/docs/PLAN.md — observation report (not a plan)║
 ║  · .stp/docs/CHANGELOG.md — project history           ║
-║  · CLAUDE.md — standards + conventions                ║
+║  · CLAUDE.md — standards + detected conventions       ║
 ║  · .stp/references/ — [N] production standards        ║
 ║                                                       ║
-║  Baseline: [Critic summary — 1 line per criterion]    ║
+║  Severity tally: C:[N] H:[N] M:[N] L:[N] NOTE:[N]    ║
+║                                                       ║
+║  What was NOT done: no fixes, no edits, no installs,  ║
+║  no commits. The codebase is exactly as you left it.  ║
 ║                                                       ║
 ╚═══════════════════════════════════════════════════════╝
 
-  ► Next: /stp:work-quick [FIRST TASK from PLAN.md]
+  ► Read .stp/docs/PLAN.md to see all observations.
+  ► You decide what (if anything) to do next:
+      /stp:plan         — design a remediation plan from observations
+      /stp:debug        — investigate one specific observation
+      /stp:work-full    — build a feature using the new architecture map
+      /stp:whiteboard   — think through tradeoffs before deciding
+      (or do nothing — the report is yours to use as reference)
 ```
+
+**Do not auto-invoke any follow-up command.** Onboarding ends here.
 
 ## Rules
 
+- **READ-ONLY. NEVER modify source code, configs, schemas, migrations, dependencies, or anything outside the allowlist in the Read-Only Mandate.** If you catch yourself about to edit something that isn't in `.stp/`, `CLAUDE.md`, or `VERSION` — STOP. Document the observation in AUDIT.md instead.
+- **No fix suggestions in code form.** Findings describe what was seen, not how to change it. The user runs a separate command if they want fixes.
 - NEVER ask technical questions. Read the code.
 - PERSIST EVERYTHING. Every analysis section → immediately written to the appropriate .stp/docs/ file.
 - VERIFY before finalizing. Spot-check claims against actual code. Wrong architecture maps are worse than no maps.
-- Respect existing conventions. Follow what's established.
+- Respect existing conventions. Document what's established — do not "improve" them.
 - The PRD is reverse-engineered — don't invent features that don't exist.
 - For large codebases (500+ files): ARCHITECTURE.md must still be comprehensive. Use domain grouping — don't skip sections.
 - ARCHITECTURE.md has NO line limit. Map everything. CONTEXT.md is the concise version (<150 lines).
 - If the project has existing documentation (README, docs/, .planning/), read it for context but still generate STP's documents — they serve different purposes.
 - If MCP services fail to connect, note it in AUDIT.md and move on. Don't block onboarding on external services.
+- If a test command would mutate state (writes to DB, generates files, calls external APIs with side effects), SKIP it. Note "tests not run — would mutate state" in AUDIT.md. Read-only inspection only.
+- The handoff in Step 8 lists options; it does NOT auto-invoke a follow-up command. The user decides.

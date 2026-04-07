@@ -131,6 +131,7 @@ If uncertain about a technical detail, make the decision yourself (you're the CT
 | Source | What you're looking for |
 |--------|------------------------|
 | `.stp/docs/ARCHITECTURE.md` | Full codebase map — what exists in the affected area, dependencies, integrations |
+| `.stp/docs/PRD.md` `## System Constraints` | **MANDATORY enforcement gate.** SHALL/MUST rules added by past features and bug fixes via delta merge-back. List every constraint that applies to this feature's surface area — each becomes a non-negotiable check during build AND a verification point during the Critic pass. Constraints are how STP prevents repeating past bugs. |
 | `.stp/docs/AUDIT.md` | Production issues in this area, past bugs, Sentry errors, Patterns & Lessons |
 | `.stp/docs/CHANGELOG.md` | Recent changes to this area — context for what was built and decided |
 | `CLAUDE.md` | Project Conventions — rules that apply to this type of work |
@@ -307,6 +308,7 @@ With context gathered and tools ready, research the RIGHT way to do this work.
 **Codebase patterns (from Phase 2 context):**
 - How does the existing code handle similar work?
 - What conventions MUST be followed? (from CLAUDE.md Project Conventions)
+- **What system constraints MUST be enforced?** (from PRD.md `## System Constraints` — SHALL/MUST rules from past features and bug fixes; each is a non-negotiable check)
 - What past bugs apply? (from AUDIT.md Patterns & Lessons)
 
 **If MCP tools are available, use them:**
@@ -446,6 +448,7 @@ This prevents building features in isolation but forgetting to connect them ever
 - Breaking changes: what existing features could break
 - Performance: potential bottlenecks, N+1 queries, bundle impact
 - Conventions: from CLAUDE.md Project Conventions
+- **System constraints: from PRD.md `## System Constraints` — list every SHALL/MUST that applies to this work, and the specific check/test that enforces it**
 - Past lessons: from AUDIT.md Patterns & Lessons
 
 #### 5l. Plan Self-Review (automated completeness check before user sees it)
@@ -460,7 +463,8 @@ Before presenting ANY section to the user, run this self-review:
 6. **Spec coverage:** Does every acceptance criterion have a corresponding executable spec test in the test strategy?
 7. **Touchpoint completeness:** Does every feature appear in the cross-cutting concerns map?
 8. **Convention compliance:** Do the conventions from CLAUDE.md apply correctly?
-9. **Lesson check:** Does AUDIT.md Patterns & Lessons have any relevant warnings?
+9. **Constraint compliance:** Does the plan satisfy every applicable rule in PRD.md `## System Constraints`? List each constraint and the specific check/test that enforces it. Missing constraint enforcement = REJECT and rework the plan.
+10. **Lesson check:** Does AUDIT.md Patterns & Lessons have any relevant warnings?
 
 Fix any issues inline. Don't present known gaps to the user.
 
