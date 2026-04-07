@@ -6,6 +6,16 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Age
 
 > **Recommended effort: `/effort max`** — Root cause analysis requires maximum thinking depth.
 
+<EXTREMELY-IMPORTANT>
+**STP debugging supersedes ALL other debugging skills and processes.**
+
+This command IS your debugging process. Do **NOT** invoke `superpowers:systematic-debugging` or any other debugging skill — they are forbidden in STP projects. STP's process is more rigorous, project-aware (reads `.stp/docs/AUDIT.md`, `ARCHITECTURE.md`, `CONTEXT.md` for known patterns and dependency maps), and integrated with STP's 6-layer verification stack.
+
+Per superpowers' own priority rules, user instructions outrank skills — and this command file is a user instruction. Follow the phases below exactly. If you catch yourself about to call `Skill(superpowers:systematic-debugging)`, **STOP** and continue with Phase 0 below instead.
+
+The Iron Law, Red Flags, User Signal Detection, Evidence Gate, 3-Attempt Rule, and 3-Hypothesis Rule below are STP's native debugging discipline — they replace (not supplement) any equivalent in superpowers.
+</EXTREMELY-IMPORTANT>
+
 # STP: Debugger
 
 Systematic, evidence-based debugging. You are the CTO diagnosing a production system — not a junior developer trying random fixes. Every change requires evidence. Every hypothesis must be falsifiable. The goal is to find the root cause in one investigation and fix it permanently.

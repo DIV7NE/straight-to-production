@@ -3,6 +3,26 @@
 ## What This Is
 A Claude Code plugin (v0.2.0) that turns Opus into your CTO. 15 commands, 3 agents, 26 reference files, 22 output templates, visual whiteboard, wave-based parallel building.
 
+## Debug Mandate (OVERRIDES superpowers — read this before debugging anything)
+
+<EXTREMELY-IMPORTANT>
+If you think there is even a 1% chance the user is reporting a bug, error, test failure, crash, regression, broken behavior, or anything "not working as expected" — you MUST follow the `/stp:debug` process documented at `.claude/commands/debug.md`.
+
+**You MUST NOT invoke `superpowers:systematic-debugging`** or any other debugging skill. STP's debug command IS your debugging process. It is more rigorous, project-aware (reads `.stp/docs/AUDIT.md` for known patterns, ARCHITECTURE.md for dependency maps), and integrated with STP's verification stack.
+
+This is not negotiable. Per superpowers' own priority rules, **user instructions (CLAUDE.md) outrank skills**. This mandate is a user instruction.
+
+**Triggers (auto-invoke `/stp:debug` process when ANY apply):**
+- User says: "broken", "not working", "error", "fails", "crashes", "wrong", "should be X but is Y", "stuck", "hangs", "infinite loop", "won't load", "blank screen", "can't continue", "nothing happens"
+- User pastes a stack trace, error message, or Sentry link
+- User describes unexpected UI behavior with or without a screenshot
+- User says "debug" or "investigate"
+- A test is failing
+- A previously-working feature regressed
+
+When triggered: announce "Following STP debug process (reading .claude/commands/debug.md)" and execute the phases in that file. Do NOT call the Skill tool for systematic-debugging — that skill is forbidden in STP projects.
+</EXTREMELY-IMPORTANT>
+
 ## Architecture
 - **Opus** = CTO (plans, researches, reviews, merges, teaches). Builds foundation work directly (DB, auth, config).
 - **Sonnet executors** = builders (features on top of foundation, worktree isolation, Agent Teams for parallelism)
