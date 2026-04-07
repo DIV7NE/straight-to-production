@@ -2,17 +2,17 @@
 
 **Your CTO in a plugin.**
 
-Makes all technical decisions, explains them with industry backing and honest downsides, builds autonomously, and teaches you your own codebase.
+Picks the stack, walks you through the tradeoffs, builds the thing, and teaches you what it did along the way.
 
 ## The Problem
 
-Every existing Claude Code harness was built by expert developers, for expert developers. They assume you know what stack to choose, what security concerns apply, what accessibility requirements exist, and when your code is actually production-ready.
+Most Claude Code harnesses were built by senior engineers for senior engineers. They expect you to already know the right stack, the security gotchas, the accessibility rules, and how to tell when something is actually ready to ship.
 
-If you're a solo developer who doesn't know what you don't know, those tools add process without adding knowledge.
+If you're a solo developer who doesn't know what you don't know, those tools just add ceremony. They don't fill the gap.
 
 ## How STP Works
 
-You describe what you want to build. STP makes every technical decision, presents each one with alternatives and honest tradeoffs, surfaces everything you'd miss, and builds it. You make product decisions. Opus handles everything else.
+You say what you want. STP picks the stack, walks you through the tradeoffs, points out the things you forgot to think about, and builds it. You handle product calls. Opus handles the rest.
 
 ```
 YOU: "I want an app where freelancers track invoices"
@@ -40,9 +40,9 @@ STP:
 │   6. Production verification (canary deploys, metric monitoring)
 ├── Auto-Critic at every milestone (Double-Check Protocol, 2-iteration minimum,
 │   Claim Verification Gate — traces execution paths before reporting behavioral bugs)
-└── STP learns: every feature/bug records a Spec Delta that merges back into
-    ARCHITECTURE.md + PRD.md. Past bugs become System Constraints and Project
-    Conventions that all future builds read and the Critic enforces.
+└── STP remembers: each build writes a Spec Delta into CHANGELOG, then propagates
+    it back into ARCHITECTURE and PRD. Old bugs end up as System Constraints and
+    Project Conventions that the next build has to obey.
 ```
 
 ## Architecture
@@ -188,7 +188,7 @@ When any STP command detects UI/UX work, it:
 /stp:whiteboard should we use WebSockets or SSE for real-time?
 /stp:whiteboard this payment feature is complex, what's the best approach?
 ```
-Explore ideas, research approaches, compare options with industry backing. No code — just thinking. Decisions are saved to disk so they survive /clear. Use before /stp:new-project to shape a vague idea, before /stp:work-quick for complex decisions, or standalone for any technical question.
+A space for thinking out loud. Research approaches, compare options, weigh tradeoffs against industry practice. Nothing gets built. The decisions you make get saved to disk, so they survive `/clear` and the next command can pick them up. Use it before `/stp:new-project` to shape a vague idea, before `/stp:work-quick` for any non-trivial decision, or on its own when you just need a sounding board.
 
 ### 1. Start a new project
 ```
@@ -208,7 +208,7 @@ Researches the domain, designs system architecture, data models, API routes, aut
 /stp:work-full add real-time notifications with WebSockets
 /stp:work-full rebuild the auth system with role-based access
 ```
-The command you use when you mean business. Asks you product questions to understand requirements, discovers and installs needed tools (Stripe MCP, CLIs), researches deeply (Context7, Tavily, industry standards), explores approaches, creates a verified plan, then builds with TDD. One command, full cycle. For autopilot: `/stp:autopilot add payment processing` — same flow, AI makes all decisions automatically.
+Use this when the work is non-trivial. STP asks product questions to pin down requirements, installs whatever extra tools the work needs (Stripe MCP, CLIs), researches the space using Context7 and Tavily, lays out a few possible approaches, gets your sign-off on a plan, then builds it test-first. If you want it to make the decisions for you, run `/stp:autopilot add payment processing` instead — same flow, the AI just picks the recommended option at every step.
 
 ### 3b. Propose work (discuss before building)
 ```
@@ -225,7 +225,9 @@ Full investigation before committing to code. Researches the domain, explores 2-
 /stp:work-quick refactor auth middleware to use centralized pattern
 /stp:work-quick update invoice PDF export to use new template
 ```
-One command for ALL work types. Pre-build context: reads ARCHITECTURE.md (what could break), PRD.md `## System Constraints` (SHALL/MUST rules from past bugs — non-negotiable enforcement gate), CLAUDE.md `## Project Conventions`, and AUDIT.md `## Patterns & Lessons` (past bugs to not repeat). Impact analysis, writes tests FIRST, implements, `/simplify` polishes. After build: full doc cycle (VERSION bump → CHANGELOG with spec delta → delta merge-back into ARCHITECTURE/PRD → CONTEXT.md → README.md verify → CLAUDE.md conventions → AUDIT.md). Auto-Critic + integration tests at milestone boundaries. Teaches you concepts along the way.
+Handles all work types from one command. Before writing any code it reads four things: ARCHITECTURE.md (so it knows what the change might break), the System Constraints section of PRD.md (rules from past bugs that can't be broken), the Project Conventions section of CLAUDE.md, and the Patterns & Lessons section of AUDIT.md (so it doesn't reintroduce a bug class you've already fixed). Then it writes the tests, builds the implementation, and runs `/simplify` over the result.
+
+Once the code is in, STP runs the full doc cycle: bumps VERSION, adds a CHANGELOG entry with a spec delta, propagates that delta into ARCHITECTURE and PRD, refreshes CONTEXT.md, verifies README claims still match the code, captures any new conventions in CLAUDE.md, and updates AUDIT.md if a bug got fixed along the way. At milestone boundaries it spawns the Critic and runs integration tests. You learn the codebase as you go because STP explains what it's doing.
 
 ### 4. Review quality
 ```
@@ -239,17 +241,17 @@ A separate Sonnet Critic grades your app against PRD + PLAN + 7 quality criteria
 /stp:debug Sentry: TypeError on /api/checkout
 /stp:debug login redirects to /404 for some users
 ```
-Systematic debugging with the **Iron Law: no fixes without root cause**. Auto-gathers from AUDIT.md (past fixes — fast-path resolves known patterns in seconds), ARCHITECTURE.md dependency map, PRD.md `## System Constraints` (the bug may be CAUSED by violating one), error logs, git blame, MCP services. Traces the full **defect → infection → failure** chain. Finds **pattern siblings** — same bug class elsewhere — and fixes them too. Adds **defense-in-depth** (validation, types, tests) so the bug class is extinct, not just patched.
+Iron Law: no fix without a root cause. Phase 0 auto-gathers everything STP can find without bothering you — the AUDIT.md bug history (which often resolves a known pattern in seconds), the ARCHITECTURE.md dependency map, the System Constraints in PRD.md (the bug might have been *caused* by violating one), error logs, git blame, MCP services. From that material STP traces the defect → infection → failure chain back to its origin. It then looks for pattern siblings (the same bug class hiding somewhere else) and fixes those too, and adds a defense layer so the same failure can't come back through a different code path.
 
-After the fix: **a bug fix is a release.** Bumps VERSION (patch), writes a CHANGELOG entry with spec delta, runs delta merge-back into ARCHITECTURE.md and PRD.md `## System Constraints` (the bug becomes a SHALL/MUST rule the system can never violate again), extracts a generalizable lesson into AUDIT.md `## Patterns & Lessons`, adds a Project Convention to CLAUDE.md if applicable, updates CONTEXT.md and README.md, marks the bug fixed in PLAN.md, commits. The next session reads all of this and avoids repeating the bug — automatically.
+Once the fix is in, STP treats it like any other release. It bumps the patch version, writes a CHANGELOG entry with a spec delta, propagates the delta into ARCHITECTURE.md and PRD.md System Constraints (the rule the bug exposed becomes a SHALL/MUST the codebase can never violate again), extracts a generalizable lesson into AUDIT.md's Patterns & Lessons section, adds a Project Convention to CLAUDE.md if the rule belongs there, updates CONTEXT.md and README.md, marks the bug fixed in PLAN.md, and commits. Next session, every build command reads those updates as input. The bug doesn't come back because the rule that prevents it now lives in the docs the next build reads.
 
-3-attempt safety valve: if 3 different hypotheses fail, this is architectural, not a bug — escalates to a redesign discussion.
+If three different hypotheses fail in a row, the problem is probably structural, not a single bug. STP stops trying patches and escalates to a design discussion.
 
 ### 6. Run overnight
 ```
 /stp:autopilot add payment processing with Stripe and webhooks
 ```
-Full `/stp:work-full` cycle — but the AI makes every decision automatically (picking recommended options for stack, architecture, approach, scope). Spawns executors in waves, runs QA, runs Critic, updates every doc, commits each feature. Set it up before bed, wake up to delivered work. Progress is streamed to `.stp/state/` so you can check in with `/stp:progress` from any device.
+Same flow as `/stp:work-full`, except the AI picks the recommended option at every decision point instead of asking you. It spawns executors in waves, runs QA, runs the Critic, updates the docs, and commits each feature on its own. You can run it before bed and check the result in the morning. Progress streams to `.stp/state/` so `/stp:progress` works from any device.
 
 ### 7. Check progress
 ```
@@ -357,7 +359,7 @@ Everything persisted — the learning system:
 
 ## Documents Generated (and who keeps them current)
 
-Every STP command that ships code updates the same canonical docs so the file-based memory system stays coherent. Every doc that gets written gets read — no orphan writes, no stale reads. This is how STP compounds knowledge across sessions.
+Every command that ships code writes to the same set of docs. That's intentional: the things STP writes here are the things later commands read. Nothing rots, nothing sits unused, and the project memory survives between sessions because it lives on disk instead of in conversation context.
 
 | Document | Created By | Updated By | Read By | Purpose |
 |----------|-----------|------------|---------|---------|
@@ -374,52 +376,52 @@ Every STP command that ships code updates the same canonical docs so the file-ba
 | `design-system/MASTER.md` | ui-ux-pro-max integration | design review | work-quick, work-full executors | Style, palettes, fonts, layout rules — executors follow it exactly |
 | `VERSION` | new-project, onboard-existing | work-quick, work-full, debug (patch bump), milestone boundaries (minor bump) | progress, continue, statusline, commit messages | Current semver version |
 
-**Key insight:** the table shows that every build command (`work-quick`, `work-full`, `debug`) writes to the same set of docs — not because the update rules are duplicated, but because the docs form a closed producer/consumer loop. A bug fix's spec delta merges into `PRD.md ## System Constraints`, which the next feature build reads as an enforcement gate, which the Critic verifies. This is how STP prevents repeating past mistakes automatically.
+The reason every build command writes to the same docs isn't redundancy. The docs form a feedback loop. A bug fix lands a constraint in PRD.md. The next feature build reads that constraint before writing any code. The Critic checks the resulting code against it. The bug class is gone, and you didn't have to remember anything.
 
-## How STP Learns (the four learning loops)
+## How STP Learns
 
-STP is the only Claude Code harness where every bug fix and every feature build permanently teaches the system. Four reinforcing loops turn one-time work into compounding project knowledge:
+Most coding agents build whatever you ask for and then forget about it. STP records what just happened in a way the next session has to read. There are four feedback loops doing the work.
 
-### Loop 1: Spec Deltas (every feature/fix mutates the architectural assumptions)
+### Loop 1: Spec Deltas
 
-Every `/stp:work-quick`, `/stp:work-full`, and `/stp:debug` writes a **Spec Delta** to CHANGELOG.md capturing:
+Each build (whether it's `work-quick`, `work-full`, or a `debug` fix) writes a Spec Delta into CHANGELOG.md. The format is the same every time:
 
-- **Added:** new models, routes, integrations, patterns that didn't exist before
-- **Changed:** existing assumptions the feature/fix invalidated or replaced
-- **Constraints introduced:** new rules the system must now follow (RFC 2119 SHALL/MUST)
-- **Dependencies created:** what now depends on this work
+- **Added:** new models, routes, integrations, patterns
+- **Changed:** assumptions this work invalidated
+- **Constraints introduced:** rules the codebase now has to follow (RFC 2119 SHALL/MUST)
+- **Dependencies created:** what now relies on this work
 
-Spec Deltas aren't just history — they **merge back** into canonical docs automatically. Added items flow into ARCHITECTURE.md. Constraints flow into PRD.md `## System Constraints`. New SHALL/MUST requirements flow into PRD.md as new Given/When/Then scenarios. The Critic verifies the merge happened.
+The delta doesn't stop at the changelog. After the entry is written, the build command propagates it: new models go into ARCHITECTURE.md, constraints go into PRD.md's System Constraints section, and any new SHALL/MUST rule shows up in PRD.md as a Given/When/Then scenario. The Critic checks the merge actually happened during review.
 
-### Loop 2: System Constraints (bugs become enforcement gates)
+### Loop 2: System Constraints
 
-When `/stp:debug` fixes a bug, the root cause often exposes a rule the system should always follow. That rule gets recorded as an RFC 2119 SHALL/MUST in PRD.md `## System Constraints`:
+When `/stp:debug` fixes a bug, the root cause usually points at a rule the codebase should have been following all along. STP writes that rule into PRD.md's `## System Constraints` section using RFC 2119 keywords:
 
 ```
-SHALL: All multi-tenant queries are scoped by `organizationId`
-SHALL: Uploads validate MIME type server-side (not just extension)
+SHALL: All multi-tenant queries are scoped by organizationId
+SHALL: Uploads validate MIME type server-side, not just extension
 MUST NOT: Server actions inherit middleware auth context — always pass orgId explicitly
 ```
 
-Every future `/stp:work-quick`, `/stp:work-full`, and `/stp:debug` reads `## System Constraints` before building — it's a **non-negotiable pre-build enforcement gate**. The Critic then runs a dedicated **System Constraint Compliance** check during review: if new code violates a previously-recorded constraint, it's a CRITICAL finding. Past pain cannot become future pain.
+Every build command reads this section before touching code. It's not advisory. If the new code doesn't satisfy a constraint, the Critic flags it as CRITICAL during review. Bugs you've already fixed stay fixed.
 
-### Loop 3: Patterns & Lessons (generalizable bug-prevention wisdom)
+### Loop 3: Patterns & Lessons
 
-Every `/stp:debug` also extracts a **generalizable lesson** — not the specific fix, but the pattern:
+`/stp:debug` also extracts the underlying pattern, not just the one-off fix:
 
 ```
 ### Server actions don't inherit middleware auth
 Symptom: Query returns rows from other orgs
 Root cause: Server actions bypass the middleware layer that sets auth context
-Rule: Always pass organizationId explicitly in server actions — never rely on inherited context
+Rule: Always pass organizationId explicitly in server actions
 Applies when: Writing any server action that queries org-specific data
 ```
 
-These lessons are appended to AUDIT.md's `## Patterns & Lessons` section and read by all build commands during context gathering. Past debugging work becomes a pre-build checklist for new development. If `AUDIT.md` says "server actions need explicit orgId," the next new server action gets it from the start — not after a bug report.
+Lessons live in AUDIT.md's `## Patterns & Lessons` section. Build commands read them when gathering context, so what you learned the hard way last week ends up baked into next week's code. If AUDIT.md says "server actions need explicit orgId," the next server action you write gets it before anyone files a bug.
 
-### Loop 4: Project Conventions (living rules in CLAUDE.md)
+### Loop 4: Project Conventions
 
-When a decision, bug, or Critic finding reveals a rule that's important, non-obvious, and generalizable — it gets written to `CLAUDE.md ## Project Conventions`:
+Sometimes a build, a bug, or a Critic finding reveals a rule worth keeping around. If it's non-obvious enough that the next person (or session) wouldn't figure it out on their own, STP appends it to `CLAUDE.md ## Project Conventions`:
 
 ```markdown
 - **All API routes use withOrgAuth() wrapper — never raw auth()**
@@ -428,28 +430,28 @@ When a decision, bug, or Critic finding reveals a rule that's important, non-obv
   - Added: 2026-03-12 via /stp:debug
 ```
 
-Every build command reads `## Project Conventions` first — the rules in this section are non-negotiable. The Critic verifies compliance. New team members (or new Claude sessions) become productive instantly because they inherit every hard-won rule.
+Build commands read this section before doing anything. The Critic checks compliance afterwards. The upshot is that joining the project (or starting a fresh Claude session) doesn't reset the rulebook — every convention you've earned stays in force.
 
-### The compounding effect
+### What this looks like in practice
 
-| Single fix | With STP's learning loops |
+| Without the loops | With them |
 |---|---|
-| Bug fixed, bug returns 3 months later | Bug fixed, constraint recorded, future code tested against constraint, bug class extinct |
-| Convention emerges in one developer's head | Convention written to CLAUDE.md, read by every build command, enforced by Critic |
-| Architecture drifts as features are added | Every feature merges a spec delta into ARCHITECTURE.md and PRD.md — docs stay accurate |
-| "Tribal knowledge" disappears when session ends | All four loops live in files — `/clear` and compaction can't touch them |
+| A bug comes back three months later because nobody remembered the original fix | The constraint sits in PRD.md and the Critic blocks any code that violates it |
+| One developer figures something out and it lives only in their head | The rule lands in CLAUDE.md and every future build reads it |
+| Architecture docs drift further from reality each sprint | Each feature pushes its delta into ARCHITECTURE.md as part of the build cycle |
+| Tribal knowledge evaporates between sessions | All four loops live on disk, so `/clear` and compaction can't touch them |
 
-This is what it means for docs to be *load-bearing* instead of decorative. STP's docs aren't a report on what happened — they're the input to every future build.
+The point is that STP's docs aren't a write-only audit log. They're the input to every future build, which is why STP cares so much about keeping them current.
 
 ## Design Principles
 
-1. **Opus is the CTO, you are the PM** — All technical decisions are made for you with full justification
-2. **Always-on context beats on-demand** — Standards in CLAUDE.md (100% enforcement) over skills (53% per Vercel's research)
-3. **Hooks enforce, CLAUDE.md suggests** — Critical quality gates are infrastructure, not instructions
-4. **Docs are load-bearing, not decorative** — Every doc that gets written gets read by a future build command. No orphan writes, no stale reads.
-5. **Past pain cannot become future pain** — Every bug fix records a constraint that all future builds must obey. The Critic blocks violations.
-6. **Build to delete** — Every component is modular and independently removable
-7. **Teach, don't hide** — You learn your own codebase through explanation
+1. **Opus is the CTO, you're the PM.** STP makes the technical calls and explains them. You make the product calls.
+2. **Always-on context beats on-demand.** Rules live in CLAUDE.md (loaded every session) instead of skills (loaded only when triggered). Vercel's evals measured 100% vs 53% adherence, which matches our experience.
+3. **Hooks enforce, prose suggests.** The quality gates that actually catch things are scripts, not paragraphs in a markdown file.
+4. **Docs feed builds.** Everything STP writes gets read by a later command. If a doc isn't being read by anything, it gets cut.
+5. **Old bugs stay fixed.** Every fix records a constraint. The Critic rejects new code that breaks it.
+6. **Build to delete.** Every piece of STP can be removed independently without breaking the rest.
+7. **Teach as you go.** STP explains what it's doing so you actually learn the codebase, not just inherit it.
 
 ## Model Requirements
 
