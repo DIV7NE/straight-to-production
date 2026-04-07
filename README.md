@@ -1,8 +1,28 @@
-# STP — Straight To Production
+<div align="center">
 
-**Your CTO in a plugin.**
+<img src="assets/logo.png" alt="STP — Straight To Production" width="720" />
 
-Picks the stack, walks you through the tradeoffs, builds the thing, and teaches you what it did along the way.
+### Your CTO in a plugin.
+
+**Picks the stack, walks you through the tradeoffs, builds the thing, and teaches you what it did along the way.**
+
+<br />
+
+[![Version](https://img.shields.io/badge/version-0.2.0-06b6d4?style=for-the-badge&labelColor=0e1117)](VERSION)
+[![License](https://img.shields.io/badge/license-MIT-06b6d4?style=for-the-badge&labelColor=0e1117)](LICENSE)
+[![Claude](https://img.shields.io/badge/claude-opus%204.6-22d3ee?style=for-the-badge&labelColor=0e1117&logo=anthropic&logoColor=white)](https://claude.ai)
+[![Status](https://img.shields.io/badge/status-active-10b981?style=for-the-badge&labelColor=0e1117)]()
+
+[![Commands](https://img.shields.io/badge/commands-16-06b6d4?style=flat-square&labelColor=0e1117)]()
+[![Hook gates](https://img.shields.io/badge/hook%20gates-10-06b6d4?style=flat-square&labelColor=0e1117)]()
+[![Verification layers](https://img.shields.io/badge/verification%20layers-6-06b6d4?style=flat-square&labelColor=0e1117)]()
+[![Reference standards](https://img.shields.io/badge/reference%20standards-26-06b6d4?style=flat-square&labelColor=0e1117)]()
+[![Stack templates](https://img.shields.io/badge/stack%20templates-20-06b6d4?style=flat-square&labelColor=0e1117)]()
+[![Learning loops](https://img.shields.io/badge/learning%20loops-4-22d3ee?style=flat-square&labelColor=0e1117)]()
+
+</div>
+
+---
 
 ## The Problem
 
@@ -13,6 +33,37 @@ If you're a solo developer who doesn't know what you don't know, those tools jus
 ## How STP Works
 
 You say what you want. STP picks the stack, walks you through the tradeoffs, points out the things you forgot to think about, and builds it. You handle product calls. Opus handles the rest.
+
+```mermaid
+flowchart LR
+    classDef think fill:#0e1117,stroke:#06b6d4,stroke-width:2px,color:#06b6d4
+    classDef build fill:#06b6d4,stroke:#0891b2,stroke-width:2px,color:#0e1117
+    classDef verify fill:#0e1117,stroke:#10b981,stroke-width:2px,color:#10b981
+    classDef learn fill:#0e1117,stroke:#f59e0b,stroke-width:2px,color:#f59e0b
+
+    WB([whiteboard]):::think
+    NP([new-project]):::think
+    PL([plan]):::think
+    WF([work-full]):::build
+    WQ([work-quick]):::build
+    DB([debug]):::build
+    RV([review]):::verify
+    DOCS[(ARCHITECTURE<br/>PRD<br/>AUDIT<br/>CHANGELOG<br/>CLAUDE.md)]:::learn
+
+    WB --> NP --> PL --> WF
+    WF --> RV
+    WF --> WQ
+    WQ --> RV
+    DB --> RV
+    WF -.spec delta.-> DOCS
+    WQ -.spec delta.-> DOCS
+    DB -.constraint + lesson.-> DOCS
+    DOCS -.read before next build.-> WF
+    DOCS -.read before next build.-> WQ
+    DOCS -.read before next build.-> DB
+```
+
+The dotted lines are the four feedback loops. Every build writes back into the docs, and every future build reads them before touching code. That's how a fix you ship today prevents the same bug class from coming back six months later.
 
 ```
 YOU: "I want an app where freelancers track invoices"

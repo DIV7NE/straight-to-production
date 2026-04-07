@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-label="STP — Straight To Production">
+  <title>STP — Straight To Production</title>
+  <desc>Your CTO in a plugin. Built for Claude Code.</desc>
+
+  <defs>
+    <linearGradient id="cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="cyanFade" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0e1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="640" fill="url(#bgGradient)"/>
+  <rect width="1280" height="640" fill="url(#glow)"/>
+
+  <!-- Forward-momentum chevrons -->
+  <g transform="translate(180, 230)">
+    <path d="M -80 -90 L 14 0 L -80 90 L -64 90 L 30 0 L -64 -90 Z" fill="url(#cyan)" opacity="0.25"/>
+    <path d="M -28 -90 L 66 0 L -28 90 L -12 90 L 82 0 L -12 -90 Z" fill="url(#cyan)" opacity="0.55"/>
+    <path d="M 24 -90 L 118 0 L 24 90 L 40 90 L 134 0 L 40 -90 Z" fill="url(#cyan)"/>
+  </g>
+
+  <!-- STP wordmark -->
+  <text x="380" y="280" font-family="ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace"
+        font-size="220" font-weight="800" fill="#e6edf3" letter-spacing="-8">STP</text>
+
+  <!-- Tagline -->
+  <text x="380" y="360" font-family="ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace"
+        font-size="56" font-weight="700" fill="url(#cyan)" letter-spacing="6">STRAIGHT TO PRODUCTION</text>
+
+  <!-- Accent line -->
+  <rect x="380" y="395" width="800" height="3" fill="url(#cyanFade)"/>
+
+  <!-- Subtitle -->
+  <text x="380" y="445" font-family="ui-monospace, 'SF Mono', Menlo, monospace"
+        font-size="32" font-weight="500" fill="#e6edf3" letter-spacing="1">Your CTO in a plugin.</text>
+
+  <!-- Feature row -->
+  <g font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="22" font-weight="500" fill="#7d8590">
+    <text x="380" y="495">16 commands</text>
+    <text x="600" y="495">·</text>
+    <text x="624" y="495">10 hook gates</text>
+    <text x="852" y="495">·</text>
+    <text x="876" y="495">6-layer verification</text>
+    <text x="380" y="535" letter-spacing="2">BUILT FOR CLAUDE CODE  ·  github.com/DIV7NE/stp</text>
+  </g>
+</svg>

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 320" width="1280" height="320" role="img" aria-label="STP — Straight To Production">
+  <title>STP — Straight To Production</title>
+  <desc>Your CTO in a plugin. Built for Claude Code.</desc>
+
+  <defs>
+    <linearGradient id="cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="cyanFade" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0e1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="320" fill="url(#bgGradient)" rx="16"/>
+
+  <!-- Subtle border -->
+  <rect x="1" y="1" width="1278" height="318" fill="none" stroke="#21262d" stroke-width="2" rx="16"/>
+
+  <!-- Forward-momentum chevrons (three layered, increasing opacity = "straight to production") -->
+  <g transform="translate(120, 160)">
+    <path d="M -60 -70 L 10 0 L -60 70 L -48 70 L 22 0 L -48 -70 Z" fill="url(#cyan)" opacity="0.30"/>
+    <path d="M -20 -70 L 50 0 L -20 70 L -8 70 L 62 0 L -8 -70 Z" fill="url(#cyan)" opacity="0.60"/>
+    <path d="M 20 -70 L 90 0 L 20 70 L 32 70 L 102 0 L 32 -70 Z" fill="url(#cyan)"/>
+  </g>
+
+  <!-- STP wordmark -->
+  <text x="290" y="200" font-family="ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace"
+        font-size="170" font-weight="800" fill="#e6edf3" letter-spacing="-6">STP</text>
+
+  <!-- Vertical separator -->
+  <line x1="690" y1="78" x2="690" y2="218" stroke="#06b6d4" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Tagline -->
+  <text x="720" y="148" font-family="ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace"
+        font-size="44" font-weight="700" fill="url(#cyan)" letter-spacing="4">STRAIGHT TO</text>
+  <text x="720" y="206" font-family="ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace"
+        font-size="44" font-weight="700" fill="url(#cyan)" letter-spacing="4">PRODUCTION</text>
+
+  <!-- Bottom accent line -->
+  <rect x="290" y="246" width="900" height="2" fill="url(#cyanFade)"/>
+
+  <!-- Footer -->
+  <text x="290" y="282" font-family="ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace"
+        font-size="20" font-weight="500" fill="#7d8590" letter-spacing="3">YOUR CTO IN A PLUGIN  ·  BUILT FOR CLAUDE CODE</text>
+</svg>
