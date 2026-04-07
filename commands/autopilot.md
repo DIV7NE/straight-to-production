@@ -103,6 +103,7 @@ When the AI encounters a decision point (any place that would use AskUserQuestio
 - Critic evaluation runs automatically when complete
 - 3-second pause between iterations
 - Auto-decisions logged for user review
+- **Pre-merge base-SHA check** (Mode 1 only): before any wave merge, the worktree's merge-base must equal current trunk HEAD. Aborts on stale base — better to skip a merge than silently corrupt main. See `commands/work-full.md` Phase 6d.
 
 ## After Completion
 

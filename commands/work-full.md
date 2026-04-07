@@ -624,7 +624,9 @@ SendMessage(to="build-[name]", type="shutdown_request")
 TeamDelete(name="wave-1-build")
 ```
 
-**Merge Wave 1** → verify (type check + ALL tests) → update CONTEXT.md → **then create Wave 2 team.**
+**Merge Wave 1** → verify base SHA → merge → verify (type check + ALL tests) → update CONTEXT.md → **then create Wave 2 team.**
+
+> **Pre-merge base check is mandatory** (see 6d). Never `git merge` a worktree branch without confirming its merge-base equals current trunk HEAD — trunk can shift between spawn and merge, and a silent stale-base merge produces green tests over corrupt state.
 
 #### 6d. Review Executor Work
 
@@ -634,8 +636,21 @@ For each executor report:
 - Check: does code follow project patterns? Are tests meaningful? Any red flags?
 - If issues: fix directly on the branch before merging
 
-Merge:
+Merge — but verify the worktree base FIRST:
 ```bash
+# Pre-merge safety check: confirm worktree is rooted at current trunk.
+# Catches the failure mode where trunk moves between spawn and merge —
+# without this check, stale work merges silently into a moved trunk.
+TRUNK="main"  # adjust per project (master, develop, etc.)
+TRUNK_HEAD=$(git rev-parse "$TRUNK")
+WORKTREE_BASE=$(git merge-base "$TRUNK" [worktree-branch])
+if [ "$WORKTREE_BASE" != "$TRUNK_HEAD" ]; then
+  echo "ABORT: [worktree-branch] is not rooted at current $TRUNK ($TRUNK_HEAD)."
+  echo "  merge-base = $WORKTREE_BASE — $TRUNK has moved since spawn."
+  echo "  Action: rebase the worktree onto $TRUNK, or skip and re-spawn."
+  exit 1
+fi
+
 git merge [worktree-branch] --no-ff -m "feat: [feature name] (v[VERSION])"
 ```
 
