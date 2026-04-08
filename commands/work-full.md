@@ -255,17 +255,20 @@ If MISSING → install automatically: `npm i -g uipro-cli && uipro init --ai cla
 
 **If NO design system exists** → Generate one:
 
-1. Run ui-ux-pro-max to generate recommendations:
+1. **Start the whiteboard server FIRST** — BEFORE generating anything. The user should have the URL open before any data arrives, so they watch the design system populate live instead of opening an empty page. Do NOT ask permission; this is mandatory whenever design generation is triggered:
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
+```
+Tell the user in one line: "Whiteboard is live at http://localhost:3333 — open it now, the design system will populate in a few seconds."
+
+2. Run ui-ux-pro-max to generate recommendations:
 ```bash
 python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<product_type> <industry> <keywords>" --design-system -p "<Project Name>"
 ```
 
-2. Write the design preview to `.stp/explore-data.json` as a `designSystem` section (see whiteboard.md for the full JSON format) and start the whiteboard:
-```bash
-bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
-```
+3. Write the design preview to `.stp/whiteboard-data.json` as a `designSystem` section (see whiteboard.md for the full JSON format). The server polls every 2 seconds — the preview will render in the browser within moments of the write.
 
-3. **STOP and wait for the user to review.** Do NOT continue until the user has seen the whiteboard and approved.
+4. **STOP and wait for the user to review.** Do NOT continue until the user has seen the whiteboard and approved.
 
 ```
 AskUserQuestion(
@@ -279,9 +282,9 @@ AskUserQuestion(
 )
 ```
 
-If changes requested → regenerate, update explore-data.json, ask again. Iterate until approved.
+If changes requested → regenerate, update whiteboard-data.json, ask again. Iterate until approved.
 
-4. After approval, persist:
+5. After approval, persist:
 ```bash
 python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system --persist -p "<Project Name>"
 ```
@@ -364,7 +367,7 @@ bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_
 
 Wait for the user to confirm they've opened http://localhost:3333 before proceeding. Diagrams will update live as each sub-phase completes — the user watches the architecture take shape in real time. Each section still gets its own approval gate in Phase 5m.
 
-Throughout Phase 5, push all diagrams to `.stp/explore-data.json` — the whiteboard polls every 2 seconds and renders them live. If UI/UX work is involved, the design system preview (color swatches, font samples, layout wireframe) will also render in the whiteboard.
+Throughout Phase 5, push all diagrams to `.stp/whiteboard-data.json` — the whiteboard polls every 2 seconds and renders them live. If UI/UX work is involved, the design system preview (color swatches, font samples, layout wireframe) will also render in the whiteboard.
 
 #### 5a. Domain Research
 

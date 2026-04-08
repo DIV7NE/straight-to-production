@@ -31,20 +31,23 @@ Use `/stp:whiteboard` when you **don't know WHAT to build yet:**
    (WHAT)              (.stp/state/)           (skips "what do you want?" phase)
 ```
 
-## Visual Whiteboard
+## Start the Whiteboard Server (MANDATORY — your FIRST action, before anything else)
 
-If the topic will involve comparing architectures, diagramming flows, or exploring system designs, offer the visual whiteboard:
+**This is non-negotiable.** Before you read further into this file, before you ask the user anything, before you research, explore, or generate a design system — **START THE WHITEBOARD SERVER RIGHT NOW.** The command is literally named `/stp:whiteboard`; a whiteboard the user cannot see is a broken command.
 
-"This might be easier to think through visually. Want me to open the whiteboard? (http://localhost:3333)"
+Run this as the very first action of every `/stp:whiteboard` invocation, unconditionally — no if/else, no AskUserQuestion, no "would you like the whiteboard?":
 
-If they accept:
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
 ```
 
-Then write comparison diagrams and option visualizations to `.stp/explore-data.json` as you explore. The whiteboard renders them live. Great for comparing Option A vs Option B visually.
+Then tell the user in ONE line — not a question, a statement:
 
-If the topic is purely conceptual (no diagrams needed), skip the whiteboard offer.
+> "Whiteboard is live at http://localhost:3333 — open it in your browser now. It'll populate live as we explore."
+
+From this point on, every diagram, option comparison, and design preview you produce gets written to `.stp/whiteboard-data.json`. The server polls the file every 2 seconds and renders it in the user's browser. If the conversation turns out to be purely conceptual and produces no visuals, the whiteboard simply sits on its placeholder — harmless, not a problem.
+
+**Never skip this step. Never make it conditional. Never ask permission.** The user already answered "do you want the whiteboard?" by typing `/stp:whiteboard`. The prior failure mode was: agent entered UI/UX Detection, wrote the design system JSON, and never started the server — the user opened localhost:3333 and saw nothing. That bug is closed by making server start the LITERAL first action of every run. If you find yourself debating whether to run it, you've already violated this rule.
 
 ## UI/UX Detection (MANDATORY — run BEFORE Step 1)
 
@@ -55,7 +58,7 @@ If the user's topic involves ANY visual/frontend work (UI, UX, design, layout, l
 python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<product_type> <industry> <keywords>" --design-system -p "<Project Name>"
 ```
 
-**2. Parse the output and write a design preview section to `.stp/explore-data.json`:**
+**2. Parse the output and write a design preview section to `.stp/whiteboard-data.json`:**
 
 The whiteboard will render it live with color swatches, font previews, and layout wireframes. Use this JSON structure for the design system section:
 
@@ -101,7 +104,7 @@ AskUserQuestion(
 )
 ```
 
-If changes requested → regenerate the design system, update explore-data.json, ask again. Iterate until approved. Only then proceed.
+If changes requested → regenerate the design system, update whiteboard-data.json, ask again. Iterate until approved. Only then proceed.
 
 **4. Persist the approved design system:**
 ```bash
@@ -251,7 +254,13 @@ Fix any issues. Then present to the user:
 ║                                                       ║
 ╚═══════════════════════════════════════════════════════╝
 
-  ► Next: /stp:work-full [FEATURE] — recommended for [reason]
+  ► Next: 1. /clear
+          (the whiteboard phase fills context with research, comparisons,
+           and design system generation — clearing now lets the build
+           phase start fresh and read the design brief from disk)
+
+       2. then ONE of:
+          /stp:work-full [FEATURE] — recommended for [reason]
           /stp:work-quick [FEATURE] — if ≤3 files, no new models
           /stp:work-adaptive [FEATURE] — let STP decide
 ```

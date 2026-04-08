@@ -120,7 +120,9 @@ If everything PASSED:
 ║  ✓ REVIEW COMPLETE — ALL 7 CRITERIA PASSED            ║
 ╚═══════════════════════════════════════════════════════╝
 
-  ► Next: /stp:work-quick [NEXT FEATURE]
+  ► Next: /clear, then /stp:work-quick [NEXT FEATURE]
+          (clear frees context after the review pass — the next build
+           phase reads CHANGELOG/PLAN/CONTEXT fresh from disk)
 ```
 
 9. If the user says yes to fixes,, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.

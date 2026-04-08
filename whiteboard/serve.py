@@ -30,11 +30,21 @@ class WhiteboardHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path.startswith('/data.json'):
             self.serve_data()
-        elif self.path == '/' or self.path == '/index.html':
+            return
+        if self.path == '/' or self.path == '/index.html':
             self.path = '/index.html'
             super().do_GET()
-        else:
+            return
+        # Serve real files under the whiteboard plugin dir (e.g. codebase-map-template.html)
+        requested = self.path.lstrip('/').split('?', 1)[0].split('#', 1)[0]
+        if requested and os.path.isfile(os.path.join(PLUGIN_DIR, requested)):
             super().do_GET()
+            return
+        # Unknown path (e.g. /en from browser autocomplete) -> redirect to root
+        # so stray URLs land on the whiteboard instead of a bare Python 404.
+        self.send_response(302)
+        self.send_header('Location', '/')
+        self.end_headers()
 
     def serve_data(self):
         try:

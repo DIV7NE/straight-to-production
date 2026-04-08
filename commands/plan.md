@@ -34,29 +34,23 @@ TaskCreate("User approval")
 
 Mark each `in_progress` → `completed` as you work through phases. If research reveals additional concerns, `TaskCreate` new tasks for them.
 
-## Visual Whiteboard
+## Start the Whiteboard Server (MANDATORY — your FIRST action, before anything else)
 
-At the start of this command, offer the whiteboard:
+**Architecture planning is diagram-heavy by definition.** Before any research, any sub-phase, any AskUserQuestion — **START THE WHITEBOARD SERVER RIGHT NOW.** Every user flow, data model, and API sequence you produce in this command becomes a Mermaid diagram the user should watch populate live.
 
-```
-AskUserQuestion(
-  question: "I'll be designing the architecture with diagrams — user flows, data models, API sequences. Want me to open the visual whiteboard so you can see them live in your browser?",
-  options: [
-    "(Recommended) Yes, open the whiteboard at http://localhost:3333",
-    "No, just show diagrams inline",
-    "Chat about this"
-  ]
-)
-```
+Run this as the very first action of every `/stp:plan` invocation, unconditionally — no if/else, no permission prompt:
 
-If they accept, start the whiteboard server:
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
 ```
 
-Wait for the user to confirm they've opened http://localhost:3333 before proceeding.
+Then tell the user in ONE line — a statement, not a question:
 
-Then throughout this command, write diagram data to `.stp/whiteboard-data.json` as you produce each phase. The whiteboard polls this file every 2 seconds and renders Mermaid diagrams live.
+> "Whiteboard is live at http://localhost:3333 — open it now. Architecture diagrams will render live as each phase completes."
+
+Do not offer an opt-out. The user chose `/stp:plan` knowing it's a heavy architecture session; the whiteboard is how they watch the architecture take shape in real time. If you find yourself about to write `AskUserQuestion(question: "Want me to open the whiteboard...")`, stop — that was the old broken pattern.
+
+Throughout this command, write diagram data to `.stp/whiteboard-data.json` as you produce each phase. The whiteboard polls this file every 2 seconds and renders Mermaid diagrams live.
 
 The data format:
 ```json
@@ -113,7 +107,7 @@ If the PRD describes pages, components, layouts, dashboards, or any visual work,
 python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<product_type> <industry> <keywords_from_PRD>" --design-system -p "<Project Name>"
 ```
 
-2. Write the design preview to `.stp/explore-data.json` as a `designSystem` section (see whiteboard.md for the JSON format). If the whiteboard is running, the user sees it live.
+2. Write the design preview to `.stp/whiteboard-data.json` as a `designSystem` section (see whiteboard.md for the JSON format). If the whiteboard is running, the user sees it live.
 
 3. Ask the user to approve the design direction before proceeding.
 
@@ -680,7 +674,8 @@ AskUserQuestion(
   ]
 )
 
-  ► Next: /stp:work-quick [FIRST FEATURE from Milestone 1]
+  ► Next: /clear, then /stp:work-quick [FIRST FEATURE from Milestone 1]
+          (clear frees context — the build phase reads PLAN.md fresh from disk)
 ```
 
 Wait for the user to approve. If they request changes, make them, re-verify, and ask again. Do NOT proceed to building until the user has approved the verified plan.

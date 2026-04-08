@@ -88,20 +88,25 @@ If MISSING → install automatically: `npm i -g uipro-cli && uipro init --ai cla
 **Check for existing design system:**
 ```bash
 [ -f "design-system/MASTER.md" ] && echo "design-system: exists" || echo "design-system: NONE"
-[ -f ".stp/explore-data.json" ] && grep -q "designSystem" .stp/explore-data.json 2>/dev/null && echo "whiteboard-preview: exists" || echo "whiteboard-preview: NONE"
+[ -f ".stp/whiteboard-data.json" ] && grep -q "designSystem" .stp/whiteboard-data.json 2>/dev/null && echo "whiteboard-preview: exists" || echo "whiteboard-preview: NONE"
 ```
 
 **If design system exists** → Read `design-system/MASTER.md`. ALL UI code MUST follow its style, colors, typography, layout patterns, and anti-patterns. Check for page-specific overrides in `design-system/pages/`.
 
-**If NO design system exists** → Generate one BEFORE writing any frontend code:
+**If NO design system exists** → Generate one BEFORE writing any frontend code.
+
+**First, start the whiteboard server** — BEFORE generating anything. The user should have the URL open before any data arrives. Do NOT ask permission; this is mandatory whenever design generation runs:
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
+```
+Tell the user in one line: "Whiteboard is live at http://localhost:3333 — open it now, the design system will populate in a few seconds."
+
+**Then generate the design system:**
 ```bash
 python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<product_type> <industry> <keywords>" --design-system --persist -p "<Project Name>"
 ```
 
-Then write a design preview section to `.stp/explore-data.json` (see whiteboard.md for the JSON format) and start the whiteboard so the user can review:
-```bash
-bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
-```
+**Then write the design preview section to `.stp/whiteboard-data.json`** (see whiteboard.md for the JSON format). The server polls every 2 seconds — the preview will render in the browser within moments of the write.
 
 **STOP and wait for the user to review.** Do NOT continue until approved.
 
@@ -117,7 +122,7 @@ AskUserQuestion(
 )
 ```
 
-If changes requested → regenerate, update explore-data.json, ask again. Iterate until approved.
+If changes requested → regenerate, update whiteboard-data.json, ask again. Iterate until approved.
 
 **If the feature is NOT UI-related, skip this step entirely.**
 
@@ -804,7 +809,9 @@ Then:
 ║                                                       ║
 ╚═══════════════════════════════════════════════════════╝
 
-  ► Next: /stp:work-quick [FIRST FEATURE of next milestone]
+  ► Next: /clear, then /stp:work-quick [FIRST FEATURE of next milestone]
+          (clear frees context between milestones — the next milestone
+           reads PLAN.md and CHANGELOG.md fresh from disk)
 ```
 
 If this is the **LAST milestone** (all milestones complete):
@@ -836,7 +843,9 @@ If NO — more features remain in this milestone:
 
   [■■■■■■░░░░] [N]/[M] features · Milestone [N]
 
-  ► Next: /stp:work-quick [NEXT FEATURE in this milestone]
+  ► Next: /clear, then /stp:work-quick [NEXT FEATURE in this milestone]
+          (clear frees context between features — the next feature
+           reads current-feature state fresh from disk)
 ```
 
 ALWAYS fill in specific names.

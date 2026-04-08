@@ -699,9 +699,12 @@ why, and what alternatives were considered.]
 ║                                                       ║
 ╚═══════════════════════════════════════════════════════╝
 
-  ► Next: /stp:plan
-          Design the system architecture, data models, API,
-          and create a verified implementation plan with milestones.
+  ► Next: /clear, then /stp:plan
+          (clear frees context — the planning phase reads state files
+           fresh from disk and starts with a clean slate)
+
+          /stp:plan designs the system architecture, data models, API,
+          and creates a verified implementation plan with milestones.
 ```
 
 ALWAYS direct to /stp:plan next. Code comes AFTER planning.
