@@ -191,6 +191,7 @@ This applies to ALL STP commands and agents. The executor agents, QA agent, and 
 - /simplify + hygiene scan after every build
 - Version bump + CHANGELOG + CONTEXT.md update after every feature
 - **Whiteboard server is MANDATORY and FIRST** for `/stp:whiteboard` and `/stp:plan`. The server start (`bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &`) MUST be the literal first action of those commands — unconditionally, no AskUserQuestion gate, no "if they accept" branch. For UI/UX detection in `/stp:work-quick` and `/stp:work-full`, the server starts BEFORE the design system is generated, never after. Reason: a whiteboard the user can't see is a broken command. Bug history: v0.3.0 had every server start gated behind `if they accept`, so the agent could reach the "write the data" step with no server running and the user opened localhost:3333 to nothing. Closed in v0.3.1.
+- **FILENAME CONTRACT — the whiteboard data file is ALWAYS `.stp/whiteboard-data.json`. NEVER any other name.** Forbidden aliases that Claude sometimes hallucinates (all BLOCKED by `hooks/scripts/whiteboard-gate.sh`): `.stp/explore-data.json`, `.stp/whiteboard.json`, `.stp/board-data.json`, `.stp/design-data.json`. The whiteboard server (`whiteboard/serve.py`) polls only the canonical path — writes to any other name land in a file nothing watches and localhost:3333 stays on `{"status": "Waiting..."}` forever. If you find yourself about to write to `explore-data.json`, STOP: that is the pre-0.3.1 name, forbidden since 2026-04-08, retained in CHANGELOG.md only as a historical reference. The canonical name is `.stp/whiteboard-data.json` — nine characters, no dashes between "whiteboard" and "data", hyphen between "data" and "json". Reason: v0.3.3 post-mortem — the agent hallucinated `explore-data.json` from training data + CHANGELOG.md post-mortem references and the whiteboard-gate hook only matched the correct name, so the wrong filename slipped through the enforcement layer.
 - **/clear suggested before every inter-command transition.** Whenever an STP command's completion box recommends a follow-up `/stp:*` command, the recommendation MUST be `/clear, then /stp:next-command` — never just `/stp:next-command` alone. Reason: each STP phase fills context with research, generation, and verification noise; the next phase reads its inputs from disk (PLAN.md, design-brief.md, CHANGELOG.md, current-feature.md), so a clear context is strictly better. The `/clear` line goes inside the completion box's `► Next:` block, with a one-line explanation of what survives on disk.
 
 <!-- STP:stp-output-format:start -->
@@ -319,17 +320,40 @@ On any new session: read CHANGELOG.md (with spec deltas) for evolution history, 
 ## Statusline
 Node.js statusline (stp-statusline.js) registered in ~/.claude/settings.json globally. Shows: model + effort level, project version, active feature + progress, current milestone, context usage bar with compaction threshold (green/yellow/orange/red).
 
-## Hooks (10 enforcement gates)
-1. Unchecked feature items → BLOCK
-2. PLAN.md should exist → WARN
-3. Source files without tests → BLOCK
-4. Hardcoded secrets → BLOCK
-5. Placeholder/mock patterns in source files → WARN (scans for: `// TODO`, `// FIXME`, `// implement`, `lorem ipsum`, `placeholder`, `mock data`, `fake data`, `hardcoded`, `// ...`, `// rest of`)
-6. Hollow test detection → WARN (tautological asserts, assertion-free test files)
-7. Type/compile errors → BLOCK
-8. Test failures → BLOCK
-9. Schema drift detection → BLOCK (ORM schema files changed without corresponding migration files — catches Prisma, TypeORM, Django, Rails, Drizzle)
-10. Scope reduction detection → WARN (cross-references PRD.md SHALL/MUST requirements against PLAN.md — warns at <70% keyword coverage with >2 requirements)
+## Hooks (16 enforcement gates across 4 events)
+
+**IMPORTANT — hooks load at Claude Code SESSION STARTUP, not hot-reload.** After `/stp:upgrade` or any plugin update that adds or modifies hooks, you MUST exit Claude Code and restart it to pick up the new hooks. A running session keeps whatever hooks.json it loaded at launch. If a hook you expect to fire is silently ignored, this is almost always the cause — check your version with `cat ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` and restart if the cached version is stale. (This is a Claude Code limitation, not fixable at the plugin level.)
+
+**PreToolUse (2 gates — fire BEFORE Write/Edit/MultiEdit):**
+1. **ui-gate.sh** → BLOCK new UI-file writes (`*.html`, `*.tsx`, `*.jsx`, `*.vue`, `*.svelte`, `*.astro`, `*.css`, etc.) until `.stp/state/ui-gate-passed` marker exists. Carve-outs: tests, stories, configs, migrations, file overwrites. Escape hatch: `STP_BYPASS_UI_GATE=1`. Closes v0.3.1 AI-slop landing page bug.
+2. **whiteboard-gate.sh** → BLOCK writes to forbidden legacy filenames (`.stp/explore-data.json`, `.stp/whiteboard.json`, `.stp/board-data.json`, `.stp/design-data.json`) with correction instruction. For the canonical `.stp/whiteboard-data.json`, auto-start the whiteboard server if not running. Escape hatch: `STP_BYPASS_WHITEBOARD_GATE=1`. Closes v0.3.0 empty-localhost bug + v0.3.2 wrong-filename hallucination.
+
+**PostToolUse (2 hooks — fire AFTER Write/Edit/MultiEdit):**
+3. **post-edit-check.sh** → Stack-aware type/compile check (tsc, mypy, cargo check, go vet, etc.). Feedback via stderr, never blocks (feedback-only).
+4. **anti-slop-scan.sh** → Deterministic grep scanner for 7 AI-slop patterns (gradient headlines, "Now in beta" eyebrow pills, template copy, "ship in minutes", sparkles brand marks, center-everything defaults, 3+ boxed benefit cards). 1 hit → WARN. 2+ hits → BLOCK. Escape hatch: `STP_BYPASS_SLOP_SCAN=1`.
+
+**Stop (12 gates — fire when Claude tries to finish):**
+5. Unchecked feature items → BLOCK (workflow gate, no retry)
+6. PLAN.md should exist → WARN
+7. Source files without tests → BLOCK
+8. Hardcoded secrets → BLOCK (matches `sk_live_`, `sk_test_`, `AKIA...` patterns)
+9. Placeholder/mock patterns → WARN (scans for `// TODO`, `// FIXME`, `lorem ipsum`, `mock data`, etc.)
+10. Hollow test detection → WARN (tautological asserts, assertion-free test files)
+11. Type/compile errors → BLOCK (Gate 7 in stop-verify.sh)
+12. Test failures → BLOCK (Gate 8 in stop-verify.sh)
+13. Schema drift detection → BLOCK (ORM schema files changed without migrations — catches Prisma, TypeORM, Django, Rails, Drizzle)
+14. Scope reduction detection → WARN (PRD.md SHALL/MUST coverage in PLAN.md below 70%)
+15. **Spec delta merge-back** → WARN (completed feature's CHANGELOG.md missing `### Spec Delta` block OR ARCHITECTURE.md not touched in last 5 commits)
+16. **Critic required** → BLOCK (PLAN.md exists + feature complete + no `.stp/state/critic-report-*.md` newer than feature file — workflow gate, no retry count)
+17. **QA required for UI features** → BLOCK (`.stp/state/ui-gate-passed` exists + feature complete + no `.stp/state/qa-report-*.md` — workflow gate, no retry count)
+
+**SessionStart (1 hook — fires at every Claude Code session start):**
+18. Wipes `.stp/state/ui-gate-passed` (forces re-confirmation of design direction every fresh session) + migrate old layout + restore context from disk.
+
+**PreCompact (1 hook — fires before context compaction):**
+19. Saves emergency state to `.stp/state/state.json` + broadcasts "commit your work now" to the active turn.
+
+**3-retry safety valve:** Technical BLOCKs (tests, types, schema) count toward a 3-retry limit to prevent session bricking from stuck states. Workflow BLOCKs (unchecked items, Critic, QA) do NOT count — they require action but can't brick the session.
 
 ## Research
 All research sources in RESEARCH-SOURCES.md. Key: Anthropic harness blog, Vercel AGENTS.md (100% vs 53%), Phil Schmid "Build to Delete", OX Security AI anti-patterns.

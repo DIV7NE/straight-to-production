@@ -1,21 +1,37 @@
 #!/bin/bash
-# STP v0.3.2: Whiteboard server pre-gate
-# PreToolUse hook that auto-starts the whiteboard server before any
-# Write to .stp/whiteboard-data.json.
+# STP v0.3.3: Whiteboard server pre-gate
+# PreToolUse hook that:
+#   1. Blocks writes to the FORBIDDEN legacy filename .stp/explore-data.json
+#      and similar non-canonical variants (training-data hallucination catch)
+#   2. Auto-starts the whiteboard server before any Write to the canonical
+#      .stp/whiteboard-data.json
 #
-# Why this exists: v0.3.0/0.3.1 failure.
-# Commands told Claude "start whiteboard server MUST be first action", but
-# the server-start step and the data-write step were separable in markdown.
-# Claude would reach the data-write step first while the server was never
-# started, and the user would open http://localhost:3333 to nothing.
-# The v0.3.1 CLAUDE.md entry closed it "in spirit" but never enforced it.
-# This hook makes server-before-data an enforced sequence.
+# Bug history:
+#
+# v0.3.0 — server-start and data-write were separable markdown steps. Claude
+# would write the data while the server was never started; user opened
+# localhost:3333 to nothing.
+#
+# v0.3.1 — fixed the filename contract (whiteboard-data.json became canonical)
+# but the post-mortem CHANGELOG *mentioned* the old name .stp/explore-data.json
+# three times while explaining the bug. This taught Claude the wrong name as a
+# valid alternative via context-read.
+#
+# v0.3.2 — introduced this hook, but it only matched the CORRECT filename.
+# When Claude hallucinated .stp/explore-data.json (Session 2 reproduction),
+# the hook saw a non-matching path and exited 0, allowing the wrong write.
+# Data landed in a file the server doesn't watch. Localhost stayed empty.
+#
+# v0.3.3 (this file) — also match the forbidden name and reject it with a
+# clear correction. Defense-in-depth: CLAUDE.md now carries the filename
+# contract as an always-loaded rule; this hook is the enforcement backstop.
 #
 # Behavior:
-#   - If writing to anything other than .stp/whiteboard-data.json → allow
-#   - If server is already running (pgrep OR port listening) → allow
-#   - Otherwise → auto-start the server, wait briefly, allow
-#   - If auto-start fails → BLOCK with manual instructions
+#   - Write to .stp/explore-data.json (or any forbidden variant) → BLOCK
+#     with a correction instruction (use whiteboard-data.json instead)
+#   - Write to .stp/whiteboard-data.json with server running → ALLOW
+#   - Write to .stp/whiteboard-data.json without server → auto-start, ALLOW
+#   - Anything else → ALLOW (not our concern)
 #
 # EXIT CODE 0 = ALLOW   EXIT CODE 2 = BLOCK
 
@@ -36,7 +52,47 @@ if [ -z "$FILE_PATH" ]; then
 fi
 if [ -z "$FILE_PATH" ]; then exit 0; fi
 
-# Only gate writes to the whiteboard data file
+# ── Part 1: Catch the FORBIDDEN legacy filename (and variants) ───
+# Claude sometimes hallucinates the pre-0.3.1 filename .stp/explore-data.json
+# because the v0.3.1 post-mortem CHANGELOG mentions it. Also guard against
+# other plausible hallucinations: whiteboard.json, board-data.json, etc.
+# Canonical path is the literal string .stp/whiteboard-data.json.
+if [[ "$FILE_PATH" =~ (^|/)\.stp/explore-data\.json$ ]] || \
+   [[ "$FILE_PATH" =~ (^|/)\.stp/whiteboard\.json$ ]] || \
+   [[ "$FILE_PATH" =~ (^|/)\.stp/board-data\.json$ ]] || \
+   [[ "$FILE_PATH" =~ (^|/)\.stp/design-data\.json$ ]]; then
+  {
+    echo ""
+    echo "╔══════════════════════════════════════════════════════════════════════╗"
+    echo "║ STP WHITEBOARD GATE — wrong filename: $(basename "$FILE_PATH")"
+    echo "╠══════════════════════════════════════════════════════════════════════╣"
+    echo "║ The canonical whiteboard data file is:                               ║"
+    echo "║                                                                      ║"
+    echo "║     .stp/whiteboard-data.json                                        ║"
+    echo "║                                                                      ║"
+    echo "║ The name you tried ($(basename "$FILE_PATH")) is a"
+    echo "║ legacy / hallucinated variant. The server does NOT watch it, so any  ║"
+    echo "║ data written there will never reach the browser — localhost:3333    ║"
+    echo "║ will stay on its 'Waiting...' placeholder.                           ║"
+    echo "║                                                                      ║"
+    echo "║ Bug history context:                                                 ║"
+    echo "║  - Pre-0.3.1: explore-data.json was used in some command docs.      ║"
+    echo "║  - v0.3.1: renamed to whiteboard-data.json (canonical).             ║"
+    echo "║  - v0.3.2 post-mortem mentions the old name in CHANGELOG.md          ║"
+    echo "║    while explaining the bug. That teaches the wrong name.           ║"
+    echo "║  - v0.3.3 (now): this hook catches the hallucination.               ║"
+    echo "║                                                                      ║"
+    echo "║ TO UNBLOCK: retry the Write with file_path set to                   ║"
+    echo "║ .stp/whiteboard-data.json (with the same content).                  ║"
+    echo "║                                                                      ║"
+    echo "║ Escape hatch (power users only): STP_BYPASS_WHITEBOARD_GATE=1       ║"
+    echo "╚══════════════════════════════════════════════════════════════════════╝"
+    echo ""
+  } >&2
+  exit 2
+fi
+
+# ── Part 2: Only auto-start server for the canonical filename ────
 if [[ ! "$FILE_PATH" =~ (^|/)\.stp/whiteboard-data\.json$ ]]; then
   exit 0
 fi

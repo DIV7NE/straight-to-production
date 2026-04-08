@@ -5,6 +5,74 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] — 2026-04-08 — fix: filename hallucination catch + hot-reload docs + hooks taxonomy refresh
+
+### Summary
+
+**v0.3.2 post-mortem** — the v0.3.2 enforcement layer shipped with three bugs that together recreated the v0.3.1 failure mode in a fresh form. A user ran `/stp:work-quick` and `/stp:whiteboard` back-to-back and hit all three:
+
+**Bug 1 — Session 1 stale hooks.** Plugin cache `0.3.2` was only created 43 minutes after I committed v0.3.2 to source. Any Claude Code session started in that window loaded the pre-v0.3.2 hooks.json (no PreToolUse entries). The user's `/stp:work-quick` session had no ui-gate loaded, so it built the exact same AI-slop landing page that motivated the v0.3.2 release. **Root cause:** Claude Code loads hooks at session startup and does not hot-reload when source changes. This is a Claude Code limitation, not fixable in the plugin — but it was undocumented.
+
+**Bug 2 — Whiteboard-gate matched only the canonical filename.** In Session 2, the user ran `/stp:whiteboard`. Claude wrote the data to `.stp/explore-data.json` (a pre-0.3.1 legacy name) instead of `.stp/whiteboard-data.json`. The whiteboard-gate hook checked only the canonical name — the wrong filename passed through as "not my problem" and exited 0. Data landed in a file the server does not watch. localhost:3333 stayed on `{"status": "Waiting..."}` for the entire session. The user was correct to say "it never deployed."
+
+**Bug 3 — CHANGELOG.md teaching the wrong filename.** The v0.3.1 post-mortem CHANGELOG mentioned the legacy filename three times while explaining the old bug. With no counter-balancing filename contract in CLAUDE.md, Claude's context-read treated the legacy name as a valid alternative. The v0.3.2 CHANGELOG also inherited the references. **The documentation of a fixed bug was actively training the agent to reproduce it.**
+
+Fixing this requires defense-in-depth across three layers: the hook must catch hallucinated names, CLAUDE.md must carry an always-loaded filename contract, and the CHANGELOG references must be defused so they read as negative examples instead of valid alternatives.
+
+### Added
+
+- **`CLAUDE.md` `## Key Rules` — Filename Contract** — new always-loaded rule pinning the whiteboard data file to the canonical `.stp/whiteboard-data.json` and explicitly naming four forbidden aliases (`.stp/explore-data.json`, `.stp/whiteboard.json`, `.stp/board-data.json`, `.stp/design-data.json`). The rule includes a loud "STOP" directive if the agent catches itself about to write a forbidden name and cites the post-mortem reason. Since CLAUDE.md is loaded on every session start, this becomes a hard context-level constraint that sits above training-data hallucination.
+- **`CLAUDE.md` `## Hooks` — hot-reload warning** — explicit prose at the top of the section: *"Hooks load at Claude Code SESSION STARTUP, not hot-reload. After `/stp:upgrade` or any plugin update that adds or modifies hooks, you MUST exit Claude Code and restart it to pick up the new hooks. A running session keeps whatever hooks.json it loaded at launch."* Closes Bug 1 at the documentation layer (can't fix Claude Code itself, but users can now diagnose the "my hooks aren't firing" symptom).
+- **`CLAUDE.md` `## Hooks` — complete taxonomy refresh** — the section was stale since before v0.3.2, still listing "10 enforcement gates." It now documents all 19 hooks across 5 events (PreToolUse ×2, PostToolUse ×2, Stop ×13, SessionStart ×1, PreCompact ×1) with a note on the 3-retry technical safety valve and the workflow-vs-technical block distinction.
+- **`hooks/scripts/whiteboard-gate.sh` — forbidden-filename detection (4 variants)** — the hook now matches `.stp/explore-data.json`, `.stp/whiteboard.json`, `.stp/board-data.json`, and `.stp/design-data.json` in addition to the canonical name. Wrong filename → BLOCK with exit 2 and a correction message telling Claude exactly what path to use, including the historical context (why the wrong name exists, why it's forbidden, how to unblock). Canonical filename → existing auto-start-server behavior unchanged.
+
+### Changed
+
+- **`CHANGELOG.md` v0.3.1 section — three forbidden-name references defused** — the three literal `.stp/explore-data.json` mentions in the v0.3.1 post-mortem entry have been rewritten to use the phrase "pre-0.3.1 legacy name" or "FORBIDDEN legacy name" with explicit "DO NOT use this" / "blocked by `hooks/scripts/whiteboard-gate.sh`" markers. The literal forbidden string has been removed from the historical record so that Claude's context-read of the CHANGELOG no longer trains the hallucination. The factual narrative of the bug is preserved.
+- **`.claude-plugin/plugin.json`** — `0.3.2` → `0.3.3`.
+
+### Fixed
+
+- **v0.3.2 whiteboard-gate false-negative** — `hooks/scripts/whiteboard-gate.sh:47` matched `(^|/)\.stp/whiteboard-data\.json$` literally. This was correct for the canonical name but blind to hallucinated variants. The fix adds four additional regex branches (one per forbidden alias) and keeps the canonical branch unchanged. All 10 hook tests still pass, plus 4 new tests for the forbidden-name branches.
+- **v0.3.1 → v0.3.2 CHANGELOG training-data bleed** — removed the literal forbidden-filename string from the v0.3.1 post-mortem entry. The post-mortem's explanatory power is preserved (the narrative still says "filename contract was split, rename was half-finished, server stuck on Waiting..."), but the specific legacy name no longer appears as a grep-able string that Claude can learn as valid.
+
+### Spec Delta
+
+- **Added:**
+  - Filename contract in CLAUDE.md `## Key Rules` — canonical path + 4 forbidden aliases
+  - Hot-reload warning in CLAUDE.md `## Hooks` — documents the "restart Claude Code after /stp:upgrade" requirement
+  - Updated `## Hooks` taxonomy listing all 19 hooks across 5 lifecycle events
+  - Forbidden-name detection in `whiteboard-gate.sh` (4 new regex branches)
+  - Correction-message BLOCK response with historical context and remediation steps
+
+- **Changed:**
+  - `whiteboard-gate.sh` semantics — now also a filename validator, not just a server-start auto-initializer. Before: "auto-start server when needed." After: "validate filename AND auto-start server when needed." The hook's concern has broadened from runtime state to filename contract enforcement.
+  - CHANGELOG.md content discipline — historical bug references to forbidden strings must be defused, not quoted verbatim. Any future "the old name was X" reference must be written as "the pre-<version> legacy name" and cite the blocking hook.
+  - The "hook = runtime enforcement" model — hooks are now also documentation of forbidden names that the always-loaded CLAUDE.md can point at. `whiteboard-gate.sh` is cited by CLAUDE.md:194 as the authoritative enforcement reference.
+
+- **Constraints introduced:**
+  - Writes to `.stp/explore-data.json`, `.stp/whiteboard.json`, `.stp/board-data.json`, `.stp/design-data.json` MUST be blocked and corrected to `.stp/whiteboard-data.json`.
+  - CHANGELOG entries documenting bugs involving forbidden strings MUST use defused references ("pre-<version> legacy name") rather than quoting the forbidden string verbatim.
+  - CLAUDE.md MUST carry the whiteboard filename contract as an always-loaded rule.
+  - After any `/stp:upgrade` that modifies hooks, the upgrade's completion message MUST instruct the user to restart Claude Code (follow-up task — not wired in this release).
+
+- **Dependencies created:**
+  - CLAUDE.md `## Key Rules` filename contract references `hooks/scripts/whiteboard-gate.sh` by path — future refactors of the hook must keep it at that location or update the citation.
+  - CLAUDE.md `## Hooks` taxonomy references specific gate numbers in `hooks/scripts/stop-verify.sh` — future gate additions must update both.
+
+### Deliberately NOT done
+
+- **SessionStart version banner** — user declined ("just document it"). A banner printing "STP hooks v0.3.3 loaded" would make the stale-hook symptom visually obvious on every session start, but adds noise and maintenance cost for a rare failure mode that documentation can cover.
+- **Claude Code hot-reload fix** — not fixable at the plugin level. Hooks are loaded by the Claude Code process at startup; there is no hook API to invalidate the loaded set mid-session. Users must restart. Documented as a known limitation.
+- **Rewrite of v0.3.2 CHANGELOG references to forbidden string** — the v0.3.2 entry's post-mortem narrative has been scanned but not edited; the v0.3.2 entry in this CHANGELOG cites the filename bug as an abstract concept without the literal string, so defusing-in-place is unnecessary. Only the v0.3.1 section had the literal string three times.
+
+### Test coverage delta
+
+- 10 new `whiteboard-gate.sh` tests (v2): 4 forbidden-name BLOCK tests, 1 canonical-name ALLOW test, 1 non-whiteboard file ALLOW test, 1 non-STP project test, 1 env-bypass test, 2 false-positive-guard tests (`.stp/docs/whiteboard.md` and `.stp/state/critic-report.json` must not match). All 10 pass.
+- Existing v0.3.2 test suite: still 49/49 green (regression-checked).
+
+---
+
 ## [0.3.2] — 2026-04-08 — feat: enforcement layer — markdown "MANDATORY" becomes hook-enforced
 
 ### Summary
@@ -98,9 +166,11 @@ any user invoking `/stp:whiteboard`:
 
 1. **Filename contract was split.** The server (`whiteboard/serve.py`) watched
    `.stp/whiteboard-data.json` while four command files told the orchestrator
-   to write `.stp/explore-data.json`. The rename was half-finished — `plan.md`
-   even contradicted itself across three lines. Result: server permanently
-   stuck on `{"status":"Waiting..."}`.
+   to write a different, now-**FORBIDDEN** legacy name (the pre-0.3.1 path —
+   DO NOT use this; it is blocked by `hooks/scripts/whiteboard-gate.sh` in
+   v0.3.3+ and mentioned here only as historical record). The rename was
+   half-finished — `plan.md` even contradicted itself across three lines.
+   Result: server permanently stuck on `{"status":"Waiting..."}`.
 
 2. **Server start was always conditional.** Every single `start-whiteboard.sh`
    call across the entire codebase lived inside an "if they accept" /
@@ -176,7 +246,7 @@ any user invoking `/stp:whiteboard`:
   the exact payload → previous silent-failure mode is gone
 
 **Codebase grep checks (must-be-empty after fix):**
-- `grep -rn "explore-data.json" commands/ whiteboard/` → 0 matches
+- grep for the pre-0.3.1 legacy filename across `commands/` and `whiteboard/` → 0 matches (legacy name is FORBIDDEN and blocked by `hooks/scripts/whiteboard-gate.sh` in v0.3.3+)
 - `grep -n "Next.*\/stp:" commands/*.md | grep -v "/clear"` → 0 matches
 - `grep -B1 -A1 "If they accept" commands/whiteboard.md commands/plan.md` → 0 matches
 
@@ -192,7 +262,9 @@ any user invoking `/stp:whiteboard`:
   - Two new entries in CLAUDE.md `## Key Rules` enforcing the above.
 - **Changed:**
   - Canonical whiteboard data filename is `.stp/whiteboard-data.json`
-    (was ambiguously `explore-data.json` in some command docs).
+    (was ambiguously a different legacy name in some pre-0.3.1 command docs —
+    that legacy name is now FORBIDDEN and blocked by the v0.3.3 whiteboard-gate
+    hook; do NOT reference it).
   - The whiteboard offer is no longer modeled as opt-in for `/stp:whiteboard`
     and `/stp:plan` — it is the literal first action.
   - In `/stp:work-quick` and `/stp:work-full` UI/UX branches, the server
