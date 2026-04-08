@@ -238,7 +238,7 @@ If restart needed:
 
 ### Phase 3b: UI/UX DESIGN SYSTEM (when work involves ANY frontend/UI)
 
-If this work touches UI (components, pages, layouts, styling, themes, landing pages, dashboards, forms), this phase is MANDATORY before research:
+If this work touches UI (components, pages, layouts, styling, themes, landing pages, dashboards, forms), this phase is MANDATORY before research and **enforced by `hooks/scripts/ui-gate.sh`** — Write/Edit on any new `*.html`, `*.tsx`, `*.jsx`, `*.vue`, `*.svelte`, `*.astro`, or `*.css` file will be **BLOCKED by the Claude Code PreToolUse hook** until `.stp/state/ui-gate-passed` exists. Markdown "MUST" is a suggestion; the hook is the enforcement. Closes v0.3.1 AI-slop-landing-page failure.
 
 **Check for ui-ux-pro-max (required companion plugin):**
 ```bash
@@ -246,12 +246,21 @@ If this work touches UI (components, pages, layouts, styling, themes, landing pa
 ```
 If MISSING → install automatically: `npm i -g uipro-cli && uipro init --ai claude`. Do NOT proceed with UI work without it.
 
-**Check for existing design system:**
+**Check for existing design system (glob any nested MASTER.md):**
 ```bash
-[ -f "design-system/MASTER.md" ] && echo "design-system: exists" || echo "design-system: NONE"
+# Find ANY design-system/**/MASTER.md — supports nested per-page systems
+# like design-system/landing/MASTER.md or design-system/dashboard/MASTER.md
+FOUND_MASTER=$(find design-system -maxdepth 4 -name "MASTER.md" -type f 2>/dev/null | head -1)
+if [ -n "$FOUND_MASTER" ]; then
+  echo "design-system: found at $FOUND_MASTER"
+else
+  echo "design-system: NONE"
+fi
 ```
 
-**If design system exists** → Read `design-system/MASTER.md`. ALL UI code MUST follow its style, colors, typography, layout patterns, and anti-patterns. Check for page-specific overrides in `design-system/pages/`.
+Also check whether the user's request explicitly referenced a MASTER.md path (e.g. "using design-system/foo/MASTER.md"). If so, that path is the authoritative design system for this feature — treat it the same as if the find command returned it.
+
+**If a design system exists (either found by find or referenced in the user prompt)** → Read the MASTER.md fully, then proceed to the **design consultation step** below. You still owe the user a summary and approval even when MASTER.md already exists. Reading tokens is not the same as a design consultation.
 
 **If NO design system exists** → Generate one:
 
@@ -268,30 +277,43 @@ python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<product_type> <industry
 
 3. Write the design preview to `.stp/whiteboard-data.json` as a `designSystem` section (see whiteboard.md for the full JSON format). The server polls every 2 seconds — the preview will render in the browser within moments of the write.
 
-4. **STOP and wait for the user to review.** Do NOT continue until the user has seen the whiteboard and approved.
+**Design consultation (REQUIRED even when MASTER.md already exists):**
+
+Before any UI Write can succeed, state — in one message to the user — the following:
+1. Which MASTER.md you're following (full path)
+2. The layout pattern you plan to use (e.g. "Minimal Single Column", "Swiss asymmetric grid", "Bento")
+3. The color + typography direction in one sentence
+4. A one-line anti-slop commitment: explicitly name the AI-slop tells you will NOT use (gradient text on headlines, "Now in public beta" eyebrow pills, 3 boxed benefit cards, sparkles brand marks, template copy like "without the X headache", center-everything layouts)
+
+Then **STOP and wait for the user to review**. Do NOT continue until the user has approved.
 
 ```
 AskUserQuestion(
-  question: "Design system preview is live at http://localhost:3333 — take a look at the colors, fonts, layout, and style. Is this how you imagined it?",
+  question: "Design direction for [feature]: following [MASTER.md path], [layout pattern], [color/type direction]. Anti-slop commitments: no gradient headlines, no beta pills, no boxed benefit cards, no sparkles logo, no template copy, no center-everything. Approve?",
   options: [
-    "Yes, this is what I had in mind — continue",
-    "Close but needs changes — [describe what to adjust]",
-    "Not what I imagined — try a different direction",
+    "(Recommended) Approve — proceed with this direction",
+    "Close — adjust [describe what to change]",
+    "Try a different direction",
     "Chat about this"
   ]
 )
 ```
 
-If changes requested → regenerate, update whiteboard-data.json, ask again. Iterate until approved.
+If changes requested → regenerate, update whiteboard-data.json, re-present, ask again. Iterate until approved.
 
-5. After approval, persist:
+**After approval, persist + release the UI gate:**
 ```bash
+# Persist the generated design system to disk (if one was generated)
 python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system --persist -p "<Project Name>"
+# Release the UI gate — this unblocks hooks/scripts/ui-gate.sh for the session
+mkdir -p .stp/state && touch .stp/state/ui-gate-passed
 ```
 
-This creates `design-system/MASTER.md` which Phase 6 (Execute) reads before writing any frontend code.
+The marker is wiped automatically on `/clear` (via the SessionStart hook), so the next fresh session re-confirms design direction. `hooks/scripts/anti-slop-scan.sh` continues to monitor the actual written output even after the gate is released — any two high-confidence slop tells (gradient headline + template copy, etc.) will block the PostToolUse stage.
 
-**If the work is NOT UI-related, skip this phase entirely.**
+This creates or updates `design-system/MASTER.md` which Phase 6 (Execute) reads before writing any frontend code.
+
+**If the work is NOT UI-related, skip this phase entirely.** The ui-gate hook only triggers on UI file types, so non-UI work is never blocked.
 
 ### Phase 4: RESEARCH — Deep Dive on Implementation
 

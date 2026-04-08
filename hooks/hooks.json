@@ -1,5 +1,23 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/ui-gate.sh\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/whiteboard-gate.sh\"",
+            "timeout": 5
+          }
+        ],
+        "description": "Pre-write gates: (1) ui-gate blocks new UI files without design-system consultation (closes v0.3.1 slop-page bug); (2) whiteboard-gate auto-starts the whiteboard server before writes to .stp/whiteboard-data.json (closes v0.3.0 empty-localhost bug)."
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
@@ -8,9 +26,14 @@
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/post-edit-check.sh\"",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/anti-slop-scan.sh\"",
+            "timeout": 5
           }
         ],
-        "description": "Stack-aware type/compile check after editing source files"
+        "description": "Stack-aware type/compile check + AI-slop pattern scanner after editing source files. Anti-slop blocks on 2+ high-confidence findings."
       }
     ],
     "Stop": [
@@ -49,11 +72,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/migrate-layout.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-restore.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check-upgrade.sh\" &",
+            "command": "rm -f .stp/state/ui-gate-passed 2>/dev/null; bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/migrate-layout.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-restore.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check-upgrade.sh\" &",
             "timeout": 15
           }
         ],
-        "description": "Auto-migrate old layout + restore context from disk after /clear or compaction"
+        "description": "Wipe UI gate marker + auto-migrate old layout + restore context from disk after /clear or compaction. Wiping the UI gate forces re-confirmation of the design direction on every fresh session."
       }
     ]
   },

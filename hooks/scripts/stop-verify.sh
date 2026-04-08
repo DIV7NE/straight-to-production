@@ -1,4 +1,7 @@
 #!/bin/bash
+# HOME bypass — STP hook should never run at $HOME, allow stop immediately
+if [ "$PWD" = "$HOME" ]; then exit 0; fi
+
 # STP v0.2.0: Stop verification hook
 # EXIT CODE 2 = BLOCK (Claude cannot stop, must continue)
 # EXIT CODE 0 = ALLOW (Claude can stop)
@@ -18,6 +21,9 @@
 #   Gate 6: Hollow test detection → WARN (tautological asserts, assertion-free tests)
 #   Gate 9: Schema drift detection → BLOCK (ORM schema changed without migration)
 #   Gate 10: Scope reduction detection → WARN (PRD requirements missing from PLAN)
+#   Gate 11: Spec delta merge-back → WARN (completed feature missing ### Spec Delta in CHANGELOG or ARCHITECTURE update)
+#   Gate 12: Critic must run on PLAN-backed features → BLOCK (workflow gate, no retry count)
+#   Gate 13: QA must run on UI features → BLOCK (workflow gate, no retry count)
 # SLOW (seconds):
 #   Gate 7: Type/compile errors → BLOCK
 #   Gate 8: Test failures → BLOCK (skipped if Gate 7 failed)
@@ -117,23 +123,33 @@ if [ -f "$FEATURE_FILE" ]; then
 fi
 
 # ── Gate 4: No hardcoded secrets ─────────────────────────────────
-SECRETS=$(grep -rn \
-  "sk_live_[a-zA-Z0-9]\{20,\}\|sk_test_[a-zA-Z0-9]\{20,\}\|AKIA[0-9A-Z]\{16\}" \
-  --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" \
-  --include="*.py" --include="*.rs" --include="*.go" --include="*.cs" \
-  --include="*.java" --include="*.rb" --include="*.php" \
-  --exclude-dir=node_modules --exclude-dir=.venv --exclude-dir=vendor \
-  --exclude-dir=target --exclude-dir=.next --exclude-dir=dist \
-  . 2>/dev/null | \
-  grep -v "\.env" | grep -v "example" | grep -v "\.test\." | grep -v "\.spec\." | \
-  grep -v "test_" | grep -v "_test\." | grep -v "mock" | grep -v "fixture" | head -5)
+# Only runs inside an actual STP project, never at $HOME — otherwise grep -rn
+# walks the entire home dir and false-positives on Bun types, pipx caches,
+# PIL font blobs, and the project's own secret-detector fixtures.
+if [ -f "$FEATURE_FILE" ] && [ "$PWD" != "$HOME" ]; then
+  SECRETS=$(grep -rn \
+    "sk_live_[a-zA-Z0-9]\{20,\}\|sk_test_[a-zA-Z0-9]\{20,\}\|AKIA[0-9A-Z]\{16\}" \
+    --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" \
+    --include="*.py" --include="*.rs" --include="*.go" --include="*.cs" \
+    --include="*.java" --include="*.rb" --include="*.php" \
+    --exclude-dir=node_modules --exclude-dir=.venv --exclude-dir=vendor \
+    --exclude-dir=target --exclude-dir=.next --exclude-dir=dist \
+    --exclude-dir=.bun --exclude-dir=.local --exclude-dir=.cache \
+    --exclude-dir=.git --exclude-dir=.npm --exclude-dir=.pnpm-store \
+    --exclude-dir=.yarn --exclude-dir=.rustup --exclude-dir=.cargo \
+    --exclude="*.d.ts" --exclude="ImageFont.py" --exclude="detect-secrets.*" \
+    . 2>/dev/null | \
+    grep -iv "example" | grep -v "\.env" | grep -v "\.test\." | grep -v "\.spec\." | \
+    grep -v "test_" | grep -v "_test\." | grep -iv "mock" | grep -iv "fixture" | \
+    grep -v "AKIAXXX" | grep -v "AKIAIOSFODNN7EXAMPLE" | head -5)
 
-if [ -n "$SECRETS" ]; then
-  echo "BLOCKED: Potential hardcoded secrets found:" >&2
-  echo "$SECRETS" >&2
-  echo "Move secrets to environment variables. See .stp/references/security/env-handling.md" >&2
-  HAS_ERRORS=true
-  HAS_TECHNICAL_ERRORS=true
+  if [ -n "$SECRETS" ]; then
+    echo "BLOCKED: Potential hardcoded secrets found:" >&2
+    echo "$SECRETS" >&2
+    echo "Move secrets to environment variables. See .stp/references/security/env-handling.md" >&2
+    HAS_ERRORS=true
+    HAS_TECHNICAL_ERRORS=true
+  fi
 fi
 
 # ── Gate 5: Placeholder/mock patterns in source files (WARN) ────
@@ -269,6 +285,91 @@ if [ -f "$DOCS_DIR/PRD.md" ] && [ -f "$DOCS_DIR/PLAN.md" ]; then
       fi
       echo "Verify PLAN.md covers all mandatory (SHALL/MUST) requirements from PRD.md." >&2
     fi
+  fi
+fi
+
+# ── Helper: feature_is_complete ────────────────────────────────
+# Returns 0 if current-feature.md exists AND has zero unchecked items.
+# Robust against grep -c exit behavior: grep -c prints "0" on no-match
+# BUT also exits 1, which makes naive `grep -c ... || echo 0` produce
+# "0\n0" and break numeric comparisons downstream. Using a clean capture.
+feature_is_complete() {
+  [ -f "$FEATURE_FILE" ] || return 1
+  local count
+  count=$(grep -c '\[ \]' "$FEATURE_FILE" 2>/dev/null || true)
+  count=${count:-0}
+  # Strip anything non-numeric (defense against multi-line output)
+  count=${count//[!0-9]/}
+  count=${count:-0}
+  [ "$count" -eq 0 ]
+}
+
+# ── Gate 11: Spec delta merge-back (WARN) ──────────────────────
+# When a feature is marked complete, verify CHANGELOG.md has a
+# ### Spec Delta block for it AND ARCHITECTURE.md was touched recently.
+# Without merge-back, canonical docs drift from reality.
+if feature_is_complete; then
+  if [ -f "$DOCS_DIR/CHANGELOG.md" ]; then
+    # Check the last 80 lines of CHANGELOG for a "### Spec Delta" block
+    RECENT_CHANGELOG=$(tail -80 "$DOCS_DIR/CHANGELOG.md" 2>/dev/null)
+    if ! echo "$RECENT_CHANGELOG" | grep -q "### Spec Delta"; then
+      echo "WARNING: Completed feature has no ### Spec Delta block in CHANGELOG.md." >&2
+      echo "Add one describing: Added / Changed / Constraints introduced / Dependencies created." >&2
+      echo "Then merge the deltas back into ARCHITECTURE.md and PRD.md." >&2
+    fi
+  fi
+
+  # Check if ARCHITECTURE.md was updated in the last 5 commits (proxy for merge-back)
+  if command -v git &>/dev/null && git rev-parse --is-inside-work-tree &>/dev/null 2>&1; then
+    if [ -f "$DOCS_DIR/ARCHITECTURE.md" ]; then
+      # Clean capture: use wc -l on the filtered output, which always returns a number
+      ARCH_RECENT=$(git log -5 --name-only --pretty=format: 2>/dev/null | grep -c "ARCHITECTURE\.md")
+      UNSTAGED_ARCH=$(git diff --name-only HEAD 2>/dev/null | grep -c "ARCHITECTURE\.md")
+      # grep -c outputs a single number to stdout; empty input → "0"
+      if [ "${ARCH_RECENT:-0}" -eq 0 ] && [ "${UNSTAGED_ARCH:-0}" -eq 0 ]; then
+        echo "WARNING: Feature complete but ARCHITECTURE.md has not been updated in the last 5 commits." >&2
+        echo "If this feature added models/routes/components, merge the spec delta into ARCHITECTURE.md." >&2
+      fi
+    fi
+  fi
+fi
+
+# ── Gate 12: Critic must run on PLAN-backed features (BLOCK) ──
+# If PLAN.md exists (meaning this is full-cycle work) AND the feature is
+# complete, require a recent Critic report before allowing stop.
+# Workflow gate — does not increment retry counter.
+if feature_is_complete && [ -f "$DOCS_DIR/PLAN.md" ]; then
+  # Look for a Critic report newer than the feature file
+  CRITIC_REPORT=$(find "$RUNTIME_DIR" -maxdepth 1 -name "critic-report*.md" -newer "$FEATURE_FILE" 2>/dev/null | head -1)
+  # Also check the docs dir in case reports land there
+  if [ -z "$CRITIC_REPORT" ] && [ -d "$DOCS_DIR" ]; then
+    CRITIC_REPORT=$(find "$DOCS_DIR" -maxdepth 1 -name "critic-report*.md" -newer "$FEATURE_FILE" 2>/dev/null | head -1)
+  fi
+  if [ -z "$CRITIC_REPORT" ]; then
+    echo "BLOCKED: Feature complete but no recent Critic report found." >&2
+    echo "Full-cycle work (with PLAN.md) requires /stp:review before stop." >&2
+    echo "Run /stp:review to generate a Critic report, then try again." >&2
+    echo "Workflow gate — does not count toward the 3-retry technical limit." >&2
+    HAS_ERRORS=true
+    # Intentionally NOT setting HAS_TECHNICAL_ERRORS — workflow gates don't retry-count
+  fi
+fi
+
+# ── Gate 13: QA must run on UI features (BLOCK) ───────────────
+# If the UI gate was passed this session (meaning this was UI work) AND
+# the feature is complete, require a QA report before stop.
+# Workflow gate — does not increment retry counter.
+if feature_is_complete && [ -f "$RUNTIME_DIR/ui-gate-passed" ]; then
+  QA_REPORT=$(find "$RUNTIME_DIR" -maxdepth 1 -name "qa-report*.md" -newer "$FEATURE_FILE" 2>/dev/null | head -1)
+  if [ -z "$QA_REPORT" ] && [ -d "$DOCS_DIR" ]; then
+    QA_REPORT=$(find "$DOCS_DIR" -maxdepth 1 -name "qa-report*.md" -newer "$FEATURE_FILE" 2>/dev/null | head -1)
+  fi
+  if [ -z "$QA_REPORT" ]; then
+    echo "BLOCKED: UI feature complete but no recent QA report found." >&2
+    echo "UI work requires agent-browser QA before stop." >&2
+    echo "Run the QA agent (see .stp/references/agent-browser/) or write qa-report-<feature>.md to .stp/state/." >&2
+    echo "Workflow gate — does not count toward the 3-retry technical limit." >&2
+    HAS_ERRORS=true
   fi
 fi
 
