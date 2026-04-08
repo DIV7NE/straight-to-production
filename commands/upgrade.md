@@ -56,6 +56,43 @@ NEW_HEAD=$(cd "$PLUGIN_DIR" && git rev-parse --short HEAD 2>/dev/null)
 ```
 Show what changed: `git log --oneline "$CURRENT".."$NEW_HEAD"`
 
+**CRITICAL — capture metadata for the restart-required banner:**
+```bash
+# 1. Did any hook file change between old and new HEAD?
+#    (used to decide whether the restart banner is "mandatory" or "recommended")
+HOOK_CHANGED_FILES=$(cd "$PLUGIN_DIR" && git diff --name-only "$CURRENT".."$NEW_HEAD" 2>/dev/null | grep -E "^(hooks/|\.claude-plugin/plugin\.json)" | head -20)
+
+# 2. How many hook files changed?
+HOOK_CHANGE_COUNT=$(echo "$HOOK_CHANGED_FILES" | grep -c . 2>/dev/null || echo 0)
+
+# 3. Detect if any PreToolUse / PostToolUse / SessionStart entries in hooks.json changed
+HOOKS_JSON_CHANGED=0
+if echo "$HOOK_CHANGED_FILES" | grep -q "hooks/hooks.json"; then
+  HOOKS_JSON_CHANGED=1
+fi
+
+echo "HOOK_CHANGE_COUNT=$HOOK_CHANGE_COUNT"
+echo "HOOKS_JSON_CHANGED=$HOOKS_JSON_CHANGED"
+echo "HOOK_CHANGED_FILES:"
+echo "$HOOK_CHANGED_FILES" | sed 's/^/  /'
+```
+
+Capture these values — Step 9's completion banner uses them to decide how loud the restart warning is.
+
+**Also capture the new CHANGELOG entry for the "What's new" section:**
+```bash
+NEW_VER=$(grep -m1 '"version"' "$PLUGIN_DIR/.claude-plugin/plugin.json" | sed 's/.*"\([0-9][0-9.]*\)".*/\1/')
+echo "NEW_VER=$NEW_VER"
+```
+
+After capturing, **Read the new CHANGELOG.md** with the Read tool (not grep — you need the full narrative) and locate the `## [NEW_VER]` section. Extract:
+- The one-line version tagline (first line after the version heading)
+- The `### Summary` paragraph (if present)
+- Top 3-5 items from `### Added` / `### Changed` / `### Fixed`
+- Any **CRITICAL** or **IMPORTANT** markers in the section
+
+This becomes the "What's new" body in the Step 9 completion box — NOT a placeholder, NOT 2-3 sentences, but an actual faithful summary of what the user is now running. Read real content from the file; don't paraphrase from memory.
+
 **Marketplace install (no .git) → download and overwrite in place:**
 
 No manual steps. No uninstall/reinstall. Just download the latest and swap.
@@ -357,10 +394,11 @@ Commands renamed in this version:
   NEW: /stp:work-adaptive (impact scan → auto-routes to quick or full)
 ```
 
-### Step 9: Report
+### Step 9: Report (three blocks — upgrade summary + what's new + RESTART banner)
 
-Present a clean summary:
+Present the summary in **three separate echo -e blocks** so the restart banner is visually impossible to miss.
 
+**Block 1 — Upgrade checklist (cyan double-line box):**
 ```
 ╔═══════════════════════════════════════════════════════╗
 ║  ✓ STP UPGRADE COMPLETE                               ║
@@ -380,13 +418,92 @@ Present a clean summary:
 ║  [✓/✗] Statusline                                     ║
 ║  [✓/─] Local patches                                  ║
 ║                                                       ║
-║  What's new:                                          ║
-║  [2-3 sentence summary of changes]                    ║
-║                                                       ║
 ╚═══════════════════════════════════════════════════════╝
-
-  ► Next: /clear to load the new version
 ```
+
+**Block 2 — What's new (dim cyan single-line box, pulled from CHANGELOG.md):**
+
+This block must contain the REAL content extracted in Step 1 from the new CHANGELOG.md — not a placeholder, not "2-3 sentences," but a faithful 5-10 line summary of the version's highlights. If the new version has a `### Summary` paragraph, lead with it. Then list the top items from `### Added`, `### Changed`, `### Fixed`. Preserve any **CRITICAL** or **IMPORTANT** markers.
+
+```
+┌─── What's new in v[NEW_VER] ─────────────────────────┐
+│                                                       │
+│  [tagline line from CHANGELOG version heading]        │
+│                                                       │
+│  [Summary paragraph — 2-4 lines if present]           │
+│                                                       │
+│  Added:                                               │
+│    • [top 3 Added items, one per line, trimmed]       │
+│                                                       │
+│  Fixed:                                               │
+│    • [top 3 Fixed items, one per line, trimmed]       │
+│                                                       │
+│  Changed:                                             │
+│    • [top 2 Changed items if present]                 │
+│                                                       │
+└───────────────────────────────────────────────────────┘
+```
+
+**Block 3 — RESTART REQUIRED (mandatory red/yellow banner, impossible to miss):**
+
+This banner is ALWAYS shown after an upgrade, regardless of whether hook files changed. The reason is that ANY change to `hooks/hooks.json` or any file under `hooks/scripts/` takes effect only after Claude Code session restart — and the user cannot be expected to audit the diff themselves to decide. Erring on the side of showing the banner every upgrade is cheap; missing it once is what caused v0.3.2 post-mortem Bug 1.
+
+If `HOOK_CHANGE_COUNT > 0` (captured in Step 1), the banner is **MANDATORY** with bold yellow `⚠` and cyan double-line borders. If `HOOK_CHANGE_COUNT == 0`, the banner is still shown but with softer "Recommended" language and single-line borders.
+
+**MANDATORY variant (when hooks changed):**
+```
+╔═══════════════════════════════════════════════════════════════════╗
+║  ⚠  RESTART CLAUDE CODE — HOOKS CHANGED                           ║
+╠───────────────────────────────────────────────────────────────────╣
+║                                                                   ║
+║  v[NEW_VER] changed [HOOK_CHANGE_COUNT] hook file(s):             ║
+║    • [list up to 5 changed hook files from HOOK_CHANGED_FILES]    ║
+║                                                                   ║
+║  Claude Code loads hooks ONCE at session startup. Your current    ║
+║  session is still running the OLD hooks from when you launched    ║
+║  Claude Code. New hooks will NOT fire until you restart.          ║
+║                                                                   ║
+║  TO ACTIVATE v[NEW_VER]:                                          ║
+║                                                                   ║
+║    1. /exit   (or Ctrl+D)                                         ║
+║    2. claude  (or: claude --resume [SESSION_ID])                  ║
+║    3. Verify new version:                                         ║
+║         cat ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json      ║
+║       Should show "version": "[NEW_VER]"                          ║
+║                                                                   ║
+║  /clear alone is NOT enough. It clears conversation context but   ║
+║  keeps the loaded hooks.json from the old version in memory.     ║
+║                                                                   ║
+║  Why this manual step exists: Claude Code v2.1.x has no           ║
+║  hot-reload API for hooks. A plugin-level workaround is not       ║
+║  possible — this is a Claude Code platform limitation.            ║
+║                                                                   ║
+╚═══════════════════════════════════════════════════════════════════╝
+```
+
+**Recommended variant (when NO hook files changed):**
+```
+┌─── Restart recommended ─────────────────────────────────────────┐
+│                                                                  │
+│  No hook files changed in v[NEW_VER], but commands and          │
+│  reference files DID update. Some changes take effect           │
+│  immediately; others (statusline, settings) may need a          │
+│  restart. Safest: /exit and run `claude` again.                 │
+│                                                                  │
+│  After restart: /clear is optional and clears conversation     │
+│  context only — it does NOT reload hooks.                       │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Finally, the inline `► Next:` line:**
+
+```
+  ► Next: /exit → run `claude` again → (optional) /clear to start fresh
+          Verify with: cat ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json
+```
+
+Do NOT recommend just `/clear` — that was the pre-v0.3.3 text and it is WRONG for plugin upgrades that touch hooks. `/clear` clears conversation context; it does not reload hook scripts. The user must restart Claude Code for new hooks to take effect.
 
 ## Edge Cases
 

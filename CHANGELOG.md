@@ -5,6 +5,75 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4] — 2026-04-09 — feat: `/stp:upgrade` surfaces restart-required banner + CHANGELOG-driven "what's new"
+
+### Summary
+
+v0.3.3 fixed the whiteboard-gate hallucination bug and added the hot-reload warning to CLAUDE.md, but the warning only helps users who happen to be reading CLAUDE.md. The `/stp:upgrade` command itself still ended with the old `► Next: /clear to load the new version` hint — which is **wrong**: `/clear` clears conversation context but does NOT reload hooks. After `/stp:upgrade`, users were following the displayed instruction, running `/clear`, and then wondering why the new hooks weren't firing. This is exactly the failure mode that caused the v0.3.2 post-mortem Bug 1 to hit a second time.
+
+v0.3.4 pushes the restart-required directive into the command output itself, where the user cannot miss it, and extracts the new version's CHANGELOG entry dynamically so every upgrade ends with a faithful "what's new" summary instead of a 2-3-sentence placeholder.
+
+### Added
+
+- **`commands/upgrade.md` — hook-change detection in Step 1** — after the git pull, the command now captures three new variables via `git diff --name-only`:
+  - `HOOK_CHANGED_FILES` — list of files under `hooks/` or `.claude-plugin/plugin.json` that changed between old HEAD and new HEAD
+  - `HOOK_CHANGE_COUNT` — how many such files changed
+  - `HOOKS_JSON_CHANGED` — boolean, whether `hooks/hooks.json` specifically was modified
+  These values feed the Step 9 restart banner's loudness (mandatory vs recommended variant).
+
+- **`commands/upgrade.md` — CHANGELOG extraction instruction in Step 1** — after capturing the new version number from `plugin.json`, the command now instructs Claude to Read the new `CHANGELOG.md` and extract the `## [NEW_VER]` section's tagline, `### Summary`, and top items from `### Added` / `### Changed` / `### Fixed`. This replaces the old "[2-3 sentence summary of changes]" placeholder with a real extraction from the version's canonical release notes.
+
+- **`commands/upgrade.md` — Block 3: RESTART REQUIRED banner** — new loud banner displayed on every upgrade, with two visual variants:
+  - **MANDATORY variant** (cyan double-line box, bold yellow `⚠`) — shown when `HOOK_CHANGE_COUNT > 0`. Lists the changed hook files, explains that Claude Code loads hooks only at session startup, gives explicit 3-step restart instructions, and explains why `/clear` alone is not sufficient.
+  - **Recommended variant** (dim cyan single-line box) — shown when no hook files changed. Softer tone: "safest to restart anyway."
+
+- **`commands/upgrade.md` — three-block Step 9 structure** — the single completion box is split into three visually-distinct blocks echoed sequentially: (1) upgrade checklist, (2) what's new pulled from CHANGELOG, (3) restart banner. The restart banner is always the LAST thing the user sees, so it's impossible to scroll past.
+
+### Changed
+
+- **`commands/upgrade.md` Step 9 inline `► Next:` line** — rewritten from `► Next: /clear to load the new version` to `► Next: /exit → run \`claude\` again → (optional) /clear to start fresh`. The old phrasing was actively wrong for any upgrade that modified hooks (/clear does not reload hooks). The new phrasing tells the user to exit + relaunch + verify with `cat ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`.
+
+- **`commands/upgrade.md` Step 9 "What's new" semantics** — the old template said `[2-3 sentence summary of changes]`, which encouraged Claude to paraphrase from memory. The new template explicitly instructs Claude to Read the new CHANGELOG.md and extract real content: tagline, summary paragraph, top 3-5 Added/Changed/Fixed items. Preserves any **CRITICAL** or **IMPORTANT** markers from the source. Faithful extraction, not generation.
+
+### Fixed
+
+- **v0.3.3 upgrade UX gap** — v0.3.3 added the hot-reload warning to `CLAUDE.md` but the `/stp:upgrade` command itself still ended with `/clear` as the next step. Users reading the command output followed it literally, ran `/clear`, and then hit stale hooks without knowing why. This release closes that gap by making the upgrade command's output itself carry the restart instruction.
+
+### Spec Delta
+
+- **Added:**
+  - `HOOK_CHANGED_FILES`, `HOOK_CHANGE_COUNT`, `HOOKS_JSON_CHANGED` metadata captured in Step 1 of `commands/upgrade.md`
+  - CHANGELOG.md-driven extraction step for the "What's new" block
+  - Two-variant restart banner (MANDATORY when hooks changed, Recommended otherwise)
+  - Three-block completion output structure (checklist → what's new → restart)
+
+- **Changed:**
+  - `/stp:upgrade` completion semantics — was "show checklist, say /clear". Now "show checklist, show faithful CHANGELOG extract, show restart banner". The command is now self-sufficient for teaching the user the post-upgrade workflow.
+  - The `► Next:` line convention after plugin upgrades — always includes exit+relaunch, never just `/clear` alone.
+
+- **Constraints introduced:**
+  - After `/stp:upgrade`, the completion output MUST include a restart banner (MANDATORY or Recommended variant, depending on hook changes). The banner MUST reference `/exit` and relaunching `claude`, not just `/clear`.
+  - "What's new" in the upgrade completion MUST be extracted from the real CHANGELOG.md for the new version, not paraphrased from memory.
+  - Any command file that recommends `/clear` as a post-plugin-upgrade action MUST also include exit+relaunch, or the recommendation is actively misleading.
+
+- **Dependencies created:**
+  - The restart banner's "hooks changed" detection depends on the git diff between old and new HEAD being available. For marketplace installs (no .git history), the detection falls back to showing the MANDATORY variant unconditionally (safer default).
+
+### Deliberately NOT done
+
+- **Automatic session restart via a SIGTERM hook** — would require a Claude Code capability that doesn't exist (process can't signal its own parent to restart cleanly). Also dangerous: a background restart could discard the user's unsaved state.
+- **In-session hot-reload workaround** — genuinely impossible at the plugin level; hooks are registered at Claude Code process startup and the registration surface has no invalidation API in v2.1.x.
+- **Bumping the banner to always-MANDATORY even when hooks didn't change** — considered, rejected. Banner fatigue is real; if users see the same loud banner every upgrade, they learn to ignore it. The two-variant design reserves the MANDATORY banner for cases where restart actually matters for correctness.
+
+### Test coverage
+
+Manual verification of the bash snippets added to Step 1:
+- `git diff --name-only [old]..[new] | grep -E "^(hooks/|\\.claude-plugin/plugin\\.json)"` — runs cleanly against the v0.3.2→v0.3.3 diff and correctly lists `hooks/scripts/whiteboard-gate.sh`, `hooks/hooks.json` (from v0.3.2), `.claude-plugin/plugin.json`
+- CHANGELOG.md extraction — the `## [NEW_VER]` pattern is unambiguous and each version section is self-contained, so Read + section slicing is reliable
+- No runtime tests for the Step 9 banner itself because it's a template Claude fills in, not executable code
+
+---
+
 ## [0.3.3] — 2026-04-08 — fix: filename hallucination catch + hot-reload docs + hooks taxonomy refresh
 
 ### Summary
