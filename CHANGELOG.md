@@ -5,6 +5,80 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.5] — 2026-04-09 — fix: plugin CLAUDE.md section markers — v0.3.3/0.3.4 content can now sync into projects
+
+### Summary
+
+Every project onboarded with `/stp:new-project` — and every existing project that runs `/stp:upgrade` — reads its CLAUDE.md from the plugin's canonical CLAUDE.md via a section-sync mechanism. Sections are wrapped in `<!-- STP:stp-*:start -->` / `<!-- STP:stp-*:end -->` HTML comment markers; the upgrade engine replaces the content between matching marker pairs when the plugin ships new content.
+
+**The problem:** `commands/new-project.md` documented nine marker pairs (`stp-header`, `stp-confirmation-gate`, `stp-philosophy`, `stp-plugins`, `stp-rules`, `stp-dirmap`, `stp-hooks`, `stp-effort`, `stp-output-format`) — but only **two** of those markers actually existed in plugin CLAUDE.md (`stp-confirmation-gate` and `stp-output-format`). The other seven sections were living in plugin CLAUDE.md without markers, so the sync engine could not find them and could not propagate their content.
+
+**The consequence:** every project created or upgraded since v0.3.3 — when the filename contract and 16-gate hooks taxonomy were added to plugin CLAUDE.md — received a project CLAUDE.md missing those new rules. Projects stayed on whatever content their CLAUDE.md had when they were first created (or last touched a marker that happened to exist). Specifically, this meant v0.3.3's filename contract (blocking `.stp/explore-data.json`), v0.3.3's hot-reload warning, and v0.3.3's 16-gate hooks taxonomy never reached any real project that used `/stp:upgrade`.
+
+**The fix:** wrap the seven missing sections in proper marker pairs inside plugin CLAUDE.md. Zero content changes. Zero command-file changes. The sync engine already worked — it just had nothing to sync.
+
+### Added
+
+- **`CLAUDE.md` — 7 new section marker pairs** wrapping existing content (14 single-line insertions total):
+  - `stp-header` → wraps `## What This Is`
+  - `stp-plugins` → wraps `## Required Companion Plugins & MCP Servers`
+  - `stp-philosophy` → wraps `## Philosophy (NON-NEGOTIABLE)`
+  - `stp-rules` → wraps `## Key Rules` (contains the v0.3.3 filename contract)
+  - `stp-dirmap` → wraps `## Directory Map`
+  - `stp-hooks` → wraps `## Hooks (16 enforcement gates across 4 events)` (contains the v0.3.3 hot-reload warning)
+  - `stp-effort` → wraps `## Effort Levels`
+
+  All 9 marker pairs now present and matched (the 2 existing `stp-confirmation-gate` and `stp-output-format` are unchanged).
+
+- **`CLAUDE.md` `stp-rules` — exception clause for /clear after /stp:upgrade** — the existing "/clear suggested before every inter-command transition" rule now has an explicit exception: *"after `/stp:upgrade` when hook files changed, the recommendation is `/exit → run claude again → (optional) /clear` — because `/clear` alone does NOT reload hooks."* This keeps the two rules consistent and points readers at the Hooks section for the full explanation. Because this rule lives inside `stp-rules` which is now wrapped, the exception clause will also sync into projects on upgrade.
+
+### Changed
+
+- **`CLAUDE.md` `## What This Is` — version marker removed, canonical source cited** — the old text hardcoded "v0.3.0" which drifted with every release. New text instructs the reader to read the installed version from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. This prevents the `stp-header` block from going stale whenever the plugin version bumps.
+
+### Fixed
+
+- **v0.3.3 content never reached onboarded projects** — projects that ran `/stp:upgrade` between v0.3.3 and v0.3.4 saw the upgrade complete successfully but the new content (filename contract, hot-reload warning, 16-gate taxonomy) was not added to their CLAUDE.md. After v0.3.5, the next `/stp:upgrade` run on those projects will replace the contents of `stp-rules` and `stp-hooks` (and the 5 other newly-marked blocks) with the latest content from the plugin.
+- **`commands/new-project.md` template referenced nonexistent markers** — the template at line 151-159 listed 9 marker pairs as the canonical structure for a project CLAUDE.md. Only 2 of them actually existed in the plugin. New projects created after v0.3.5 will now find all 9 markers in the plugin source and can inject the real content.
+
+### Spec Delta
+
+- **Added:**
+  - 7 new marker pairs in plugin CLAUDE.md: `stp-header`, `stp-plugins`, `stp-philosophy`, `stp-rules`, `stp-dirmap`, `stp-hooks`, `stp-effort`
+  - Exception clause inside `stp-rules` that distinguishes `/clear` (normal inter-command) from `/exit + restart` (post-plugin-upgrade when hooks changed)
+
+- **Changed:**
+  - The contract for adding new content to plugin CLAUDE.md — any new `## Section` header that should propagate to project CLAUDE.md MUST be inside a `<!-- STP:stp-*:start -->` / `<!-- STP:stp-*:end -->` marker pair. Content outside markers is plugin-level documentation that does NOT reach onboarded projects. This is now a contributor rule, not an accidental property.
+  - The `## What This Is` section — removed hardcoded version string, added pointer to canonical `plugin.json`.
+
+- **Constraints introduced:**
+  - Plugin CLAUDE.md MUST maintain at least 9 matched marker pairs: the 9 listed in `commands/new-project.md:151-159`. A CI check (not yet wired) should validate this.
+  - Any new marker added to the plugin CLAUDE.md MUST also be documented in `commands/new-project.md`'s template block — the two files are coupled and must stay in sync.
+  - CHANGELOG.md entries for any v0.3.6+ release that adds content to plugin CLAUDE.md MUST indicate which marker block received the content (so downstream projects know what their next `/stp:upgrade` will refresh).
+
+- **Dependencies created:**
+  - `commands/new-project.md` Step 6 (project CLAUDE.md generation) now depends on the 9 markers being present in plugin CLAUDE.md. If future refactors remove a marker, the template's corresponding line must also be removed.
+  - `commands/upgrade.md` Step 4 (project CLAUDE.md sync) iterates over whatever markers exist in plugin CLAUDE.md. It is tolerant of missing markers (just skips them) but now has 9 marker pairs to potentially update instead of 2.
+
+### Deliberately NOT done
+
+- **Marker validation CI check** — a 5-line script that confirms all 9 markers are present in plugin CLAUDE.md and that each marker pair is balanced. Useful for catching regressions, but this release already ships the fix; the CI check is a preventive follow-up, not part of the immediate patch.
+- **Auto-migration of existing project CLAUDE.md files** — users who currently have a project CLAUDE.md without the 7 new markers will still only have those 2 markers. The `/stp:upgrade` Step 4 "legacy project CLAUDE.md" path handles this: if a marker is missing in the project, the upgrade appends it with the new content. This means the first `/stp:upgrade` after v0.3.5 on an existing project will ADD the 7 missing sections (not replace them). Users who manually edited those sections will see an append, not an overwrite — which is the safer default.
+
+### Test coverage
+
+Validated via bash script:
+- All 9 `stp-*:start` markers present in plugin CLAUDE.md
+- All 9 `stp-*:end` markers present
+- Start/end pairs match (9 starts, 9 ends, same names)
+- Each marker block contains real content (line counts: stp-header 4, stp-confirmation-gate 24, stp-plugins 24, stp-philosophy 17, stp-rules 15, stp-output-format 11, stp-dirmap 41, stp-hooks 37, stp-effort 9)
+- v0.3.3 FILENAME CONTRACT text is inside `stp-rules` block ✓
+- v0.3.3 "SESSION STARTUP" hot-reload warning is inside `stp-hooks` block ✓
+- v0.3.3 "16 enforcement gates" taxonomy is inside `stp-hooks` block ✓
+- CLAUDE.md still renders as valid markdown (384 lines total)
+
+---
+
 ## [0.3.4] — 2026-04-09 — feat: `/stp:upgrade` surfaces restart-required banner + CHANGELOG-driven "what's new"
 
 ### Summary

@@ -1,7 +1,9 @@
 # STP — Straight To Production — Claude Code Plugin
 
+<!-- STP:stp-header:start -->
 ## What This Is
-A Claude Code plugin (v0.3.0) that turns Opus into your CTO. 15 commands, 3 agents, 26 reference files, 22 output templates, visual whiteboard, wave-based parallel building.
+A Claude Code plugin that turns Opus into your CTO. 15 commands, 3 agents, 26 reference files, 22 output templates, visual whiteboard, wave-based parallel building. Read the installed version from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`, not this document (documentation version markers drift; the plugin.json is canonical).
+<!-- STP:stp-header:end -->
 
 ## Debug Mandate (OVERRIDES superpowers — read this before debugging anything)
 
@@ -142,6 +144,7 @@ AskUserQuestion(
 - `/stp:pause` — "I'm done for now." Saves context for next session
 - `/stp:upgrade` — "Update STP." Pulls latest + syncs companion plugins + refreshes CLAUDE.md sections + verifies hooks
 
+<!-- STP:stp-plugins:start -->
 ## Required Companion Plugins & MCP Servers
 STP requires the following installed for full capability:
 
@@ -164,6 +167,9 @@ STP requires the following installed for full capability:
 
 **Enforcement:** `/stp:new-project` and `/stp:upgrade` preflight checks verify plugins, MCP servers, and Vercel Agent Browser. `/stp:onboard-existing` only DETECTS them (read-only) and notes any missing in `AUDIT.md` for the user to install themselves afterward. If missing in `/stp:new-project` or `/stp:upgrade`, the user is prompted to install before proceeding. Any STP command that touches UI/UX code MUST invoke `/ui-ux-pro-max` before writing frontend code. Research phases MUST use Context7 for library docs and Tavily for industry research — never rely solely on training data. QA phases MUST use the `agent-browser` CLI for any project with UI.
 
+<!-- STP:stp-plugins:end -->
+
+<!-- STP:stp-philosophy:start -->
 ## Philosophy (NON-NEGOTIABLE)
 
 **STP builds production software. Not MVPs. Not mocks. Not prototypes. Not demos.**
@@ -179,7 +185,9 @@ Every line of code STP produces is intended to ship and run in production. This 
 - **If a fix fails after 2 attempts: STOP.** Re-read the entire relevant module top-down. State where your mental model was wrong before attempting a third fix. Do not keep patching symptoms.
 
 This applies to ALL STP commands and agents. The executor agents, QA agent, and Critic all enforce this standard. Code that takes shortcuts gets rejected. Instructions are advisory — STP's hooks and gates are the real enforcement. Constraints beat prompts.
+<!-- STP:stp-philosophy:end -->
 
+<!-- STP:stp-rules:start -->
 ## Key Rules
 - Opus NEVER writes implementation code (except foundation: DB, auth, config, one-line fixes)
 - ALL features delegate to Sonnet executor via Agent Teams with worktree isolation
@@ -192,7 +200,8 @@ This applies to ALL STP commands and agents. The executor agents, QA agent, and 
 - Version bump + CHANGELOG + CONTEXT.md update after every feature
 - **Whiteboard server is MANDATORY and FIRST** for `/stp:whiteboard` and `/stp:plan`. The server start (`bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &`) MUST be the literal first action of those commands — unconditionally, no AskUserQuestion gate, no "if they accept" branch. For UI/UX detection in `/stp:work-quick` and `/stp:work-full`, the server starts BEFORE the design system is generated, never after. Reason: a whiteboard the user can't see is a broken command. Bug history: v0.3.0 had every server start gated behind `if they accept`, so the agent could reach the "write the data" step with no server running and the user opened localhost:3333 to nothing. Closed in v0.3.1.
 - **FILENAME CONTRACT — the whiteboard data file is ALWAYS `.stp/whiteboard-data.json`. NEVER any other name.** Forbidden aliases that Claude sometimes hallucinates (all BLOCKED by `hooks/scripts/whiteboard-gate.sh`): `.stp/explore-data.json`, `.stp/whiteboard.json`, `.stp/board-data.json`, `.stp/design-data.json`. The whiteboard server (`whiteboard/serve.py`) polls only the canonical path — writes to any other name land in a file nothing watches and localhost:3333 stays on `{"status": "Waiting..."}` forever. If you find yourself about to write to `explore-data.json`, STOP: that is the pre-0.3.1 name, forbidden since 2026-04-08, retained in CHANGELOG.md only as a historical reference. The canonical name is `.stp/whiteboard-data.json` — nine characters, no dashes between "whiteboard" and "data", hyphen between "data" and "json". Reason: v0.3.3 post-mortem — the agent hallucinated `explore-data.json` from training data + CHANGELOG.md post-mortem references and the whiteboard-gate hook only matched the correct name, so the wrong filename slipped through the enforcement layer.
-- **/clear suggested before every inter-command transition.** Whenever an STP command's completion box recommends a follow-up `/stp:*` command, the recommendation MUST be `/clear, then /stp:next-command` — never just `/stp:next-command` alone. Reason: each STP phase fills context with research, generation, and verification noise; the next phase reads its inputs from disk (PLAN.md, design-brief.md, CHANGELOG.md, current-feature.md), so a clear context is strictly better. The `/clear` line goes inside the completion box's `► Next:` block, with a one-line explanation of what survives on disk.
+- **/clear suggested before every inter-command transition.** Whenever an STP command's completion box recommends a follow-up `/stp:*` command, the recommendation MUST be `/clear, then /stp:next-command` — never just `/stp:next-command` alone. Reason: each STP phase fills context with research, generation, and verification noise; the next phase reads its inputs from disk (PLAN.md, design-brief.md, CHANGELOG.md, current-feature.md), so a clear context is strictly better. The `/clear` line goes inside the completion box's `► Next:` block, with a one-line explanation of what survives on disk. **Exception:** after `/stp:upgrade` when hook files changed, the recommendation is `/exit → run claude again → (optional) /clear` — because `/clear` alone does NOT reload hooks. See the Hooks section for details.
+<!-- STP:stp-rules:end -->
 
 <!-- STP:stp-output-format:start -->
 ## CLI Output Formatting (ENFORCED)
@@ -206,6 +215,7 @@ ALL STP command output MUST use the visual templates in `.stp/references/cli-out
 - Always `\033[0m` reset after every colored segment
 <!-- STP:stp-output-format:end -->
 
+<!-- STP:stp-dirmap:start -->
 ## Directory Map (where everything lives, when to read it)
 
 ### .stp/docs/ — Project Documents
@@ -244,6 +254,8 @@ ALL STP command output MUST use the visual templates in `.stp/references/cli-out
 |------|------------|
 | CLAUDE.md | Claude Code auto-reads from project root |
 | VERSION | Statusline + scripts need instant access |
+
+<!-- STP:stp-dirmap:end -->
 
 ## Memory Strategy (how STP remembers across sessions)
 STP uses file-based memory — everything lives in .stp/docs/. No reliance on Claude's conversation memory.
@@ -320,6 +332,7 @@ On any new session: read CHANGELOG.md (with spec deltas) for evolution history, 
 ## Statusline
 Node.js statusline (stp-statusline.js) registered in ~/.claude/settings.json globally. Shows: model + effort level, project version, active feature + progress, current milestone, context usage bar with compaction threshold (green/yellow/orange/red).
 
+<!-- STP:stp-hooks:start -->
 ## Hooks (16 enforcement gates across 4 events)
 
 **IMPORTANT — hooks load at Claude Code SESSION STARTUP, not hot-reload.** After `/stp:upgrade` or any plugin update that adds or modifies hooks, you MUST exit Claude Code and restart it to pick up the new hooks. A running session keeps whatever hooks.json it loaded at launch. If a hook you expect to fire is silently ignored, this is almost always the cause — check your version with `cat ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` and restart if the cached version is stale. (This is a Claude Code limitation, not fixable at the plugin level.)
@@ -355,9 +368,12 @@ Node.js statusline (stp-statusline.js) registered in ~/.claude/settings.json glo
 
 **3-retry safety valve:** Technical BLOCKs (tests, types, schema) count toward a 3-retry limit to prevent session bricking from stuck states. Workflow BLOCKs (unchecked items, Critic, QA) do NOT count — they require action but can't brick the session.
 
+<!-- STP:stp-hooks:end -->
+
 ## Research
 All research sources in RESEARCH-SOURCES.md. Key: Anthropic harness blog, Vercel AGENTS.md (100% vs 53%), Phil Schmid "Build to Delete", OX Security AI anti-patterns.
 
+<!-- STP:stp-effort:start -->
 ## Effort Levels
 - /stp:new-project, /stp:plan, /stp:debug, /stp:work-full → max
 - /stp:research → max
@@ -365,3 +381,4 @@ All research sources in RESEARCH-SOURCES.md. Key: Anthropic harness blog, Vercel
 - /stp:onboard-existing → max
 - /stp:autopilot → medium
 - /stp:progress, /stp:pause, /stp:upgrade → low
+<!-- STP:stp-effort:end -->
