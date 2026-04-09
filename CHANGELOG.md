@@ -5,6 +5,71 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.7] — 2026-04-09 — fix: stop-verify hook integer-comparison crash + 4 false-positive gates
+
+### Summary
+The Stop hook (`hooks/scripts/stop-verify.sh`) was crashing with `[: 0\n0: integer expression expected` and false-flagging legitimate code in five different ways, locking users into Stop loops. Five real bugs in one script — all fixed in a single pass with a centralized `clean_count` helper, narrower regexes, and a smarter schema-drift gate.
+
+### Root Causes
+
+**1. The `grep -c … || echo "0"` idiom is broken (Gates 1, 6, 10).** `grep -c PATTERN FILE` always prints `"0\n"` when there are zero matches AND exits with status 1. The naive fallback `COUNT=$(grep -c … || echo "0")` fires the `|| echo "0"` AFTER grep has already printed its `"0"`. Bash command substitution captures BOTH outputs and joins them with a literal newline, so `COUNT` becomes the two-byte string `"0\n0"`. The next `[ "$COUNT" -gt 0 ]` errors out and the gate's logic falls through to whatever default the surrounding code assumes — usually "fail closed = block". Three gates carried this same bug. The correct pattern was already used in `feature_is_complete()` (lines 296–305) but had never been applied elsewhere.
+
+**2. Placeholder scanner matched legitimate domain code (Gate 5).** The regex included bare `placeholder`, `mock data`, and `fake data`, plus `-i`. Real-world false positives:
+- HTML `<input placeholder="…" />` form attributes — every form-heavy app
+- Type names like `EmailTemplatePlaceholderValues`
+- Library files literally named `template-utils.ts` documenting placeholder substitution
+- Seed scripts (`prisma/seed.ts`) populating realistic data — the entire purpose of a seed script
+- Staged-delivery comments like `// placeholder — employer schedules in Phase 59 UI`
+
+**3. Hollow-test regex flagged real assertions (Gate 6).** The regex ended with `\|\.toBe(true)\|\.toBe(false)`. Those alternatives matched every `expect(realFn(input)).toBe(true)` call — one of the most common valid Jest assertions there is. The actual hollow patterns the gate wants to catch (`expect(true).toBe(true)`, `expect(1).toBe(1)`) were already covered by earlier alternatives in the same regex.
+
+**4. Schema-drift gate ignored committed history (Gate 9).** The gate only inspected `git diff HEAD` (uncommitted changes). On a branch where a previous atomic commit had paired `schema.prisma` with its migration, any later commit that re-touched the schema would trigger the block, because the migration was now "committed, not changed."
+
+**5. `.clone/worktrees/` was scanned (Gates 3, 4, 5, 6).** STP creates Sonnet executor worktrees in `.clone/worktrees/`. These contain files belonging to other parallel sessions, not the current workspace. None of the scanner gates excluded this directory, so any user with active worktrees got false-positives flagging code they don't own.
+
+### Fixed
+- `hooks/scripts/stop-verify.sh`
+  - Added `clean_count()` helper that wraps `grep -c` and always returns a single integer to stdout. Single source of truth — future gates can't reintroduce the same bug.
+  - Gate 1: `UNCHECKED`/`CHECKED` now use `clean_count`
+  - Gate 6: `TESTS_COUNT`/`ASSERTS_COUNT` now use `clean_count`
+  - Gate 10: `PRD_MUSTS` cleaned via parameter expansion
+  - Gate 5: removed `placeholder|mock data|fake data` from the regex; switched to `grep -nE` with explicit anchors (`// (TODO|FIXME)`, `// implement\b`, etc.); dropped `-i`; added file-name carve-outs for `seed.*`, `seeds/`, `template-utils`
+  - Gate 6 (hollow tests): dropped `\.toBe(true)\|\.toBe(false)` — only literal-vs-literal patterns remain
+  - Gate 9: added per-schema commit-history check via `git log -1 -- $schema_path` + `git show --name-only`. For each uncommitted ORM schema file, look up the most recent commit that touched it and check whether that commit ALSO included a migration. Only block when neither uncommitted nor recent-commit migration is present.
+  - Gates 3, 4, 5, 6 now exclude `.clone/` and `.git/`
+
+### Spec Delta
+- **Added:** `clean_count()` helper, per-schema commit-history check, `.clone/` exclusion across scanner gates, file-name carve-outs for legitimate template/seed files
+- **Changed (assumptions invalidated):**
+  - "`grep -c PATTERN FILE || echo 0` is a safe default-to-zero idiom" — it is NOT, because grep prints "0" before exiting non-zero, so the fallback APPENDS rather than replacing. Replace with `clean_count` everywhere.
+  - "Schema-drift detection only needs uncommitted state" — branches with atomic schema+migration commits get re-touched and the gate must look at recent commit history.
+- **Constraints introduced:**
+  - The system MUST use `clean_count` for any `grep -c` count consumed by an integer comparison in `stop-verify.sh`. Bare `grep -c … || echo "0"` is a recurrence and SHALL be rejected in code review.
+  - Scanner gates in `stop-verify.sh` MUST exclude `.clone/`. Any new scanner gate SHALL inherit this exclusion.
+  - Placeholder/slop scanners SHALL NOT match bare words like `placeholder`, `mock`, or `fake` — only structured comment markers (`// TODO`, `// FIXME`, etc.) and ALL-CAPS slop tokens (`REPLACE_ME`, `NOT_IMPLEMENTED`, `lorem ipsum`).
+
+### Verified
+9-case verification harness (`/tmp/verify-stop-verify-fix.sh`):
+1. `bash -n` syntax check — clean
+2. `clean_count` no-match returns single `"0"` — pass
+3. `clean_count` no-match passes integer compare — pass
+4. `clean_count` 3-match returns `"3"` — pass
+5. Hollow regex does NOT flag valid `expect(realFn()).toBe(true)` — pass
+6. Hollow regex DOES flag real `expect(true).toBe(true)` (negative control) — pass
+7. Placeholder regex does NOT flag HTML attrs/imports/staged comments — pass
+8. Placeholder regex DOES flag real `// TODO`/`REPLACE_ME` (negative control) — pass
+9. End-to-end hook run on a clean throwaway repo — zero `integer expression expected` errors
+
+Reproduction script (`/tmp/repro-stop-verify-bug.sh`) confirmed the `0\n0` corruption deterministically before the fix.
+
+### Migration Notes
+Sessions running cached versions older than 0.3.7 may already be stuck in this Stop loop. Three options:
+1. `/stp:upgrade` — pulls 0.3.7, restarts hooks (still requires Claude Code restart for new hooks to load)
+2. Hot-patch the cached file: copy `${REPO}/hooks/scripts/stop-verify.sh` over `~/.claude/plugins/cache/<marketplace>/stp/<old>/hooks/scripts/stop-verify.sh` and exit/restart Claude Code
+3. `/stp:pause` — the hook's own escape hatch is still respected
+
+**IMPORTANT:** Hooks load at session start, not hot-reload. Even after the file is replaced, the running session keeps whatever it loaded at launch. Restart Claude Code to pick up the fix.
+
 ## [0.3.6] — 2026-04-09 — feat: loud unmissable whiteboard banner (yellow box + classic-blue URL)
 
 ### Summary

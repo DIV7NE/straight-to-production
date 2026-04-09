@@ -69,14 +69,31 @@ fi
 HAS_ERRORS=false
 HAS_TECHNICAL_ERRORS=false
 
+# ── Helper: clean_count ────────────────────────────────────────
+# Wraps `grep -c` so it always returns a single integer to stdout, even
+# when grep finds zero matches. The naive idiom
+#   N=$(grep -c PATTERN FILE 2>/dev/null || echo "0")
+# is BROKEN: grep -c prints "0\n" on no-match AND exits 1, so the `|| echo`
+# fires AFTER grep already wrote "0", and the variable ends up containing
+# the literal "0\n0". The next `[ "$N" -gt 0 ]` errors with
+#   integer expression expected
+# Use this helper everywhere instead.
+clean_count() {
+  local n
+  n=$(grep -c "$@" 2>/dev/null)
+  n=${n:-0}
+  n=${n//[!0-9]/}
+  printf '%s' "${n:-0}"
+}
+
 # ══════════════════════════════════════════════════════════════════
 # FAST GATES (instant — run these first)
 # ══════════════════════════════════════════════════════════════════
 
 # ── Gate 1: Unchecked feature items ──────────────────────────────
 if [ -f "$FEATURE_FILE" ]; then
-  UNCHECKED=$(grep -c '\[ \]' "$FEATURE_FILE" 2>/dev/null || echo "0")
-  CHECKED=$(grep -c '\[x\]' "$FEATURE_FILE" 2>/dev/null || echo "0")
+  UNCHECKED=$(clean_count '\[ \]' "$FEATURE_FILE")
+  CHECKED=$(clean_count '\[x\]' "$FEATURE_FILE")
 
   if [ "$UNCHECKED" -gt 0 ]; then
     NEXT=$(grep -m1 '\[ \]' "$FEATURE_FILE" | sed 's/^[[:space:]]*- \[ \] //')
@@ -100,7 +117,7 @@ if [ -f "$FEATURE_FILE" ]; then
     -name "*.java" -o -name "*.rb" -o -name "*.php" \
   \) -not -path "*/node_modules/*" -not -path "*/.venv/*" -not -path "*/vendor/*" \
      -not -path "*/target/*" -not -path "*/.next/*" -not -path "*/migrations/*" \
-     -not -path "*/dist/*" -not -path "*/build/*" \
+     -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/.clone/*" -not -path "*/.git/*" \
      -not -name "*.config.*" -not -name "*.d.ts" -not -name "*.config.ts" \
      -not -name "*.config.js" -not -name "*.config.mjs" -not -name "*.config.cjs" \
   2>/dev/null | head -3)
@@ -111,7 +128,7 @@ if [ -f "$FEATURE_FILE" ]; then
       -name "*_test.go" -o -name "*Test.java" -o -name "*_test.rs" -o \
       -name "*Tests.cs" -o -name "*_spec.rb" -o -name "*Test.php" \
     \) -not -path "*/node_modules/*" -not -path "*/.venv/*" -not -path "*/vendor/*" \
-       -not -path "*/target/*" 2>/dev/null | head -5)
+       -not -path "*/target/*" -not -path "*/.clone/*" -not -path "*/.git/*" 2>/dev/null | head -5)
 
     if [ -z "$TEST_FILES" ]; then
       echo "BLOCKED: Source files exist but no test files found." >&2
@@ -137,6 +154,7 @@ if [ -f "$FEATURE_FILE" ] && [ "$PWD" != "$HOME" ]; then
     --exclude-dir=.bun --exclude-dir=.local --exclude-dir=.cache \
     --exclude-dir=.git --exclude-dir=.npm --exclude-dir=.pnpm-store \
     --exclude-dir=.yarn --exclude-dir=.rustup --exclude-dir=.cargo \
+    --exclude-dir=.clone \
     --exclude="*.d.ts" --exclude="ImageFont.py" --exclude="detect-secrets.*" \
     . 2>/dev/null | \
     grep -iv "example" | grep -v "\.env" | grep -v "\.test\." | grep -v "\.spec\." | \
@@ -153,17 +171,28 @@ if [ -f "$FEATURE_FILE" ] && [ "$PWD" != "$HOME" ]; then
 fi
 
 # ── Gate 5: Placeholder/mock patterns in source files (WARN) ────
+# Only flags HIGH-CONFIDENCE slop markers. Bare "placeholder", "mock data",
+# and "fake data" were removed in v0.3.7 because they false-flagged:
+#   • HTML form attributes  (placeholder="Enter your name")
+#   • Type/symbol names      (EmailTemplatePlaceholderValues)
+#   • Domain libraries       (template-utils.ts handling placeholder substitution)
+#   • Seed scripts           (prisma/seed.ts populating fake data IS its job)
+#   • Staged-delivery comments (// placeholder — employer schedules in Phase 59)
+# What remains is unambiguous: TODO/FIXME comments, ellipsis-stub markers,
+# lorem ipsum filler, and ALL-CAPS REPLACE_ME / NOT_IMPLEMENTED tokens.
 if [ -f "$FEATURE_FILE" ]; then
-  PLACEHOLDERS=$(grep -rn \
-    "// TODO\|// FIXME\|// implement\|// \.\.\.\|// rest of\|lorem ipsum\|placeholder\|mock data\|fake data\|REPLACE_ME\|NOT_IMPLEMENTED" \
+  PLACEHOLDERS=$(grep -rnE \
+    "// (TODO|FIXME)|// implement\b|// \.\.\.|// rest of|lorem ipsum|REPLACE_ME|NOT_IMPLEMENTED" \
     --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" \
     --include="*.py" --include="*.rs" --include="*.go" --include="*.cs" \
     --include="*.java" --include="*.rb" --include="*.php" \
     --exclude-dir=node_modules --exclude-dir=.venv --exclude-dir=vendor \
     --exclude-dir=target --exclude-dir=.next --exclude-dir=dist \
-    -i . 2>/dev/null | \
+    --exclude-dir=.clone --exclude-dir=.git --exclude-dir=build \
+    . 2>/dev/null | \
     grep -v "\.test\." | grep -v "\.spec\." | grep -v "test_" | grep -v "_test\." | \
-    grep -v "__mocks__" | grep -v "fixtures" | grep -v "\.d\.ts" | head -10)
+    grep -v "__mocks__" | grep -v "fixtures" | grep -v "\.d\.ts" | \
+    grep -v "/seed\." | grep -v "/seeds/" | grep -v "template-utils" | head -10)
 
   if [ -n "$PLACEHOLDERS" ]; then
     echo "WARNING: Placeholder/mock patterns found in source files:" >&2
@@ -175,13 +204,18 @@ fi
 
 # ── Gate 6: Hollow test detection (WARN) ───────────────────────
 if [ -f "$FEATURE_FILE" ]; then
-  # Check for tautological assertions: expect(true), expect(1).toBe(1), assert True
+  # Tautological-assertion regex. v0.3.7: removed the trailing
+  #   \.toBe(true)\|\.toBe(false)
+  # alternatives — they matched every `expect(realFunction()).toBe(true)`
+  # call, which IS a real behavioral assertion. The remaining patterns
+  # all require BOTH sides to be literals (expect(true).toBe(true),
+  # expect(1).toBe(1), assert True) — those are unambiguously hollow.
   HOLLOW_TESTS=$(grep -rn \
-    "expect(true)\|expect(false)\|expect(1)\.toBe(1)\|expect(0)\.toBe(0)\|assert True\|assert False\|assertEqual(True\|\.toBe(true)\|\.toBe(false)" \
+    "expect(true)\|expect(false)\|expect(1)\.toBe(1)\|expect(0)\.toBe(0)\|assert True\|assert False\|assertEqual(True" \
     --include="*.test.*" --include="*.spec.*" --include="test_*.py" \
     --include="*_test.go" --include="*Test.java" --include="*_test.rs" \
     --exclude-dir=node_modules --exclude-dir=.venv --exclude-dir=vendor \
-    --exclude-dir=target \
+    --exclude-dir=target --exclude-dir=.clone --exclude-dir=.git \
     . 2>/dev/null | head -5)
 
   if [ -n "$HOLLOW_TESTS" ]; then
@@ -196,12 +230,13 @@ if [ -f "$FEATURE_FILE" ]; then
   TEST_FILES=$(find . -type f \( \
     -name "*.test.*" -o -name "*.spec.*" -o -name "test_*.py" \
   \) -not -path "*/node_modules/*" -not -path "*/.venv/*" -not -path "*/vendor/*" \
-     -not -path "*/target/*" 2>/dev/null | head -10)
+     -not -path "*/target/*" -not -path "*/.clone/*" -not -path "*/.git/*" 2>/dev/null | head -10)
 
   for tf in $TEST_FILES; do
-    # Count test blocks vs assertion blocks
-    TESTS_COUNT=$(grep -c "it(\|test(\|def test_\|func Test" "$tf" 2>/dev/null || echo "0")
-    ASSERTS_COUNT=$(grep -c "expect(\|assert\|should\.\|\.to\.\|\.toBe\|\.toEqual\|\.toThrow\|assertEqual\|assertRaises" "$tf" 2>/dev/null || echo "0")
+    # Count test blocks vs assertion blocks (clean_count avoids the
+    # `grep -c || echo 0` bug that produces "0\n0" on zero matches).
+    TESTS_COUNT=$(clean_count "it(\|test(\|def test_\|func Test" "$tf")
+    ASSERTS_COUNT=$(clean_count "expect(\|assert\|should\.\|\.to\.\|\.toBe\|\.toEqual\|\.toThrow\|assertEqual\|assertRaises" "$tf")
     if [ "$TESTS_COUNT" -gt 0 ] && [ "$ASSERTS_COUNT" -eq 0 ]; then
       ASSERTION_FREE="$ASSERTION_FREE\n  $tf: $TESTS_COUNT test(s) with 0 assertions"
     fi
@@ -215,6 +250,15 @@ if [ -f "$FEATURE_FILE" ]; then
 fi
 
 # ── Gate 9: Schema drift detection (ORM schema changed without migration) ──
+# v0.3.7: rewritten to consider committed history, not just uncommitted state.
+# OLD behavior: only looked at `git diff HEAD` — false-flagged when a previous
+# commit on the branch atomically paired schema + migration, then a later
+# commit re-touched the schema, even though every schema change was covered
+# by a migration in its own commit.
+# NEW behavior: for each ORM schema file in the uncommitted set, check whether
+# a migration file exists in EITHER (a) the uncommitted change set, or
+# (b) the most recent commit that touched that schema file. Only block when
+# neither is true.
 if command -v git &>/dev/null && git rev-parse --is-inside-work-tree &>/dev/null 2>&1; then
   # All uncommitted changes (staged + unstaged) vs last commit
   CHANGED_FILES=$( { git diff --name-only HEAD 2>/dev/null; git diff --cached --name-only HEAD 2>/dev/null; } | sort -u )
@@ -226,13 +270,32 @@ if command -v git &>/dev/null && git rev-parse --is-inside-work-tree &>/dev/null
       grep -v "node_modules" | grep -v ".venv" | grep -v "test" | grep -v "spec" | grep -v "mock" | head -5)
 
     if [ -n "$SCHEMA_CHANGED" ]; then
-      # Check if migration files also changed
+      # (a) Are there uncommitted migration files alongside the schema change?
       MIGRATION_CHANGED=$(echo "$CHANGED_FILES" | grep -iE 'migration|migrate|alembic/versions' | head -5)
 
+      UNPAIRED_SCHEMAS=""
       if [ -z "$MIGRATION_CHANGED" ]; then
+        # (b) For each schema file, check the most recent commit that touched
+        # it. If that commit ALSO contained a migration file, it's covered.
+        while IFS= read -r schema_path; do
+          [ -z "$schema_path" ] && continue
+          last_commit=$(git log -1 --format="%H" -- "$schema_path" 2>/dev/null)
+          if [ -n "$last_commit" ]; then
+            files_in_commit=$(git show --name-only --format= "$last_commit" 2>/dev/null)
+            if echo "$files_in_commit" | grep -qiE 'migration|migrate|alembic/versions'; then
+              # Schema's last-touching commit included a migration — covered.
+              continue
+            fi
+          fi
+          UNPAIRED_SCHEMAS="${UNPAIRED_SCHEMAS}${schema_path}"$'\n'
+        done <<< "$SCHEMA_CHANGED"
+      fi
+
+      if [ -z "$MIGRATION_CHANGED" ] && [ -n "$UNPAIRED_SCHEMAS" ]; then
         echo "BLOCKED: ORM schema files changed without corresponding migrations:" >&2
-        echo "$SCHEMA_CHANGED" | sed 's/^/  /' >&2
+        printf '%s' "$UNPAIRED_SCHEMAS" | sed '/^$/d; s/^/  /' >&2
         echo "Generate migrations before completing. Schema drift causes silent data bugs." >&2
+        echo "(Checked: uncommitted migration files + the most recent commit touching each schema.)" >&2
         HAS_ERRORS=true
         HAS_TECHNICAL_ERRORS=true
       fi
@@ -243,7 +306,10 @@ fi
 # ── Gate 10: Scope reduction detection (PRD requirements vs PLAN coverage) ──
 if [ -f "$DOCS_DIR/PRD.md" ] && [ -f "$DOCS_DIR/PLAN.md" ]; then
   # Count mandatory requirements (SHALL/MUST per RFC 2119)
-  PRD_MUSTS=$(grep -cE '\bSHALL\b|\bMUST\b' "$DOCS_DIR/PRD.md" 2>/dev/null || echo "0")
+  PRD_MUSTS=$(grep -cE '\bSHALL\b|\bMUST\b' "$DOCS_DIR/PRD.md" 2>/dev/null)
+  PRD_MUSTS=${PRD_MUSTS:-0}
+  PRD_MUSTS=${PRD_MUSTS//[!0-9]/}
+  PRD_MUSTS=${PRD_MUSTS:-0}
 
   # Only check when PRD has enough requirements to be meaningful
   if [ "$PRD_MUSTS" -gt 2 ]; then
