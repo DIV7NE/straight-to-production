@@ -44,9 +44,14 @@
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop-verify.sh\"",
             "timeout": 60
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/context-budget-warn.sh\"",
+            "timeout": 5
           }
         ],
-        "description": "Quality gate: stack-aware type check + tests + unchecked items. Exit 2 blocks stop. 3-attempt max prevents session bricking."
+        "description": "Quality gate: stack-aware type check + tests + unchecked items. Exit 2 blocks stop. 3-attempt max prevents session bricking. Context budget warn fires for balanced/budget profiles when main session approaches max_main_session_kb."
       }
     ],
     "PreCompact": [

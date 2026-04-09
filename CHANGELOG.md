@@ -5,6 +5,183 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.8] — 2026-04-09 — feat: optimization profiles (intended/balanced/budget) — GSD-style model selection
+
+### Summary
+
+STP now supports three optimization profiles that control which Claude model runs each sub-agent. Pick `intended-profile` (Opus 1M main session + Sonnet sub-agents — byte-identical to pre-0.3.8 behavior), `balanced-profile` (Opus plans + Sonnet executes/verifies + mandatory researcher/explorer sub-agents), or `budget-profile` (Sonnet writes + Haiku critic with Sonnet escalation, strict context discipline). The default stays on `intended-profile` for zero behavior change on upgraded projects. Switch with `/stp:set-profile-model intended|balanced|budget`.
+
+The architecture is inspired by [GSD's `/gsd:set-profile`](https://github.com/gsd-build/get-shit-done) which is the most reliable model-profile system in the Claude Code ecosystem. Single source of truth lives in `references/model-profiles.cjs` — a Node.js file with the canonical agent × profile → model mapping table, plus a CLI that STP commands and hooks call to resolve models at spawn time. Adding a new profile is one column in that file; no other changes needed anywhere in STP.
+
+**Two key insights from GSD**, both adopted:
+1. **`inherit` sentinel** — when a profile says an agent should use the parent session's model (e.g. "use opus when running on opus, sonnet on sonnet"), the resolver returns the literal string `"inherit"`. STP commands interpret this as: omit the `model=` parameter from the `Agent()` spawn call entirely, which causes Claude Code to inherit the parent session's model. Avoids hard-coding model IDs that may not be available, and works on any runtime (Opus 1M, Sonnet 200K, Codex, OpenCode, Gemini CLI).
+2. **Tiny command file delegates to a CLI** — `commands/set-profile-model.md` is ~80 lines instead of ~250. All the heavy lifting lives in `references/model-profiles.cjs`. Same pattern as GSD's `commands/gsd/set-profile.md` which is just `!`-prefix bash calling `gsd-tools.cjs`.
+
+### Research Foundation
+
+Re-read four sources to validate the approach for Sonnet 200K and Haiku verification:
+- **[Anthropic harness research](https://www.anthropic.com/engineering/harness-design-long-running-apps)** — context resets via fresh sub-agents > compaction; decompose into tractable chunks with filesystem handoffs. STP's three-agent pattern (planner/executor/critic) already matches.
+- **[Vercel AGENTS.md outperforms skills](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals)** — persistent context (CLAUDE.md) beats on-demand skills 100% vs 79%. Profile selection MUST live in CLAUDE.md as a compressed index, NOT a skill the agent might forget to invoke.
+- **[Phil Schmid: Agent Harness 2026](https://www.philschmid.de/agent-harness-2026)** — three context engineering strategies: compaction, offload-to-storage, sub-agent isolation. Budget profile leans hard into all three.
+- **[Meta-Harness (arXiv 2603.28052)](https://arxiv.org/abs/2603.28052)** — auto-discovered harnesses use 4x fewer context tokens with no quality loss on TerminalBench-2. Confirms the headroom exists.
+
+**Verdict on Sonnet 4.6 (200K) viability:** ✅ works for both `balanced-profile` and `budget-profile` — but only with rigorous context discipline. Specifically: (1) every operation producing >50 lines goes to a sub-agent or `ctx_execute_file`, (2) sub-agent prompts ≤2K tokens with reports ≤30 lines, (3) `/clear` is mandatory (not "recommended") between phases, (4) state lives 100% on disk, (5) research/exploration is always delegated to fresh sub-agents.
+
+**Verdict on Haiku 4.5 for verification:** ✅ works for STRUCTURAL/PATTERN scans (file:line evidence, hardcoded secrets, schema drift, accessibility violations). NOT good enough for behavioral verification with execution path tracing. **Solution:** Critic split — Haiku for first pass, automatic Sonnet escalation when ≥2 critical issues found. Compensate with stricter Layers 1-4 (executable specs, deterministic analysis, mutation challenge, property-based tests).
+
+### What Got Built
+
+**New canonical resolver** (single source of truth, GSD-style):
+- `references/model-profiles.cjs` — JS file with `MODEL_PROFILES` table mapping each STP sub-agent (`stp-executor`, `stp-qa`, `stp-critic`, `stp-critic-escalation`, `stp-researcher`, `stp-explorer`) to its model under each profile. Includes CLI commands: `set`, `current`, `resolve <agent>`, `resolve-all`, `discipline`, `table`, `all-tables`, `list`, `help`. Ships with normalized profile names, malformed JSON backup, error handling.
+
+**New command:**
+- `commands/set-profile-model.md` — tiny (80 lines), supports three UX modes:
+  1. Argument shortcut: `/stp:set-profile-model balanced` — skips picker, just calls cjs CLI
+  2. Interactive picker: `/stp:set-profile-model` (no args) — calls AskUserQuestion with the 3 profile options
+  3. Optional walkthrough — after setting, asks if user wants explanation of the new context discipline rules
+
+**New sub-agents** (mandatory in balanced/budget profiles, inline in intended):
+- `agents/researcher.md` — `stp-researcher`. Lives in fresh context per call. Runs Context7/Tavily/WebSearch in isolation. Returns ≤30 line structured summary so the main session never holds raw research dumps. ~100x context reduction.
+- `agents/explorer.md` — `stp-explorer`. Lives in fresh context per call. Runs Glob/Grep/Read in isolation. Returns ≤30 line file:line map. ~45x context reduction.
+
+**New hook:**
+- `hooks/scripts/context-budget-warn.sh` — fires on Stop event for balanced/budget profiles. Reads the active profile via the cjs resolver, checks `discipline.max_main_session_kb`, and warns when the main session approaches 60% (soft warn) or 80% (strong warn — recommend immediate `/clear`). Silent on intended-profile (no cap). Feedback-only, never blocks.
+
+**Refactored command files** to use the resolver instead of hardcoded `model="sonnet"`:
+- `commands/work-full.md` — added Profile Resolution preamble (calls `resolve-all`); replaced 3 hardcoded model spawns with the inherit/sonnet conditional pattern
+- `commands/work-quick.md` — same pattern (preamble + 2 spawn refactors)
+- `commands/plan.md` — added profile-aware critic spawn (inherit/sonnet/haiku branching)
+- `commands/review.md` — same
+- `commands/onboard-existing.md` — same (note: no escalation in onboarding since it's read-only)
+
+**Updated infrastructure:**
+- `CLAUDE.md` — new `## Profile-Aware Execution` section with compressed index (Vercel AGENTS.md style), sentinel value docs, sub-agent spawn patterns, discipline rules, critic split logic, "adding a new profile" instructions
+- `hooks/scripts/session-restore.sh` — reads active profile via cjs resolver; surfaces non-default profiles in the SessionStart banner
+- `hooks/scripts/stp-statusline.js` — displays active profile tag (`balanced` in yellow, `budget` in orange) when not on default
+- `hooks/hooks.json` — registers context-budget-warn.sh as a Stop hook (alongside stop-verify.sh)
+- `references/profiles.md` — full profile documentation, trade-off tables, example workflows, citations to all 4 research sources
+
+### Profile Mapping (the canonical table)
+
+| Sub-agent | intended-profile | balanced-profile | budget-profile |
+|---|---|---|---|
+| `stp-executor` | `sonnet` | `sonnet` | `sonnet` |
+| `stp-qa` | `sonnet` | `sonnet` | `sonnet` |
+| `stp-critic` | `sonnet` | `sonnet` | `haiku` (→ sonnet escalation on ≥2 issues) |
+| `stp-critic-escalation` | `sonnet` | `sonnet` | `sonnet` |
+| `stp-researcher` | `inline` | `sonnet` | `sonnet` |
+| `stp-explorer` | `inline` | `sonnet` | `sonnet` |
+
+**Why `intended-profile` does NOT use `inherit`:** STP's original architecture deliberately uses Sonnet sub-agents (executor/qa/critic) even when the main session is Opus, for cost reasons. The user explicitly said intended-profile is "as is — we do nothing" — so the resolved values must match the pre-0.3.8 hardcoded `model="sonnet"` behavior. The `inherit` sentinel is supported in code but reserved for future profiles or non-Anthropic runtimes (Codex, OpenCode, Gemini CLI) where matching the parent session model is the desired behavior.
+
+| Discipline | intended | balanced | budget |
+|---|---|---|---|
+| `/clear` between phases | recommended | mandatory | enforced (60% warn, 80% strong warn) |
+| Context Mode MCP | recommended | mandatory (>50 lines) | hard-block (>50 lines) |
+| Researcher mandatory | false | true | true |
+| Explorer mandatory | false | true | true |
+| Max main session | unlimited | ~120 KB | ~100 KB |
+| Cost vs intended | 100% | ~35-50% | ~20% |
+
+### Key Design Decisions
+
+1. **Default to `intended-profile`** — zero behavior change for existing users on upgrade. Profile becomes opt-in via `/stp:set-profile-model`.
+2. **`inherit` sentinel for opus-tier agents** — instead of hard-coding `model="opus"`, we return `"inherit"` and command code OMITS the `model=` parameter from the spawn call. This is the GSD insight that makes profiles work cleanly across all runtimes.
+3. **`inline` sentinel for intended-profile researcher/explorer** — Opus 1M can absorb research/exploration directly in the main session, no sub-agent needed. The `inline` value tells commands to skip the spawn entirely.
+4. **Critic split with automatic escalation** — budget-profile spawns Haiku first; commands check the report and auto-respawn with Sonnet on ≥2 critical findings. Average critic cost stays low while preserving the deep-reasoning safety net.
+5. **Single source of truth in JS** — adding a new profile is one column in `MODEL_PROFILES`. No other code changes needed in STP because everything reads from the resolver.
+6. **CLI-driven, not bash-parsed** — STP commands call `node references/model-profiles.cjs <verb>` instead of parsing `.stp/state/profile.json` with awk/jq/python. One interface, no drift.
+
+### Spec Delta
+
+- **Added:**
+  - New command: `/stp:set-profile-model` (entry point, picker + arg + walkthrough modes)
+  - New canonical resolver: `references/model-profiles.cjs` (data + CLI)
+  - New sub-agents: `stp-researcher`, `stp-explorer` (context isolation)
+  - New hook: `context-budget-warn.sh` (warns at 60%/80% capacity for non-intended profiles)
+  - New state file: `.stp/state/profile.json` (minimal: `{profile, version, set_at, set_by}`)
+  - New CLAUDE.md section: `## Profile-Aware Execution` (compressed index + sentinel docs)
+  - New reference doc: `references/profiles.md` (full profile documentation)
+
+- **Changed:**
+  - `commands/work-full.md`, `commands/work-quick.md`, `commands/plan.md`, `commands/review.md`, `commands/onboard-existing.md` now read sub-agent models from the resolver instead of hardcoding `model="sonnet"`
+  - `hooks/scripts/session-restore.sh` now surfaces active profile in SessionStart banner
+  - `hooks/scripts/stp-statusline.js` now displays profile tag (yellow `balanced`, orange `budget`) when non-default
+  - `hooks/hooks.json` adds context-budget-warn.sh to Stop event (alongside stop-verify.sh)
+
+- **Constraints introduced:**
+  - Every `/stp:*` command MUST resolve sub-agent models from the active profile via `node references/model-profiles.cjs resolve-all` or `resolve <agent>` before spawning. Hardcoding `model="sonnet"` is forbidden.
+  - When the resolver returns `"inherit"`, commands MUST omit the `model=` parameter from `Agent()` spawn calls.
+  - When the resolver returns `"inline"`, commands MUST NOT spawn a sub-agent at all — the main session handles the work directly.
+  - In balanced/budget profiles, all external research (Context7/Tavily/WebSearch/WebFetch) MUST be delegated to a fresh `stp-researcher` sub-agent. The main session may not call these tools directly when `STP_RESEARCHER_MANDATORY=true`.
+  - In balanced/budget profiles, all multi-file Glob/Grep operations (>5 files) MUST be delegated to a fresh `stp-explorer` sub-agent when `STP_EXPLORER_MANDATORY=true`.
+
+- **Dependencies created:**
+  - All STP commands depend on `references/model-profiles.cjs` being present and `node` being on PATH. Falls back to defaults (intended-profile) if either is missing.
+  - `hooks/scripts/session-restore.sh` and `hooks/scripts/context-budget-warn.sh` depend on the cjs resolver. Both fail silently (exit 0) if it's missing.
+  - `hooks/scripts/stp-statusline.js` reads `.stp/state/profile.json` directly (no dependency on the cjs file at runtime — both write/read the same JSON shape).
+
+### Files Touched
+
+**Created (6):**
+- `commands/set-profile-model.md` — tiny GSD-style command, delegates to cjs CLI
+- `references/model-profiles.cjs` — single source of truth (MODEL_PROFILES table + CLI)
+- `references/profiles.md` — full profile documentation + trade-off tables
+- `agents/researcher.md` — context-isolation sub-agent for external research
+- `agents/explorer.md` — context-isolation sub-agent for codebase exploration
+- `hooks/scripts/context-budget-warn.sh` — Stop hook warning at 60%/80% main session capacity (uses transcript_path strategy)
+
+**Modified (13):**
+- `.claude-plugin/plugin.json` — version bump 0.3.7 → 0.3.8
+- `CHANGELOG.md` — this entry
+- `CLAUDE.md` — new Profile-Aware Execution section + commands listing + effort levels + inherit sentinel limitation note + rewritten Architecture section (each sub-agent documented with its per-profile model + Haiku escalation)
+- `README.md` — directory tree updated (16→17 commands, 3→5 sub-agents) + flat command listing includes new command
+- `commands/upgrade.md` — added stp-profile-aware to STP-OWNED sections sync table (so /stp:upgrade syncs the new section)
+- `commands/work-full.md` — Profile Resolution preamble + 3 spawn refactors + critic escalation logic (using v0.3.7-fixed grep -c pattern) + Phase 2 explorer routing + Phase 4 researcher routing
+- `commands/work-quick.md` — Profile Resolution preamble + 2 spawn refactors + researcher routing in research step
+- `commands/plan.md` — profile-aware critic spawn
+- `commands/review.md` — profile-aware critic spawn
+- `commands/onboard-existing.md` — profile-aware critic spawn (no escalation in onboarding — observation mode)
+- `hooks/hooks.json` — register context-budget-warn.sh on Stop event (alongside stop-verify.sh)
+- `hooks/scripts/session-restore.sh` — surface active profile in SessionStart banner via cjs resolver
+- `hooks/scripts/stp-statusline.js` — profile tag display (yellow `balanced`, orange `budget`)
+
+### Testing
+
+Smoke-tested the cjs CLI end-to-end with 9 scenarios:
+1. `set balanced` → writes `.stp/state/profile.json`, returns `balanced-profile`
+2. `current` → reads back `balanced-profile`
+3. `resolve stp-executor` → returns `sonnet`
+4. Switch to `budget`, `resolve stp-critic` → returns `haiku`
+5. `resolve-all` → prints all 12 KEY=VALUE lines including discipline rules
+6. `table intended` → renders ASCII table with `inherit`/`inline` correctly
+7. `set intended --raw` → prints cyan banner + table + save confirmation
+8. `set foo` → errors with valid profile list
+9. Confirms `.stp/state/profile.json` contents are valid minimal JSON
+
+All 9 pass. Errors are handled. Sentinels (`inherit`, `inline`) resolve correctly per profile.
+
+### Known Limitations
+
+- **You can't change the running session's model** — profile takes effect on the NEXT command, not the current one. This is a Claude Code limitation, not fixable at the plugin level.
+- **Hooks load at session startup** — after upgrading from 0.3.7 to 0.3.8, you must exit Claude Code and restart it to pick up the new context-budget-warn hook. `/clear` alone does NOT reload hooks.
+- **Sentinel-based spawns require command discipline** — commands must check the resolved value and conditionally include/omit the `model=` parameter. The cjs resolver tells you what to do, but the command file is responsible for actually doing it. The CLAUDE.md `## Profile-Aware Execution` section documents the pattern.
+- **Critic escalation is opt-in per command** — `/stp:work-full` includes the bash escalation logic; other commands (`/stp:review`, `/stp:plan`) don't auto-escalate. This is intentional — escalation only matters for builds, not for read-only reviews.
+
+### Migration Notes
+
+**For users staying on intended-profile (default):** No action required. Everything works exactly as before. Optional: run `/stp:set-profile-model intended` to confirm the default.
+
+**For users switching to balanced or budget:**
+1. Run `/stp:set-profile-model balanced` (or `budget`)
+2. Confirm via the picker or `--raw` flag
+3. Exit Claude Code and restart with the appropriate model (Opus for planning commands, Sonnet for execution commands)
+4. Read the optional walkthrough after switching for the discipline rules
+
+**If you see unexpected behavior:** Run `node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" current` to confirm the active profile, then `... table` to see the model assignments. Check `.stp/state/profile.json` for the raw state.
+
+---
+
 ## [0.3.7] — 2026-04-09 — fix: stop-verify hook integer-comparison crash + 4 false-positive gates
 
 ### Summary

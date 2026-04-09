@@ -227,6 +227,7 @@ STP uses HTML comment markers to delimit its managed sections. Every STP section
 |-----------|---------|
 | `stp-header` | Title + version + architecture description |
 | `stp-confirmation-gate` | Pre-Work Confirmation Gate — MANDATORY AskUserQuestion before any STP work |
+| `stp-profile-aware` | Profile-Aware Execution — MANDATORY model resolution for every sub-agent spawn (added v0.3.8) |
 | `stp-philosophy` | Philosophy (NON-NEGOTIABLE) — production-only rules |
 | `stp-plugins` | Required Companion Plugins table |
 | `stp-commands` | Commands list |

@@ -609,7 +609,23 @@ Fix issues inline. Don't re-present — just fix and move on.
 
 ### Phase 8: Plan Verification (Separate Evaluator)
 
+> **Profile-aware spawn — MANDATORY.** Resolve the critic model from the active STP profile via `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs`. In `intended-profile` and `balanced-profile` this returns `sonnet`. In `budget-profile` it returns `haiku` for the first pass — if Haiku flags ≥2 critical issues, automatically re-spawn with `model=$STP_MODEL_CRITIC_ESCALATION` (= sonnet) for the full Double-Check Protocol.
+
+```bash
+STP_MODEL_CRITIC=$(node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" resolve stp-critic)
+STP_MODEL_CRITIC_ESCALATION=$(node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" resolve stp-critic-escalation)
+echo "critic model: $STP_MODEL_CRITIC (escalation: $STP_MODEL_CRITIC_ESCALATION)"
+```
+
 Spawn the `stp-critic` agent to verify the plan BEFORE any code is written. Finding an architecture mistake now saves 10x vs finding it after 5 features are built on top.
+
+```
+# When STP_MODEL_CRITIC == "inherit":
+Agent(name="critic-plan", subagent_type="stp-critic", prompt="...")
+
+# When STP_MODEL_CRITIC == "sonnet" / "haiku":
+Agent(name="critic-plan", subagent_type="stp-critic", model="<STP_MODEL_CRITIC>", prompt="...")
+```
 
 Prompt the Critic:
 

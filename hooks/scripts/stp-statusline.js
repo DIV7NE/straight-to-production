@@ -40,6 +40,20 @@ process.stdin.on('end', () => {
       parts.push(`\x1b[34mv${ver}\x1b[0m`);
     } catch (e) {}
 
+    // Active profile tag (only show if not the default intended-profile)
+    // Color code: intended = no tag (silent default), balanced = yellow, budget = orange
+    try {
+      const profileRaw = fs.readFileSync('.stp/state/profile.json', 'utf8');
+      const profileData = JSON.parse(profileRaw);
+      const profile = profileData.profile || 'intended-profile';
+      if (profile === 'balanced-profile') {
+        parts.push('\x1b[33mbalanced\x1b[0m'); // yellow
+      } else if (profile === 'budget-profile') {
+        parts.push('\x1b[38;5;208mbudget\x1b[0m'); // orange
+      }
+      // intended-profile = no tag (it's the default, no need to clutter)
+    } catch (e) {} // no profile.json = intended-profile, no tag
+
     // Active feature + progress OR plan progress
     const featureFile = '.stp/state/current-feature.md';
     const planFile = '.stp/docs/PLAN.md';

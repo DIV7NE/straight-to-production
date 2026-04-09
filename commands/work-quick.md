@@ -12,6 +12,37 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Age
 
 You are building, fixing, refactoring, or updating code using test-driven development. Tests come BEFORE implementation. Make all technical decisions. Only interrupt the user for PRODUCT decisions. Teach key concepts along the way.
 
+## Profile Resolution (MANDATORY — runs before any sub-agent spawn)
+
+Resolve sub-agent model assignments from the active STP profile. Single source of truth is `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs`. Run **once** at orchestration start:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" resolve-all
+```
+
+Output:
+```
+STP_PROFILE=...
+STP_MODEL_EXECUTOR=...     (sonnet | inherit)
+STP_MODEL_QA=...
+STP_MODEL_CRITIC=...        (sonnet | haiku | inherit)
+STP_MODEL_CRITIC_ESCALATION=...
+STP_MODEL_RESEARCHER=...    (sonnet | inline)
+STP_MODEL_EXPLORER=...
+STP_CLEAR_DISCIPLINE=...
+STP_CONTEXT_MODE_LEVEL=...
+STP_RESEARCHER_MANDATORY=...
+STP_EXPLORER_MANDATORY=...
+STP_MAX_MAIN_KB=...
+```
+
+**Sentinels:**
+- `inherit` → omit `model=` from `Agent()` spawn (use parent session model)
+- `inline`  → do NOT spawn a sub-agent; main session does the work
+- `sonnet` / `opus` / `haiku` → pass literally as `model=` parameter
+
+If `STP_RESEARCHER_MANDATORY=true`, every Context7/Tavily/WebSearch call MUST be delegated to a fresh `stp-researcher` sub-agent. If `STP_EXPLORER_MANDATORY=true`, every multi-file Glob/Grep MUST be delegated to a fresh `stp-explorer` sub-agent. See `${CLAUDE_PLUGIN_ROOT}/references/profiles.md` for details.
+
 **This command handles ALL work types:**
 - **New feature**: "add Stripe payments" → full research, TDD, architecture integration
 - **Bug fix**: "fix the Sentry errors on /dashboard" → reproduce first, write failing test, fix, verify
@@ -215,12 +246,26 @@ Read `.stp/docs/ARCHITECTURE.md`'s Feature Dependency Map + `.stp/docs/PLAN.md`'
 
 **C. Research — what's the RIGHT way to do this?**
 
+> **PROFILE-AWARE RESEARCH ROUTING (MANDATORY).** If `STP_RESEARCHER_MANDATORY=true` (balanced-profile, budget-profile), the main session **MUST NOT** call Context7/Tavily/WebSearch/WebFetch directly. **All external research MUST be delegated** to a fresh `stp-researcher` sub-agent per question. The sub-agent runs in its own 200K context and returns a ≤30 line summary with citations. If `STP_RESEARCHER_MANDATORY=false` (intended-profile), run the queries directly in the main session as described below.
+
 Research the RIGHT approach using STP's required MCP tools:
 
 1. **Context7** (HIGH trust) — query `resolve-library-id` then `query-docs` for every library/framework you'll use. Verify patterns against CURRENT versions.
 2. **Tavily** (HIGH trust) — use `tavily_search` or `tavily_research` for: industry best practices, "how do production apps solve [this problem]", security advisories, common mistakes. This is your deep research tool.
 3. **Official documentation** (HIGH trust) — read the docs, not training data
 4. **AI training data** (LOWEST trust) — only when MCP tools return nothing
+
+**Researcher spawn pattern** (fires only when `STP_RESEARCHER_MANDATORY=true`):
+```
+Agent(
+  name="research-<short-topic>",
+  subagent_type="stp-researcher",
+  # If STP_MODEL_RESEARCHER == "inherit", omit model. If "sonnet", add: model="sonnet"
+  prompt="<specific question, ≤2K tokens, includes: what to look up, why it matters, ≤30 line summary with 3 citations>"
+)
+```
+
+Accumulate returned summaries into a `Research Notes` section in the main session before proceeding.
 
 **Adapt research to work type:**
 - **New feature**: Context7 for API patterns + Tavily for "how do Stripe/Shopify/Notion solve this?" + security considerations
@@ -405,12 +450,16 @@ When the user says go:
    ```
 
    **Create the team and spawn:**
+
+   > **Profile-aware spawn — MANDATORY.** Use `STP_MODEL_EXECUTOR` (resolved by the Profile Resolution preamble). If `STP_MODEL_EXECUTOR == "inherit"`, OMIT the `model=` parameter entirely. Otherwise pass it.
+
    ```
    TeamCreate(name="wave-1-build", description="Milestone [N] Wave 1 parallel build")
 
-   # Spawn ALL independent features simultaneously
+   # All current profiles (intended / balanced / budget) resolve STP_MODEL_EXECUTOR to "sonnet":
    Agent(
      name="build-[feature-name]",
+     subagent_type="stp-executor",
      model="sonnet",
      isolation="worktree",
      team_name="wave-1-build",
@@ -418,6 +467,9 @@ When the user says go:
      prompt="[focused spec — see below]"
    )
    # ... repeat for every feature in the wave
+
+   # Forward-compatible: if STP_MODEL_EXECUTOR ever resolves to "inherit"
+   # (reserved for future profiles / non-Anthropic runtimes), OMIT the model= param.
    ```
 
    **200K context budget — keep each agent LEAN:**
@@ -540,11 +592,12 @@ When the user says go:
    npm run dev &  # or python manage.py runserver, cargo run, etc.
    ```
 
-   Then spawn the QA agent:
+   Then spawn the QA agent. Use `STP_MODEL_QA` (resolved by the Profile Resolution preamble). If `STP_MODEL_QA == "inherit"`, omit the `model=` parameter; otherwise pass it.
    ```
    Agent(
      name="qa-[feature-name]",
-     model="sonnet",
+     subagent_type="stp-qa",
+     # Conditional: if STP_MODEL_QA != "inherit", add: model="<STP_MODEL_QA>"
      prompt="QA test this feature:
        Feature: [name]
        URL: [where to find it]

@@ -20,6 +20,30 @@ RUNTIME_DIR="$STATE_DIR/state"
 HANDOFF_FILE="$RUNTIME_DIR/handoff.md"
 STATE_FILE="$RUNTIME_DIR/state.json"
 FEATURE_FILE="$RUNTIME_DIR/current-feature.md"
+PROFILE_FILE="$RUNTIME_DIR/profile.json"
+
+# ── Profile display (no auto-init — silent default = intended-profile) ─
+# If profile.json exists and is not the default intended-profile, surface it.
+# Single source of truth lives in references/model-profiles.cjs (GSD-style).
+if [ -f "$PROFILE_FILE" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" ] && command -v node >/dev/null 2>&1; then
+  # Source KEY=VALUE lines from the resolver
+  PROFILE_RESOLVED=$(STP_PROJECT_ROOT="$(pwd)" node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" resolve-all 2>/dev/null)
+  if [ -n "$PROFILE_RESOLVED" ]; then
+    while IFS= read -r line; do
+      [ -z "$line" ] && continue
+      export "$line"
+    done <<< "$PROFILE_RESOLVED"
+
+    if [ -n "$STP_PROFILE" ] && [ "$STP_PROFILE" != "intended-profile" ]; then
+      echo "[STP] Profile: $STP_PROFILE" >&2
+      echo "  Executor: $STP_MODEL_EXECUTOR  ·  QA: $STP_MODEL_QA  ·  Critic: $STP_MODEL_CRITIC" >&2
+      echo "  Researcher: $STP_MODEL_RESEARCHER  ·  Explorer: $STP_MODEL_EXPLORER" >&2
+      echo "  Discipline: /clear=$STP_CLEAR_DISCIPLINE  ·  ctx-mode=$STP_CONTEXT_MODE_LEVEL  ·  researcher-mand=$STP_RESEARCHER_MANDATORY" >&2
+      echo "  Switch: /stp:set-profile-model" >&2
+      echo "" >&2
+    fi
+  fi
+fi
 
 # Priority 1: Handoff note (intentional pause via /stp:pause)
 if [ -f "$HANDOFF_FILE" ]; then
@@ -53,8 +77,12 @@ fi
 # Priority 3: Active feature checklist
 if [ -f "$FEATURE_FILE" ]; then
   FEATURE_TITLE=$(head -1 "$FEATURE_FILE" | sed 's/^#* *//')
-  DONE=$(grep -c '\[x\]' "$FEATURE_FILE" 2>/dev/null || echo "0")
-  TOTAL=$(grep -c '\[.\]' "$FEATURE_FILE" 2>/dev/null || echo "0")
+  # NB: `grep -c PATTERN FILE 2>/dev/null || echo 0` is BROKEN — grep prints
+  # "0" before exiting non-zero on no-match, so the `||` fallback APPENDS
+  # rather than replacing, producing the literal "0\n0" string. Fixed in
+  # v0.3.7 across all hook scripts.
+  DONE=$(grep -c '\[x\]' "$FEATURE_FILE" 2>/dev/null); DONE=${DONE:-0}
+  TOTAL=$(grep -c '\[.\]' "$FEATURE_FILE" 2>/dev/null); TOTAL=${TOTAL:-0}
   echo "[STP] Active feature: $FEATURE_TITLE ($DONE/$TOTAL complete)" >&2
   echo "  Read .stp/state/current-feature.md for the checklist." >&2
   echo "" >&2
@@ -69,8 +97,9 @@ if [ -f "VERSION" ]; then
 fi
 
 if [ -f "$DOCS_DIR/PLAN.md" ]; then
-  PLAN_DONE=$(grep -c '\[x\]' "$DOCS_DIR/PLAN.md" 2>/dev/null || echo "0")
-  PLAN_TOTAL=$(grep -c '\[.\]' "$DOCS_DIR/PLAN.md" 2>/dev/null || echo "0")
+  # See note above re: the `grep -c … || echo 0` bug fixed in v0.3.7.
+  PLAN_DONE=$(grep -c '\[x\]' "$DOCS_DIR/PLAN.md" 2>/dev/null); PLAN_DONE=${PLAN_DONE:-0}
+  PLAN_TOTAL=$(grep -c '\[.\]' "$DOCS_DIR/PLAN.md" 2>/dev/null); PLAN_TOTAL=${PLAN_TOTAL:-0}
   echo "  Plan progress: $PLAN_DONE/$PLAN_TOTAL features complete" >&2
 fi
 

@@ -524,6 +524,12 @@ Now generate the remaining documents from verified findings:
 
 ### Step 6: Assess — Baseline Quality Observation (READ-ONLY)
 
+> **Profile-aware spawn — MANDATORY.** Resolve the critic model from the active STP profile via `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs`. Onboarding runs once per project and the Critic only observes (no fixes), so the Haiku fast-pass in budget-profile is sufficient — **escalation is NOT needed here** even if Haiku flags issues, since the user is just getting a baseline. If the resolved model is `inherit`, omit the `model=` parameter.
+
+```bash
+STP_MODEL_CRITIC=$(node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" resolve stp-critic)
+```
+
 Spawn the `stp-critic` agent **in observation mode**. The Critic must NOT propose fixes, write code, edit files, or take any action — its job here is to look and report.
 
 ```

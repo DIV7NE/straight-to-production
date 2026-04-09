@@ -12,6 +12,75 @@ The complete development cycle. One command takes you from idea → understandin
 
 **Context window management:** This command runs 22+ sub-phases in a single session. If the Context Mode MCP (`ctx_execute`, `ctx_batch_execute`) is available, use it for any operation that produces large output (codebase analysis, test runs, grep results, subagent reports). This keeps raw data in the sandbox and only your summary enters the context window, extending session life before compaction fires.
 
+## Profile Resolution (MANDATORY — runs before any sub-agent spawn)
+
+Before doing any work, resolve all sub-agent model assignments + discipline rules from the active STP profile. The single source of truth is `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs` (GSD-style resolver). Run this **once** at orchestration start and remember the values for the rest of the session:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" resolve-all
+```
+
+This prints KEY=VALUE lines suitable for sourcing or remembering in your context:
+
+```
+STP_PROFILE=balanced-profile
+STP_MODEL_EXECUTOR=sonnet
+STP_MODEL_QA=sonnet
+STP_MODEL_CRITIC=sonnet
+STP_MODEL_CRITIC_ESCALATION=sonnet
+STP_MODEL_RESEARCHER=sonnet
+STP_MODEL_EXPLORER=sonnet
+STP_CLEAR_DISCIPLINE=mandatory
+STP_CONTEXT_MODE_LEVEL=mandatory
+STP_RESEARCHER_MANDATORY=true
+STP_EXPLORER_MANDATORY=true
+STP_MAX_MAIN_KB=120
+```
+
+**Sentinel values you must understand:**
+- `inherit` — when an agent's resolved model is `inherit`, **omit the `model=` parameter from the `Agent()` spawn call entirely**. This causes Claude Code to inherit the parent session's model. Works on any runtime (Opus 1M, Sonnet 200K, Codex, OpenCode, Gemini CLI).
+- `inline` — when an agent's resolved model is `inline`, **do NOT spawn a sub-agent at all**. The main session handles this work directly. Used in `intended-profile` for researcher/explorer (Opus 1M can absorb research/exploration inline).
+- `sonnet` / `opus` / `haiku` — pass the literal value as the spawn `model=` parameter.
+
+**Sub-agent spawn pattern (MANDATORY):**
+```
+# If STP_MODEL_EXECUTOR == "inherit":
+Agent(name="build-X", subagent_type="stp-executor", prompt="...")   # NO model param
+
+# If STP_MODEL_EXECUTOR == "sonnet" / "opus" / "haiku":
+Agent(name="build-X", subagent_type="stp-executor", model="sonnet", prompt="...")
+```
+
+**Discipline rules:**
+- `STP_RESEARCHER_MANDATORY=true` → every Phase 4 research call (Context7/Tavily/WebSearch/WebFetch) MUST be delegated to a fresh `stp-researcher` sub-agent. Main session may NOT call those tools directly.
+- `STP_EXPLORER_MANDATORY=true` → every Phase 2 codebase exploration touching >5 files MUST be delegated to a fresh `stp-explorer` sub-agent.
+- `STP_CONTEXT_MODE_LEVEL=hard-block` → do NOT run any operation producing >50 lines of output in the main session. Use `ctx_execute_file` or a sub-agent.
+- `STP_CLEAR_DISCIPLINE=mandatory` or `enforced` → every command's completion box MUST recommend `/clear, then /stp:next-command` and the user is expected to follow it.
+
+**Inline `intended-profile` paths:**
+- If `STP_MODEL_RESEARCHER=inline`: do research directly in the main session (Opus 1M handles it). Skip stp-researcher spawn.
+- If `STP_MODEL_EXPLORER=inline`: do codebase exploration directly in the main session. Skip stp-explorer spawn.
+
+**Researcher delegation example** (when not inline):
+```
+Agent(
+  name="research-<topic>",
+  subagent_type="stp-researcher",
+  # If STP_MODEL_RESEARCHER == "inherit", omit model entirely.
+  # Otherwise pass model="<STP_MODEL_RESEARCHER>"
+  prompt="Research <topic>. Use Context7/Tavily/WebSearch. Return ≤30 line structured summary with citations."
+)
+```
+
+**Explorer delegation example** (when not inline):
+```
+Agent(
+  name="explore-<scope>",
+  subagent_type="stp-explorer",
+  prompt="Map the <scope> in this codebase using Read/Glob/Grep. Return ≤30 line structured file:line map."
+)
+```
+
 **This handles ANY scope:**
 - Single feature: "add PDF invoice export"
 - Multi-feature: "update stripe payments and the entire pricing plan"
@@ -126,6 +195,8 @@ If uncertain about a technical detail, make the decision yourself (you're the CT
 
 ### Phase 2: CONTEXT — Understand the Current State
 
+> **PROFILE-AWARE EXPLORATION ROUTING (MANDATORY).** If `STP_EXPLORER_MANDATORY=true` (balanced-profile, budget-profile), the main session **MUST NOT** run multi-file Glob/Grep operations touching >5 files directly. **All multi-file codebase exploration MUST be delegated** to a fresh `stp-explorer` sub-agent with a specific scope. The sub-agent runs the searches in its own 200K context and returns a ≤30 line file:line map. The main session consumes only the map, never raw Glob/Grep dumps. Reading single targeted files (e.g. ARCHITECTURE.md, PRD.md, CHANGELOG.md — files you know the path to) stays in the main session regardless of profile. If `STP_EXPLORER_MANDATORY=false` (intended-profile), explore inline as described below.
+
 **Read everything relevant (in parallel):**
 
 | Source | What you're looking for |
@@ -135,8 +206,20 @@ If uncertain about a technical detail, make the decision yourself (you're the CT
 | `.stp/docs/AUDIT.md` | Production issues in this area, past bugs, Sentry errors, Patterns & Lessons |
 | `.stp/docs/CHANGELOG.md` | Recent changes to this area — context for what was built and decided |
 | `CLAUDE.md` | Project Conventions — rules that apply to this type of work |
-| Actual source code | Read the files in the affected area. Trace data flows. Understand the REAL implementation, not just docs. |
+| Actual source code | Read the files in the affected area. Trace data flows. Understand the REAL implementation, not just docs. **If explorer is mandatory:** spawn `stp-explorer` with a specific scope ("map all files in the auth flow and their call order") instead of reading directly. |
 | Git history | `git log --oneline -15 -- [affected paths]` — what changed recently? |
+
+**Explorer spawn pattern** (fires only when `STP_EXPLORER_MANDATORY=true` AND exploration touches >5 files):
+```
+Agent(
+  name="explore-<scope>",
+  subagent_type="stp-explorer",
+  # If STP_MODEL_EXPLORER == "inherit", omit model. If "sonnet", add: model="sonnet"
+  prompt="<specific scope: what to map, what format to return (file:line list + one-line desc each), stop criteria (e.g. 'stay at top-level handlers, don't recurse into utilities')>"
+)
+```
+
+Accumulate the explorer's map into a `Phase 2 Codebase Map` section in the main session before proceeding to Phase 3.
 
 **If MCP services are connected, pull production data:**
 - Sentry: errors in the affected area
@@ -322,16 +405,32 @@ This creates or updates `design-system/MASTER.md` which Phase 6 (Execute) reads 
 
 With context gathered and tools ready, research the RIGHT way to do this work.
 
+> **PROFILE-AWARE RESEARCH ROUTING (MANDATORY).** If `STP_RESEARCHER_MANDATORY=true` (balanced-profile, budget-profile), the main session **MUST NOT** call Context7, Tavily, WebSearch, or WebFetch directly. **All external research in this phase MUST be delegated** to a fresh `stp-researcher` sub-agent per research question. The sub-agent runs the queries in its own 200K context and returns a ≤30 line structured summary. The main session consumes only summaries, never raw research dumps. If `STP_RESEARCHER_MANDATORY=false` (intended-profile — Opus 1M absorbs it inline), run the queries directly in the main session as described below.
+
 **Framework/library research (Context7):**
 - Query current API docs for every library you'll use
 - Check for breaking changes, deprecations, migration guides
 - Verify patterns against CURRENT versions (training data may be stale)
+- **If researcher is mandatory:** spawn `stp-researcher` with a specific question like "Query Context7 for the current [library] patterns: [specific topic]. Return ≤30 line summary with file:line or doc URL citations."
 
 **Industry research (Tavily/WebSearch):**
 - How do production apps solve this exact problem?
 - What are the common mistakes?
 - What's the current best practice (2025-2026)?
 - Security considerations specific to this type of work
+- **If researcher is mandatory:** spawn `stp-researcher` with a specific question like "Run Tavily research on [topic]: current best practices + common mistakes + security concerns. Return ≤30 line summary with 3 citations."
+
+**Researcher spawn pattern** (fires only when `STP_RESEARCHER_MANDATORY=true`):
+```
+Agent(
+  name="research-<short-topic>",
+  subagent_type="stp-researcher",
+  # If STP_MODEL_RESEARCHER == "inherit", omit model. If "sonnet", add: model="sonnet"
+  prompt="<specific question, ≤2K tokens, includes: what to look up, why it matters, what format to return, stop criteria>"
+)
+```
+
+Accumulate summaries into a `Phase 4 Research Notes` section in the main session before proceeding to Phase 5.
 
 **Codebase patterns (from Phase 2 context):**
 - How does the existing code handle similar work?
@@ -621,16 +720,33 @@ Everything else goes to Sonnet executors.
 - DEPENDENT features → later wave (sequential)
 
 **Create Agent Teams for each wave:**
+
+> **Profile-aware spawn — MANDATORY.** Use `STP_MODEL_EXECUTOR` (resolved by the Profile Resolution preamble at the top of this command). If `STP_MODEL_EXECUTOR == "inherit"`, OMIT the `model=` parameter entirely. Otherwise pass it.
+
 ```
 TeamCreate(name="wave-1-build", description="Milestone [N] Wave 1 parallel build")
 
+# All current profiles (intended / balanced / budget) resolve STP_MODEL_EXECUTOR to "sonnet":
 Agent(
   name="build-[feature-name]",
+  subagent_type="stp-executor",
   model="sonnet",
   isolation="worktree",
   team_name="wave-1-build",
   run_in_background=true,
   prompt="[focused spec — under 3K tokens]"
+)
+
+# Forward-compatible pattern: if STP_MODEL_EXECUTOR ever resolves to "inherit"
+# (reserved for future profiles or non-Anthropic runtimes), OMIT the model= param:
+Agent(
+  name="build-[feature-name]",
+  subagent_type="stp-executor",
+  isolation="worktree",
+  team_name="wave-1-build",
+  run_in_background=true,
+  prompt="[focused spec — under 3K tokens]"
+  # NO model param — inherits parent session model
 )
 ```
 
@@ -732,11 +848,12 @@ AskUserQuestion(
 
 #### 6g. Independent QA Agent
 
-Spawn the `stp-qa` agent — it has NEVER seen the build process:
+Spawn the `stp-qa` agent — it has NEVER seen the build process. Use `STP_MODEL_QA` (resolved by the Profile Resolution preamble). If `STP_MODEL_QA == "inherit"`, omit the `model=` parameter; otherwise pass it.
 ```
 Agent(
   name="qa-[feature-name]",
-  model="sonnet",
+  subagent_type="stp-qa",
+  # Conditional: if STP_MODEL_QA != "inherit", add: model="<STP_MODEL_QA>"
   prompt="QA test this feature:
     Feature: [name]
     URL: [where to find it]
@@ -818,16 +935,46 @@ If YES:
 1. **Bump minor version** (reset patch: 0.1.3 → 0.2.0)
 2. **Integration verification** — write and run E2E tests for the milestone's primary workflow
 3. **Critic evaluation (Double-Check Protocol):**
+
+   **Profile-aware critic spawn.** Use `STP_MODEL_CRITIC` and `STP_MODEL_CRITIC_ESCALATION` (both resolved by the Profile Resolution preamble). In **budget-profile** the critic resolves to `haiku` for a fast pass; if Haiku flags ≥2 critical issues OR any FAIL, automatically re-spawn with `STP_MODEL_CRITIC_ESCALATION` (= sonnet) for the full Double-Check Protocol. In **intended-profile** and **balanced-profile** there's no escalation — the first call already uses sonnet.
+
 ```
+# First pass — uses STP_MODEL_CRITIC
 Agent(
   name="critic-milestone",
-  model="sonnet",
+  subagent_type="stp-critic",
+  # Conditional: if STP_MODEL_CRITIC != "inherit", add: model="<STP_MODEL_CRITIC>"
   prompt="Evaluate this milestone. MANDATORY: Follow the Double-Check Protocol — 2 iteration minimum + claim verification.
   1. Restate the goal, 2. Define 'complete', 3. List angles, 4. Iteration 1, 5. Iteration 2, 5.5. Verify Behavioral Claims (trace execution paths for any 'broken/fails/doesn't work' finding — downgrade unreachable code from FAIL to NOTE), 6. Synthesize.
   Grade against .stp/docs/PRD.md + .stp/docs/PLAN.md + 7 criteria + 6-layer verification.
   Run specification verification, test quality analysis, and mutation challenge.
   Flag NET-NEW GAPS: features where infrastructure exists but no UI/API/purchase flow was wired."
 )
+```
+
+**Budget-profile escalation logic** (only relevant if `STP_MODEL_CRITIC == "haiku"`):
+```bash
+# After the Haiku critic returns, parse its report.
+# IMPORTANT: use the v0.3.7-fixed grep -c pattern. The naive form
+#   COUNT=$(grep -c PATTERN FILE 2>/dev/null || echo 0)
+# is broken because grep prints "0" before exiting non-zero on no-match,
+# so the `|| echo 0` APPENDS rather than replaces, producing "0\n0".
+# Always use the assignment-then-default form.
+CRITIC_REPORT=$(ls -t .stp/state/critic-report-*.md 2>/dev/null | head -1)
+if [ -n "$CRITIC_REPORT" ] && [ "$STP_MODEL_CRITIC" = "haiku" ]; then
+  CRITICAL_COUNT=$(grep -c "^\(CRITICAL\|FAIL\)" "$CRITIC_REPORT" 2>/dev/null); CRITICAL_COUNT=${CRITICAL_COUNT:-0}
+  if [ "$CRITICAL_COUNT" -ge 2 ]; then
+    echo "Haiku flagged $CRITICAL_COUNT critical issues — escalating to $STP_MODEL_CRITIC_ESCALATION for full Double-Check Protocol"
+    # Re-spawn the same agent with the escalation model:
+    #
+    # Agent(
+    #   name="critic-milestone-escalated",
+    #   subagent_type="stp-critic",
+    #   model="<STP_MODEL_CRITIC_ESCALATION>",   # = "sonnet"
+    #   prompt="<same prompt as Pass 1, plus: 'Pass 1 by Haiku flagged $CRITICAL_COUNT critical issues. Run the FULL Double-Check Protocol with deep behavioral verification.'>"
+    # )
+  fi
+fi
 ```
 4. **Milestone CHANGELOG entry** with Critic evaluation results
 5. **Cross-family review** for security-critical code (if non-Claude models available)

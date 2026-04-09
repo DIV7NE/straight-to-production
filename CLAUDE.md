@@ -52,9 +52,109 @@ Before ANY STP command writes code, modifies files, runs destructive actions, or
 
 ## Architecture
 - **Opus** = CTO (plans, researches, reviews, merges, teaches). Builds foundation work directly (DB, auth, config).
-- **Sonnet executors** = builders (features on top of foundation, worktree isolation, Agent Teams for parallelism)
-- **Sonnet QA** = independent tester (tests running app against PRD acceptance criteria)
-- **Sonnet Critic** = code reviewer (7 criteria + Double-Check Protocol + Claim Verification Gate + 6-layer verification)
+- **stp-executor** = builder sub-agent (features on top of foundation, worktree isolation, Agent Teams for parallelism). Model = `sonnet` in all profiles.
+- **stp-qa** = independent tester sub-agent (tests running app against PRD acceptance criteria). Model = `sonnet` in all profiles.
+- **stp-critic** = code reviewer sub-agent (7 criteria + Double-Check Protocol + Claim Verification Gate + 6-layer verification). Model = `sonnet` in intended/balanced, **`haiku` → sonnet escalation in budget-profile** when ≥2 critical issues found.
+- **stp-researcher** = context-isolation sub-agent for external research (Context7/Tavily/WebSearch). Model = `inline` in intended-profile (main session handles it), `sonnet` in balanced/budget.
+- **stp-explorer** = context-isolation sub-agent for codebase exploration (Glob/Grep across >5 files). Model = `inline` in intended-profile, `sonnet` in balanced/budget.
+
+> **Profile-dependent model assignments.** The sub-agent models above are NOT hardcoded in STP command files — they're resolved per-profile via `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs`. See `## Profile-Aware Execution` below for the resolver pattern every STP command MUST use.
+
+<!-- STP:stp-profile-aware:start -->
+## Profile-Aware Execution (MANDATORY for every STP command)
+
+<EXTREMELY-IMPORTANT>
+STP supports three optimization profiles that change which Claude models run sub-agents. Every `/stp:*` command MUST resolve the active profile via the canonical CLI BEFORE spawning any sub-agent. Inspired by [GSD's set-profile design](https://github.com/gsd-build/get-shit-done) which works reliably.
+
+**Single source of truth:** `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs`
+
+**Compressed profile index** (same pattern as Vercel's AGENTS.md docs index):
+
+```
+[STP Profile Index]|cli: node ${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs|state: .stp/state/profile.json|default: intended-profile
+intended-profile :{stp-executor:sonnet,stp-qa:sonnet,stp-critic:sonnet,stp-critic-escalation:sonnet,stp-researcher:inline,stp-explorer:inline,clear:rec,ctx:rec,res-mand:no,exp-mand:no}
+balanced-profile :{stp-executor:sonnet,stp-qa:sonnet,stp-critic:sonnet,stp-critic-escalation:sonnet,stp-researcher:sonnet,stp-explorer:sonnet,clear:mand,ctx:mand,res-mand:yes,exp-mand:yes,max-kb:120}
+budget-profile   :{stp-executor:sonnet,stp-qa:sonnet,stp-critic:haiku→escal-sonnet,stp-critic-escalation:sonnet,stp-researcher:sonnet,stp-explorer:sonnet,clear:enforced,ctx:hard-block,res-mand:yes,exp-mand:yes,max-kb:100}
+```
+
+> **Note on `inherit` sentinel:** The current intended/balanced/budget profiles never resolve to `inherit` because STP intentionally uses Sonnet sub-agents (even when main is Opus) for cost reasons. The `inherit` sentinel and code path are retained for future profiles or non-Anthropic runtimes (Codex, OpenCode, Gemini CLI). Commands MUST still handle `inherit` correctly (omit `model=` from spawn) — see the spawn pattern below.
+>
+> **KNOWN LIMITATION of the inherit sentinel:** STP's agent files (executor.md, qa.md, critic.md, researcher.md, explorer.md) all have `model: sonnet` in frontmatter as a defensive default. When a spawn omits the `model=` param (the inherit path), Claude Code falls back to the agent's frontmatter (`sonnet`), NOT to the parent session model. So `inherit` is currently a no-op equivalent to `sonnet` for STP agents. This is fine — no current profile uses `inherit`. If you add a future profile that should actually inherit from the parent (e.g. for non-Anthropic runtimes), you'll need to ALSO remove the `model:` line from the relevant agent file frontmatters.
+
+**Sentinel values you must understand:**
+- `inherit` → **omit the `model=` parameter from the `Agent()` spawn call entirely**. Claude Code inherits the parent session's model. Works on any runtime (Opus 1M, Sonnet 200K, Codex, OpenCode, Gemini CLI). This is GSD's key insight — it avoids hard-coding model IDs that may not be available.
+- `inline` → **do NOT spawn a sub-agent at all**. The main session handles this work directly. Used in `intended-profile` for researcher/explorer because Opus 1M can absorb research/exploration inline without context pressure.
+- `sonnet` / `opus` / `haiku` → pass the literal value as the spawn `model=` parameter.
+
+**Profile resolution preamble** — every `/stp:*` command that spawns sub-agents MUST start with this block:
+
+```bash
+# Resolve all sub-agent models + discipline rules in one call
+node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" resolve-all
+```
+
+This prints KEY=VALUE lines that you remember for the rest of the command:
+
+```
+STP_PROFILE=balanced-profile
+STP_MODEL_EXECUTOR=sonnet
+STP_MODEL_QA=sonnet
+STP_MODEL_CRITIC=sonnet
+STP_MODEL_CRITIC_ESCALATION=sonnet
+STP_MODEL_RESEARCHER=sonnet
+STP_MODEL_EXPLORER=sonnet
+STP_CLEAR_DISCIPLINE=mandatory
+STP_CONTEXT_MODE_LEVEL=mandatory
+STP_RESEARCHER_MANDATORY=true
+STP_EXPLORER_MANDATORY=true
+STP_MAX_MAIN_KB=120
+```
+
+For a single agent's model use:
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" resolve stp-executor
+```
+
+**Sub-agent spawn pattern** (MANDATORY — branch on the resolved value):
+```
+# All current profiles (intended / balanced / budget) resolve STP_MODEL_EXECUTOR to "sonnet":
+Agent(name="build-X", subagent_type="stp-executor", model="sonnet", prompt="...")
+
+# When STP_MODEL_RESEARCHER == "inline" (intended-profile):
+# Do NOT spawn anything. Main session does the research directly.
+
+# Forward-compatible: if STP_MODEL_EXECUTOR ever resolves to "inherit"
+# (reserved for future profiles or non-Anthropic runtimes), OMIT the model= param:
+Agent(name="build-X", subagent_type="stp-executor", prompt="...")
+# NO model param — inherits parent session model
+```
+
+**Researcher/explorer mandatory rules:**
+- `STP_RESEARCHER_MANDATORY=true` → main session MAY NOT call Context7, Tavily, WebSearch, WebFetch directly. ALL external research MUST be delegated to a fresh `stp-researcher` sub-agent. Sub-agent runs the queries, returns ≤30 line summary.
+- `STP_EXPLORER_MANDATORY=true` → main session MAY NOT run Glob/Grep operations touching >5 files. ALL multi-file exploration MUST be delegated to a fresh `stp-explorer` sub-agent that returns ≤30 line file:line map.
+
+**/clear discipline by profile:**
+- `recommended` (intended) → suggest /clear in completion boxes, do not enforce
+- `mandatory` (balanced) → completion boxes MUST recommend `/clear, then /stp:next-command`
+- `enforced` (budget) → same as mandatory + warning hook fires at 60% main-session capacity
+
+**Context Mode discipline by profile:**
+- `recommended` (intended) → use `ctx_execute_file` for very large outputs
+- `mandatory` (balanced) → use `ctx_execute_file` for any operation producing >50 lines
+- `hard-block` (budget) → main session BLOCKED from any operation producing >50 lines
+
+**Critic split (budget-profile only — automatic escalation):**
+- Pass 1: spawn `stp-critic` with `model=$STP_MODEL_CRITIC` (= `haiku`) for fast pattern-based scan
+- If Pass 1 returns ≥2 CRITICAL/FAIL findings: re-spawn `stp-critic` with `model=$STP_MODEL_CRITIC_ESCALATION` (= `sonnet`) for full Double-Check Protocol
+- Most builds don't escalate → average critic cost stays low while keeping deep-reasoning safety net for problem builds
+
+**Why this exists:** STP was built around Anthropic's [harness design research](https://www.anthropic.com/engineering/harness-design-long-running-apps) which assumed Opus 4.6 [1M] context. Not every user has Opus access. The profile system lets STP adapt to Sonnet 200K and Haiku-grade verification without dropping the production-quality bar — by leaning harder on sub-agent isolation, filesystem handoffs, and the deterministic verification layers (1-4) that don't depend on model intelligence.
+
+**Adding a new profile** — extend `MODEL_PROFILES` in `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs` (one new column per agent). No other changes needed anywhere in STP. The CLI auto-derives `VALID_PROFILES` from the table.
+
+See `${CLAUDE_PLUGIN_ROOT}/references/profiles.md` for the full profile documentation, trade-off tables, and example workflows.
+</EXTREMELY-IMPORTANT>
+<!-- STP:stp-profile-aware:end -->
 
 ## 6-Layer Verification Stack
 Each layer catches what the others miss. LLM review (Critic) is Layer 5, not Layer 1.
@@ -143,6 +243,7 @@ AskUserQuestion(
 - `/stp:continue` — "Pick up where I left off." Reads state files, starts working immediately
 - `/stp:pause` — "I'm done for now." Saves context for next session
 - `/stp:upgrade` — "Update STP." Pulls latest + syncs companion plugins + refreshes CLAUDE.md sections + verifies hooks
+- `/stp:set-profile-model` — "Pick how STP allocates models." Switch between intended-profile (Opus 1M main + Sonnet sub-agents, original STP behavior), balanced-profile (Opus plans + Sonnet executes + mandatory researcher/explorer sub-agents), or budget-profile (Sonnet writes + Haiku critic with Sonnet escalation, strict context discipline)
 
 <!-- STP:stp-plugins:start -->
 ## Required Companion Plugins & MCP Servers
@@ -380,5 +481,5 @@ All research sources in RESEARCH-SOURCES.md. Key: Anthropic harness blog, Vercel
 - /stp:whiteboard, /stp:work-quick, /stp:review, /stp:continue → high
 - /stp:onboard-existing → max
 - /stp:autopilot → medium
-- /stp:progress, /stp:pause, /stp:upgrade → low
+- /stp:progress, /stp:pause, /stp:upgrade, /stp:set-profile-model → low
 <!-- STP:stp-effort:end -->

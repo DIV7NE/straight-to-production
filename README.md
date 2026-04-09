@@ -100,7 +100,7 @@ STP:
 
 ```
 stp/
-├── commands/           # 16 commands
+├── commands/           # 17 commands
 │   ├── whiteboard.md       # /stp:whiteboard — Explore ideas + research (design brief output)
 │   ├── new-project.md      # /stp:new-project — Start a new project
 │   ├── plan.md             # /stp:plan — Design the architecture
@@ -116,11 +116,14 @@ stp/
 │   ├── continue.md         # /stp:continue — Resume where you left off
 │   ├── pause.md            # /stp:pause — Save progress, take a break
 │   ├── onboard-existing.md # /stp:onboard-existing — Read-only exploration of existing project
-│   └── upgrade.md          # /stp:upgrade — Pull latest + sync everything
-├── agents/             # 3 independent Sonnet agents
+│   ├── upgrade.md          # /stp:upgrade — Pull latest + sync everything
+│   └── set-profile-model.md # /stp:set-profile-model — Switch intended/balanced/budget profile (added v0.3.8)
+├── agents/             # 5 sub-agents (Sonnet by default; profile-aware)
 │   ├── executor.md     # Builder — TDD in isolated worktrees
 │   ├── qa.md           # QA tester — tests running app against PRD
-│   └── critic.md       # Reviewer — grades code against 7 criteria + System Constraint compliance
+│   ├── critic.md       # Reviewer — grades code against 7 criteria + System Constraint compliance (Haiku→Sonnet escalation in budget-profile)
+│   ├── researcher.md   # Research isolator — Context7/Tavily/Web in fresh context, returns ≤30 line summary (added v0.3.8)
+│   └── explorer.md     # Codebase explorer — Glob/Grep in fresh context, returns ≤30 line file:line map (added v0.3.8)
 ├── hooks/              # 11 scripts (4 hook-triggered + 5 utilities + 2 statusline)
 │   ├── hooks.json
 │   └── scripts/
@@ -333,6 +336,7 @@ Reads all state files (handoff, feature checklist, plan) and immediately picks u
 /stp:autopilot         → Overnight autonomous: same as work-full but AI decides every option
 /stp:onboard-existing  → READ-ONLY. Explore existing project → map architecture → generate observation report (no fixes, no installs, no edits)
 /stp:upgrade           → Pull latest STP version + sync companion plugins + refresh CLAUDE.md sections + verify MCP servers
+/stp:set-profile-model → Switch optimization profile: intended (Opus 1M baseline) | balanced (Opus plans + Sonnet executes) | budget (Sonnet + Haiku, strict context discipline)
 ```
 
 ### Working on an existing project

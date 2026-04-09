@@ -10,7 +10,19 @@ allowed-tools: ["Read", "Write", "Bash", "Grep", "Glob", "Agent", "AskUserQuesti
 
 # STP: Evaluate
 
-Dispatch the `stp-critic` agent (Sonnet 4.6) to evaluate the project. Self-evaluation is broken — agents reliably skew positive when grading their own work. The Critic is a SEPARATE model that hasn't seen the building process.
+Dispatch the `stp-critic` agent to evaluate the project. Self-evaluation is broken — agents reliably skew positive when grading their own work. The Critic is a SEPARATE model that hasn't seen the building process.
+
+> **Profile-aware spawn — MANDATORY.** Resolve the critic model from the active STP profile via `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs`:
+> - `intended-profile` → `sonnet` (full Double-Check Protocol on first call)
+> - `balanced-profile` → `sonnet` (full Double-Check Protocol on first call)
+> - `budget-profile` → `haiku` first pass; auto-escalate to `sonnet` (`STP_MODEL_CRITIC_ESCALATION`) if Haiku flags ≥2 critical issues
+>
+> If the resolved model is ever `inherit` (reserved for future profiles / non-Anthropic runtimes), OMIT the `model=` parameter from the `Agent()` spawn call.
+
+```bash
+STP_MODEL_CRITIC=$(node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" resolve stp-critic)
+STP_MODEL_CRITIC_ESCALATION=$(node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" resolve stp-critic-escalation)
+```
 
 ## Process
 
