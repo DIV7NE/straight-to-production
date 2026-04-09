@@ -24,8 +24,14 @@ fi
 # Active feature + progress
 if [ -f ".stp/state/current-feature.md" ]; then
   TITLE=$(head -1 ".stp/state/current-feature.md" | sed 's/^#* *//' | cut -c1-25)
-  DONE=$(grep -c '\[x\]' ".stp/state/current-feature.md" 2>/dev/null || echo "0")
-  TOTAL=$(grep -c '\[.\]' ".stp/state/current-feature.md" 2>/dev/null || echo "0")
+  # NB: `grep -c PATTERN FILE 2>/dev/null || echo 0` is BROKEN — grep prints
+  # "0" before exiting non-zero on no-match, so the `||` fallback APPENDS
+  # rather than replacing, producing the literal "0\n0" string. The next
+  # integer comparison errors with `integer expression expected`. Fixed in
+  # v0.3.7 across all hook scripts. See stop-verify.sh:clean_count for
+  # the centralized helper version.
+  DONE=$(grep -c '\[x\]' ".stp/state/current-feature.md" 2>/dev/null); DONE=${DONE:-0}
+  TOTAL=$(grep -c '\[.\]' ".stp/state/current-feature.md" 2>/dev/null); TOTAL=${TOTAL:-0}
 
   # Progress color: green if >50%, yellow if >0%, dim if 0%
   if [ "$TOTAL" -gt 0 ] && [ "$DONE" -gt 0 ]; then
@@ -41,8 +47,9 @@ if [ -f ".stp/state/current-feature.md" ]; then
 
   OUTPUT="${OUTPUT} ${DIM}│${RESET} ${BOLD}${WHITE}${TITLE}${RESET} ${PCOLOR}[${DONE}/${TOTAL}]${RESET}"
 elif [ -f ".stp/docs/PLAN.md" ]; then
-  DONE=$(grep -c '\[x\]' ".stp/docs/PLAN.md" 2>/dev/null || echo "0")
-  TOTAL=$(grep -c '\[.\]' ".stp/docs/PLAN.md" 2>/dev/null || echo "0")
+  # See note above re: the `grep -c … || echo 0` bug fixed in v0.3.7.
+  DONE=$(grep -c '\[x\]' ".stp/docs/PLAN.md" 2>/dev/null); DONE=${DONE:-0}
+  TOTAL=$(grep -c '\[.\]' ".stp/docs/PLAN.md" 2>/dev/null); TOTAL=${TOTAL:-0}
   if [ "$TOTAL" -gt 0 ]; then
     OUTPUT="${OUTPUT} ${DIM}│${RESET} ${DIM}Plan ${GREEN}${DONE}${DIM}/${TOTAL}${RESET}"
   fi

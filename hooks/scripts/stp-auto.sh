@@ -55,8 +55,13 @@ VERIFY_PASS=true
 while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   ITERATION=$((ITERATION + 1))
 
-  UNCHECKED=$(grep -c '\[ \]' "$FEATURE_FILE" 2>/dev/null || echo "0")
-  CHECKED=$(grep -c '\[x\]' "$FEATURE_FILE" 2>/dev/null || echo "0")
+  # NB: `grep -c PATTERN FILE 2>/dev/null || echo 0` is BROKEN — grep prints
+  # "0" before exiting non-zero on no-match, so the `||` fallback APPENDS
+  # rather than replacing, producing the literal "0\n0" string. The next
+  # integer comparison errors with `integer expression expected`. Fixed in
+  # v0.3.7 across all hook scripts.
+  UNCHECKED=$(grep -c '\[ \]' "$FEATURE_FILE" 2>/dev/null); UNCHECKED=${UNCHECKED:-0}
+  CHECKED=$(grep -c '\[x\]' "$FEATURE_FILE" 2>/dev/null); CHECKED=${CHECKED:-0}
 
   if [ "$UNCHECKED" -eq 0 ]; then
     echo ""
@@ -69,7 +74,8 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
       echo "--- Type/compile check ---"
       # Use precise error detection matching stop-verify.sh patterns
       TYPE_OUTPUT=$($TYPE_CMD 2>&1)
-      TYPE_ERRORS=$(echo "$TYPE_OUTPUT" | grep -c -E "^error|error TS|error:|error\[" || echo "0")
+      # See note above re: the `grep -c … || echo 0` bug fixed in v0.3.7.
+      TYPE_ERRORS=$(echo "$TYPE_OUTPUT" | grep -c -E "^error|error TS|error:|error\["); TYPE_ERRORS=${TYPE_ERRORS:-0}
       if [ "$TYPE_ERRORS" -gt 0 ]; then
         echo "FAIL: type/compile errors"
         VERIFY_PASS=false
@@ -161,7 +167,8 @@ RULES:
   echo ""
 
   if [ -n "$TYPE_CMD" ]; then
-    POST_ERRORS=$($TYPE_CMD 2>&1 | grep -c -E "^error|error TS|error:|error\[" || echo "0")
+    # See note above re: the `grep -c … || echo 0` bug fixed in v0.3.7.
+    POST_ERRORS=$($TYPE_CMD 2>&1 | grep -c -E "^error|error TS|error:|error\["); POST_ERRORS=${POST_ERRORS:-0}
     if [ "$POST_ERRORS" -gt 0 ]; then
       echo "[STP] WARNING: type/compile errors after this iteration."
     fi

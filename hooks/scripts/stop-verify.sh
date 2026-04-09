@@ -78,6 +78,12 @@ HAS_TECHNICAL_ERRORS=false
 # the literal "0\n0". The next `[ "$N" -gt 0 ]` errors with
 #   integer expression expected
 # Use this helper everywhere instead.
+#
+# CONTRACT: SINGLE FILE ONLY. With multiple files, `grep -c` prefixes each
+# count with the filename (`file1:N\nfile2:M`), and this helper would
+# strip the colons and concatenate the digits ("NM"), producing wrong
+# results. If you need a multi-file count, sum them separately. The
+# stop-verify gates only ever pass one file, so this constraint is safe.
 clean_count() {
   local n
   n=$(grep -c "$@" 2>/dev/null)
@@ -181,7 +187,10 @@ fi
 # What remains is unambiguous: TODO/FIXME comments, ellipsis-stub markers,
 # lorem ipsum filler, and ALL-CAPS REPLACE_ME / NOT_IMPLEMENTED tokens.
 if [ -f "$FEATURE_FILE" ]; then
-  PLACEHOLDERS=$(grep -rnE \
+  # `-i` preserves coverage of lowercase variants (`// todo`, `// fixme`).
+  # The patterns themselves are unambiguous enough that case-insensitive
+  # matching doesn't introduce false positives.
+  PLACEHOLDERS=$(grep -rniE \
     "// (TODO|FIXME)|// implement\b|// \.\.\.|// rest of|lorem ipsum|REPLACE_ME|NOT_IMPLEMENTED" \
     --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" \
     --include="*.py" --include="*.rs" --include="*.go" --include="*.cs" \

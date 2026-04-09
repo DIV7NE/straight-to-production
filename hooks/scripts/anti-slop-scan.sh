@@ -107,8 +107,13 @@ fi
 # ── Pattern 7: 3 identical benefit cards ─────────────────────────
 # Hard to detect perfectly with grep, but: a common shape is 3+ instances of
 # a structure like <div class="...card..."><svg>...</svg><h3>...</h3><p>
-CARD_COUNT=$(grep -cE 'class="[^"]*(card|benefit|feature)[^"]*"' "$FILE_PATH" 2>/dev/null || echo 0)
-SVG_ICON_COUNT=$(grep -cE '<svg[^>]*width="(16|20|22|24|44|48)"' "$FILE_PATH" 2>/dev/null || echo 0)
+# NB: `grep -c PATTERN FILE 2>/dev/null || echo 0` is BROKEN — grep prints
+# "0" before exiting non-zero on no-match, so the `||` fallback APPENDS
+# rather than replacing, producing the literal "0\n0" string. The next
+# integer comparison errors with `integer expression expected` and the
+# whole detection silently misfires. Fixed in v0.3.7 across all hook scripts.
+CARD_COUNT=$(grep -cE 'class="[^"]*(card|benefit|feature)[^"]*"' "$FILE_PATH" 2>/dev/null); CARD_COUNT=${CARD_COUNT:-0}
+SVG_ICON_COUNT=$(grep -cE '<svg[^>]*width="(16|20|22|24|44|48)"' "$FILE_PATH" 2>/dev/null); SVG_ICON_COUNT=${SVG_ICON_COUNT:-0}
 if [ "$CARD_COUNT" -ge 3 ] && [ "$SVG_ICON_COUNT" -ge 3 ]; then
   FINDINGS+=("  [slop] 3+ boxed benefit cards with icons — most predictable AI landing page layout. Try numbered rows with hairline separators or an asymmetric grid.")
   HIT_COUNT=$((HIT_COUNT + 1))
