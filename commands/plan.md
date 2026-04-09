@@ -44,9 +44,11 @@ Run this as the very first action of every `/stp:plan` invocation, unconditional
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
 ```
 
-Then tell the user in ONE line — a statement, not a question:
+Then, immediately after, print the LOUD unmissable banner by calling the shared helper via the Bash tool. This MUST be the last thing on screen before proceeding — never bury the URL mid-output:
 
-> "Whiteboard is live at http://localhost:3333 — open it now. Architecture diagrams will render live as each phase completes."
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/whiteboard-banner.sh" "Architecture diagrams render live as each phase completes."
+```
 
 Do not offer an opt-out. The user chose `/stp:plan` knowing it's a heavy architecture session; the whiteboard is how they watch the architecture take shape in real time. If you find yourself about to write `AskUserQuestion(question: "Want me to open the whiteboard...")`, stop — that was the old broken pattern.
 

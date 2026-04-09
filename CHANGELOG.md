@@ -5,6 +5,21 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.6] — 2026-04-09 — feat: loud unmissable whiteboard banner (yellow box + classic-blue URL)
+
+### Summary
+The `http://localhost:3333` whiteboard URL was getting lost in the middle of agent output. Users missed it and opened empty browser tabs. New shared helper `hooks/scripts/whiteboard-banner.sh` prints a bold yellow bordered box with a blinking `★ OPEN THE WHITEBOARD NOW ★` header and the URL in bold, underlined, classic bright-blue — designed to be impossible to miss and placed as the last line before handing control back.
+
+### Added
+- `hooks/scripts/whiteboard-banner.sh` — reusable loud banner, accepts optional subtitle arg.
+
+### Changed
+- `commands/whiteboard.md`, `commands/plan.md`, `commands/work-quick.md`, `commands/work-full.md` — replaced the old one-line "Whiteboard is live at..." statement with a call to the shared banner helper, with explicit instructions that it MUST be the last thing printed before control is returned or any follow-up question.
+
+### Notes
+- `/stp:new-project`, `/stp:onboard-existing`, and `/stp:upgrade` don't start the whiteboard, so no integration needed there.
+- Hooks/commands only reload on Claude Code restart — exit and relaunch to pick this up.
+
 ## [0.3.5] — 2026-04-09 — fix: plugin CLAUDE.md section markers — v0.3.3/0.3.4 content can now sync into projects
 
 ### Summary

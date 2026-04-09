@@ -41,9 +41,11 @@ Run this as the very first action of every `/stp:whiteboard` invocation, uncondi
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
 ```
 
-Then tell the user in ONE line — not a question, a statement:
+Then, immediately after, print the LOUD unmissable banner by calling the shared helper via the Bash tool. This MUST be the last thing on screen before any follow-up question — never bury the URL mid-output:
 
-> "Whiteboard is live at http://localhost:3333 — open it in your browser now. It'll populate live as we explore."
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/whiteboard-banner.sh" "It will populate live as we explore. Keep it visible."
+```
 
 From this point on, every diagram, option comparison, and design preview you produce gets written to `.stp/whiteboard-data.json`. The server polls the file every 2 seconds and renders it in the user's browser. If the conversation turns out to be purely conceptual and produces no visuals, the whiteboard simply sits on its placeholder — harmless, not a problem.
 

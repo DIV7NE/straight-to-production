@@ -108,7 +108,10 @@ Also check whether the user's request explicitly referenced a MASTER.md path (e.
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &
 ```
-Tell the user in one line: "Whiteboard is live at http://localhost:3333 — open it now, the design system will populate in a few seconds."
+Then print the LOUD unmissable banner via the Bash tool — this MUST be the last thing on screen before the design system generates:
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/whiteboard-banner.sh" "Design system will populate in a few seconds."
+```
 
 **Then generate the design system:**
 ```bash
