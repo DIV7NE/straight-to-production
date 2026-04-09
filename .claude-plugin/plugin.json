@@ -1,6 +1,6 @@
 {
   "name": "stp",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "Your CTO in a plugin. Makes all technical decisions, explains them with industry backing, builds autonomously, and teaches you your own codebase. For solo developers who want production-quality apps.",
   "author": {
     "name": "visionch"

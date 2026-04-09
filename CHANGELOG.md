@@ -5,6 +5,39 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.9] — 2026-04-09 — perf: parallel subagent waves + CLAUDE.md compression (cost + token savings)
+
+### Summary
+
+Two cost-cutting changes informed by external research. Wave-based parallel builds in `/stp:work-full` and `/stp:work-quick` now spawn one-shot subagents via parallel `Agent()` tool calls instead of `TeamCreate` + `SendMessage` Agent Teams. Research (alexop.dev, laozhang.ai citing Anthropic docs) puts the cost delta at ~3–4× — Agent Teams cost ~5–7× a single session because each teammate holds its own full context window plus coordination overhead, while one-shot subagents cost ~1.5–2×. STP's wave members are intentionally independent (no shared files, no mid-build negotiation), so the Teams pattern was unjustified overhead.
+
+CLAUDE.md compressed from 44.6k to 34.7k chars to clear Claude Code's "Large CLAUDE.md will impact performance (40k threshold)" warning. Strategy preserves all `MANDATORY`/`ENFORCED`/`CRITICAL`/`EXTREMELY-IMPORTANT` signal words (per Anthropic memory docs research — GitHub issue #32543 confirms stripping these degrades adherence after context compaction). Verbose sections compressed to pipe-delimited indexes (Vercel AGENTS.md pattern: 40KB → 8KB → 100% pass rate vs 53% baseline).
+
+### Added
+
+- **`## Agent Teams vs Subagents` section in CLAUDE.md** — codifies the cost research with a decision matrix mapping every STP flow (`/stp:work-full`, `/stp:work-quick`, `/stp:research`, `/stp:debug`, `/stp:autopilot`) to the right execution mode. Default rule: subagents for everything except `/stp:autopilot` (where shared task queue + overnight self-assignment justifies the Teams cost).
+
+### Changed
+
+- **`commands/work-full.md` section 6c** — replaced `TeamCreate(name="wave-1-build", ...)` + `team_name="wave-1-build"` + `SendMessage(type="shutdown_request")` + `TeamDelete(name="wave-1-build")` with parallel `Agent()` tool calls in a single message. Subagents return their structured report and terminate automatically.
+- **`commands/work-quick.md` step 3-4** — same wave spawn pattern rewrite. No team lifecycle. Wave members spawn in parallel, each runs in worktree isolation, results merge after all complete.
+- **`CLAUDE.md` Hooks section** — 19 gates compressed from per-gate prose paragraphs to a pipe-delimited index (`name|event|action|bypass`). Reload warning + 3-retry safety valve preserved verbatim.
+- **`CLAUDE.md` Whiteboard rules** — server-MANDATORY paragraph and FILENAME CONTRACT compressed. Kept the rule + canonical name + forbidden alias list. Dropped the v0.3.0/0.3.1/0.3.3 historical post-mortem narrative (it lives in CHANGELOG.md already).
+- **`CLAUDE.md` Profile-Aware `inherit` sentinel block** — verbose KNOWN LIMITATION block replaced with a one-line pointer to `${CLAUDE_PLUGIN_ROOT}/references/profiles.md` where the migration steps already live.
+- **`CLAUDE.md` Directory Map / Memory Strategy / Structured Spec Format / Spec Delta System** — full detail offloaded to a subdirectory `CLAUDE.md` (lazy-loads when Claude touches `.stp/` files, which is exactly when those sections are needed). A tight 8-line quick-reference pointer remains in the main file for when Claude isn't yet in `.stp/`.
+- **CLAUDE.md line 55 + Key Rules** — stp-executor description and Key Rules now correctly say "parallel one-shot subagents via Task tool" instead of "Agent Teams". Removes the contradiction with the new cost guidance.
+
+### Fixed
+
+- **Marker contract preserved** — kept `<!-- STP:stp-dirmap:start/end -->` markers around the new compressed Directory Map pointer so `/stp:upgrade`'s section-injection logic continues to work for users on prior versions.
+
+### Token math
+
+For a typical 50-turn session with Claude Code's automatic prompt caching:
+- Before: ~11.1k tokens × (1 write + 49 cached reads) = ~66k tokens consumed by CLAUDE.md per session
+- After: ~8.7k tokens × (1 write + 49 cached reads) = ~52k tokens consumed by CLAUDE.md per session
+- Savings: **~14k cached / ~120k uncached tokens per session**, plus Agent Teams cost savings on every wave-based build
+
 ## [0.3.8] — 2026-04-09 — feat: optimization profiles (intended/balanced/budget) — GSD-style model selection
 
 ### Summary
