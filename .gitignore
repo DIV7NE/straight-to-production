@@ -1,3 +1,10 @@
 whiteboard/__pycache__/
 .pilot/
 .stp-upgrade-cache.json
+
+# Local-only — NEVER distributed to users via STP plugin
+# The plugin's own repo dogfoods STP, so these contain local dev state,
+# not plugin source. Users installing STP get fresh .stp/ and .claude/
+# directories in their own projects.
+.claude/commands/
+.stp/
