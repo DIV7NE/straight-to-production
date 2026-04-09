@@ -123,11 +123,25 @@ Same as always: you are the CTO. Make technical recommendations. Only ask PRODUC
 
 ### Step 1: Understand What They're Exploring
 
-Ask ONE question to clarify what they need:
+Ask ONE clarifying question — **ALWAYS via AskUserQuestion, NEVER as printed text with numbered options.** This is non-negotiable: if you catch yourself about to type "1. Option A\n2. Option B" as a message, STOP and call AskUserQuestion instead. Printing options as text bypasses the structured UI and forces the user into freeform typing — that's a bug, not a style choice.
 
-- If vague idea: "Tell me more — who would use this and what problem does it solve for them?"
-- If technical question: "Let me research this. What's the context — what are you building and where does this fit?"
-- If approach decision: "I'll compare the options. What matters most to you — speed to build, performance, cost, or simplicity?"
+Pick the shape of the question based on what they said:
+
+- **Vague / "give me ideas" / "something like X"** → propose 4-5 concrete directions as AskUserQuestion options. Example:
+  ```
+  AskUserQuestion(
+    question: "What kind of [thing] do you want to explore? Pick one to focus the research, or describe your own.",
+    options: [
+      "(Recommended) [most relevant option for their hint] — [why]",
+      "[Option 2] — [one-line framing]",
+      "[Option 3] — [one-line framing]",
+      "[Option 4] — [one-line framing]",
+      "Something else — let me describe"
+    ]
+  )
+  ```
+- **Technical decision** ("should I use X or Y") → skip Step 1, go straight to Step 2 research.
+- **Pure freeform input genuinely needed** (e.g., "describe the users in your own words", "paste the error you're seeing") → plain prompt is acceptable ONLY here. This exception is narrow: if structured options would work, you MUST use AskUserQuestion.
 
 ONE question. Wait for the answer.
 
