@@ -52,7 +52,7 @@ Before ANY STP command writes code, modifies files, runs destructive actions, or
 
 ## Architecture
 - **Opus** = CTO (plans, researches, reviews, merges, teaches). Builds foundation work directly (DB, auth, config).
-- **stp-executor** = builder sub-agent (features on top of foundation, worktree isolation, Agent Teams for parallelism). Model = `sonnet` in all profiles.
+- **stp-executor** = builder sub-agent (features on top of foundation, worktree isolation, parallel one-shot subagents via Task tool for wave parallelism — NOT Agent Teams; see `## Agent Teams vs Subagents` for cost rationale). Model = `sonnet` in all profiles.
 - **stp-qa** = independent tester sub-agent (tests running app against PRD acceptance criteria). Model = `sonnet` in all profiles.
 - **stp-critic** = code reviewer sub-agent (7 criteria + Double-Check Protocol + Claim Verification Gate + 6-layer verification). Model = `sonnet` in intended/balanced, **`haiku` → sonnet escalation in budget-profile** when ≥2 critical issues found.
 - **stp-researcher** = context-isolation sub-agent for external research (Context7/Tavily/WebSearch). Model = `inline` in intended-profile (main session handles it), `sonnet` in balanced/budget.
@@ -77,9 +77,7 @@ balanced-profile :{stp-executor:sonnet,stp-qa:sonnet,stp-critic:sonnet,stp-criti
 budget-profile   :{stp-executor:sonnet,stp-qa:sonnet,stp-critic:haiku→escal-sonnet,stp-critic-escalation:sonnet,stp-researcher:sonnet,stp-explorer:sonnet,clear:enforced,ctx:hard-block,res-mand:yes,exp-mand:yes,max-kb:100}
 ```
 
-> **Note on `inherit` sentinel:** The current intended/balanced/budget profiles never resolve to `inherit` because STP intentionally uses Sonnet sub-agents (even when main is Opus) for cost reasons. The `inherit` sentinel and code path are retained for future profiles or non-Anthropic runtimes (Codex, OpenCode, Gemini CLI). Commands MUST still handle `inherit` correctly (omit `model=` from spawn) — see the spawn pattern below.
->
-> **KNOWN LIMITATION of the inherit sentinel:** STP's agent files (executor.md, qa.md, critic.md, researcher.md, explorer.md) all have `model: sonnet` in frontmatter as a defensive default. When a spawn omits the `model=` param (the inherit path), Claude Code falls back to the agent's frontmatter (`sonnet`), NOT to the parent session model. So `inherit` is currently a no-op equivalent to `sonnet` for STP agents. This is fine — no current profile uses `inherit`. If you add a future profile that should actually inherit from the parent (e.g. for non-Anthropic runtimes), you'll need to ALSO remove the `model:` line from the relevant agent file frontmatters.
+> **`inherit` sentinel:** no current profile resolves to it (STP uses Sonnet sub-agents intentionally). Retained for future non-Anthropic runtimes. Commands MUST handle it correctly (omit `model=` from spawn). Known limitation + future-profile migration steps: `${CLAUDE_PLUGIN_ROOT}/references/profiles.md`.
 
 **Sentinel values you must understand:**
 - `inherit` → **omit the `model=` parameter from the `Agent()` spawn call entirely**. Claude Code inherits the parent session's model. Works on any runtime (Opus 1M, Sonnet 200K, Codex, OpenCode, Gemini CLI). This is GSD's key insight — it avoids hard-coding model IDs that may not be available.
@@ -288,10 +286,40 @@ Every line of code STP produces is intended to ship and run in production. This 
 This applies to ALL STP commands and agents. The executor agents, QA agent, and Critic all enforce this standard. Code that takes shortcuts gets rejected. Instructions are advisory — STP's hooks and gates are the real enforcement. Constraints beat prompts.
 <!-- STP:stp-philosophy:end -->
 
+## Agent Teams vs Subagents (STP cost + fit guidance)
+
+STP defaults to **one-shot subagents (Task tool)**, not Agent Teams. Research (alexop.dev, laozhang.ai, verdent.ai citing Anthropic docs, 2026) puts the cost delta at ~3–4× for equivalent parallel throughput:
+
+| Mode | Token cost vs single session | Notes |
+|---|---|---|
+| One-shot subagent (Task tool) | ~1.5–2× | Scoped prompt → result → terminate. Fresh context per spawn. |
+| Agent Team (TeamCreate + SendMessage) | ~5–7× | Each teammate holds a full context window; coordination + messages replicated across workers. |
+
+Cost is context-window-based (not idle/time). A 3-agent team for ~1 hour ≈ a full day of single-agent tokens. Agent Teams still require `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` per the sources checked.
+
+**Benefits — Agent Teams:** direct teammate-to-teammate SendMessage (no orchestrator bottleneck), shared TaskCreate/TaskUpdate queue for self-assignment, workers can negotiate mid-build (e.g. frontend ↔ backend debating an API shape), very high ceiling (Anthropic ran 16 parallel agents on a 100K-line Rust C compiler internally).
+
+**Benefits — regular subagents:** 3–4× cheaper for the same parallel throughput, fresh context per spawn (no accumulation), isolated failures (one bad spawn can't poison siblings), simpler lifecycle (no TeamCreate/TeamDelete, no message routing), results return summarized rather than replicated into N contexts.
+
+**STP flow → mode mapping (authoritative):**
+
+| STP flow | Use | Why |
+|---|---|---|
+| `/stp:work-full` build → QA → Critic | **Subagents** | Sequential, each reads prior output from disk via `.stp/state/` — zero cross-talk needed |
+| `/stp:work-full` parallel waves (independent features) | **Subagents** | Wave members are intentionally independent; worktree isolation assumes no mid-build negotiation |
+| `/stp:research` + `stp-researcher` + `stp-explorer` | **Subagents** | Pure context isolation, return ≤30-line summary — Teams would just inflate cost |
+| `/stp:debug` (tracer + challenger + tester loop) | **Subagents** | Filesystem evidence board works fine; Teams only help if workers must argue in-context |
+| `/stp:autopilot` long unattended queue | **Agent Teams justify themselves** | Shared task queue + overnight self-assignment is the canonical Teams use case |
+| Frontend ↔ backend negotiating API contracts mid-build | **Agent Teams** | STP doesn't currently do this — if a future flow needs it, use Teams |
+
+**Decision rule:** default to subagents. Only reach for Agent Teams when workers must communicate with *each other*, not just report upward — and even then, only in `/stp:autopilot` or explicitly coordination-heavy flows. STP's existing filesystem handoff pattern (`.stp/docs/`, `.stp/state/`) is strictly cheaper and safer for everything else.
+
+**Caveat:** the 5–7× figure comes from community sources citing Anthropic docs, not a raw Anthropic whitepaper. Directionally solid, exact multiplier varies with team size and model mix.
+
 <!-- STP:stp-rules:start -->
 ## Key Rules
 - Opus NEVER writes implementation code (except foundation: DB, auth, config, one-line fixes)
-- ALL features delegate to Sonnet executor via Agent Teams with worktree isolation
+- ALL features delegate to Sonnet executor sub-agents (Task tool) with worktree isolation — NOT Agent Teams by default (see `## Agent Teams vs Subagents` below for cost rationale)
 - AskUserQuestion tool is MANDATORY for ALL user decisions — NEVER print options as text, NEVER skip, NEVER decide for the user. Only exception: freeform input where structured options don't make sense (bug descriptions, QA feedback, feature requests)
 - TaskCreate/TaskUpdate tracks ALL progress visibly
 - README.md updated + VERIFIED after every feature
@@ -299,9 +327,9 @@ This applies to ALL STP commands and agents. The executor agents, QA agent, and 
 - Spec-first TDD: acceptance criteria → executable spec tests → behavioral tests → property-based tests → implementation. Stop hook blocks if no tests exist. Tests must verify real behavior, not mock satisfaction
 - /simplify + hygiene scan after every build
 - Version bump + CHANGELOG + CONTEXT.md update after every feature
-- **Whiteboard server is MANDATORY and FIRST** for `/stp:whiteboard` and `/stp:plan`. The server start (`bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &`) MUST be the literal first action of those commands — unconditionally, no AskUserQuestion gate, no "if they accept" branch. For UI/UX detection in `/stp:work-quick` and `/stp:work-full`, the server starts BEFORE the design system is generated, never after. Reason: a whiteboard the user can't see is a broken command. Bug history: v0.3.0 had every server start gated behind `if they accept`, so the agent could reach the "write the data" step with no server running and the user opened localhost:3333 to nothing. Closed in v0.3.1.
-- **FILENAME CONTRACT — the whiteboard data file is ALWAYS `.stp/whiteboard-data.json`. NEVER any other name.** Forbidden aliases that Claude sometimes hallucinates (all BLOCKED by `hooks/scripts/whiteboard-gate.sh`): `.stp/explore-data.json`, `.stp/whiteboard.json`, `.stp/board-data.json`, `.stp/design-data.json`. The whiteboard server (`whiteboard/serve.py`) polls only the canonical path — writes to any other name land in a file nothing watches and localhost:3333 stays on `{"status": "Waiting..."}` forever. If you find yourself about to write to `explore-data.json`, STOP: that is the pre-0.3.1 name, forbidden since 2026-04-08, retained in CHANGELOG.md only as a historical reference. The canonical name is `.stp/whiteboard-data.json` — nine characters, no dashes between "whiteboard" and "data", hyphen between "data" and "json". Reason: v0.3.3 post-mortem — the agent hallucinated `explore-data.json` from training data + CHANGELOG.md post-mortem references and the whiteboard-gate hook only matched the correct name, so the wrong filename slipped through the enforcement layer.
-- **/clear suggested before every inter-command transition.** Whenever an STP command's completion box recommends a follow-up `/stp:*` command, the recommendation MUST be `/clear, then /stp:next-command` — never just `/stp:next-command` alone. Reason: each STP phase fills context with research, generation, and verification noise; the next phase reads its inputs from disk (PLAN.md, design-brief.md, CHANGELOG.md, current-feature.md), so a clear context is strictly better. The `/clear` line goes inside the completion box's `► Next:` block, with a one-line explanation of what survives on disk. **Exception:** after `/stp:upgrade` when hook files changed, the recommendation is `/exit → run claude again → (optional) /clear` — because `/clear` alone does NOT reload hooks. See the Hooks section for details.
+- **Whiteboard server is MANDATORY and FIRST** for `/stp:whiteboard` and `/stp:plan` — literal first action, no AskUserQuestion gate. Start command: `bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-whiteboard.sh" "${CLAUDE_PLUGIN_ROOT}" "." &`. For `/stp:work-quick`/`/stp:work-full` UI/UX detection, server starts BEFORE design system generation. Reason: a whiteboard the user can't see is broken. (v0.3.1 fix.)
+- **FILENAME CONTRACT — whiteboard data file is ALWAYS `.stp/whiteboard-data.json`. NEVER any other name.** Forbidden aliases (all BLOCKED by `hooks/scripts/whiteboard-gate.sh`): `.stp/explore-data.json`, `.stp/whiteboard.json`, `.stp/board-data.json`, `.stp/design-data.json`. The server (`whiteboard/serve.py`) polls only the canonical path. Writes to any other name land in a file nothing watches. (v0.3.3 post-mortem: hallucinated `explore-data.json` from training data.)
+- **/clear MANDATORY before every inter-command transition.** Completion boxes recommending a follow-up `/stp:*` command MUST say `/clear, then /stp:next-command`, never `/stp:next-command` alone. Reason: next phase reads inputs from disk (PLAN.md, design-brief.md, CHANGELOG.md, current-feature.md), clear context is strictly better. **Exception:** after `/stp:upgrade` with hook file changes, recommend `/exit → restart claude → (optional) /clear` — `/clear` alone does NOT reload hooks.
 <!-- STP:stp-rules:end -->
 
 <!-- STP:stp-output-format:start -->
@@ -317,157 +345,52 @@ ALL STP command output MUST use the visual templates in `.stp/references/cli-out
 <!-- STP:stp-output-format:end -->
 
 <!-- STP:stp-dirmap:start -->
-## Directory Map (where everything lives, when to read it)
+## Directory Map, Memory Strategy, Structured Spec Format, Spec Delta System
 
-### .stp/docs/ — Project Documents
-| File | What | Read when... | Updated by |
-|------|------|-------------|------------|
-| ARCHITECTURE.md | Full codebase map (models, routes, components, integrations, dependencies) | Before ANY code change — check what exists and what could break | /stp:onboard-existing, milestone refresh |
-| AUDIT.md | Production health (Sentry errors, deploy status, billing, performance) | Before fixing bugs, planning remediation | /stp:onboard-existing, /stp:review |
-| PRD.md | Requirements + acceptance criteria | Starting features, QA, reviewing | /stp:new-project, /stp:work-quick |
-| PLAN.md | Architecture + feature waves | Planning builds, dependency checks | /stp:plan, /stp:work-quick |
-| CONTEXT.md | Concise AI reference (<150 lines) | Quick lookup, links to ARCHITECTURE.md for full detail | /stp:work-quick (per feature + milestone refresh) |
-| CHANGELOG.md | Versioned history | Checking recent work | /stp:work-quick (per feature + milestone) |
+Full detail lives in **`.stp/CLAUDE.md`** — auto-loads when Claude accesses files under `.stp/` (which is exactly when those sections are needed). Covers: `.stp/docs/` + `.stp/state/` + `.stp/references/` directory maps, file-based memory strategy, Given/When/Then + RFC 2119 spec format, Spec Delta merge-back system.
 
-### .stp/state/ — Runtime State (survives /clear + compaction)
-| File | Purpose | Created by |
-|------|---------|------------|
-| current-feature.md | Active feature checklist | /stp:work-quick |
-| handoff.md | Pause context for next session | /stp:pause (consumed by /stp:continue) |
-| state.json | Emergency auto-save | PreCompact hook |
-
-### .claude/skills/ — Required Companion Skills
-| Skill | What | Invoke when... |
-|-------|------|---------------|
-| ui-ux-pro-max/ | Design intelligence — styles, palettes, fonts, product-type reasoning, DESIGN-SYSTEM.md generation | ANY UI/UX work — invoke `/ui-ux-pro-max` BEFORE writing frontend code |
-
-### .stp/references/ — Production Standards (read BEFORE writing code)
-| Directory/File | Read before touching... |
-|----------------|----------------------|
-| security/ | Auth, user input, API routes, secrets |
-| accessibility/ | UI components, forms, navigation |
-| performance/ | Data fetching, images, bundles |
-| production/ | Error handling, deploy, monitoring, edge cases |
-| cli-output-format.md | ANY command output — banners, status blocks, completions, QA reports |
-
-### Root Files
-| File | Why at root |
-|------|------------|
-| CLAUDE.md | Claude Code auto-reads from project root |
-| VERSION | Statusline + scripts need instant access |
+**Quick reference** (when NOT already under `.stp/`):
+- `.stp/docs/` — PRD.md (requirements), PLAN.md (architecture), ARCHITECTURE.md (codebase map), AUDIT.md (production health), CONTEXT.md (<150 lines concise ref), CHANGELOG.md (history with spec deltas)
+- `.stp/state/` — current-feature.md, handoff.md, state.json (survive `/clear`)
+- `.stp/references/` — security, accessibility, performance, production, cli-output-format.md (read BEFORE writing matching code)
+- `.claude/skills/ui-ux-pro-max/` — invoke `/ui-ux-pro-max` BEFORE any UI/UX code
+- Memory = file-based, disk is truth. On new session: read CHANGELOG + ARCHITECTURE + PLAN. Project conventions live in this CLAUDE.md's `## Project Conventions` section.
+- All PRD.md / PLAN.md acceptance criteria MUST use RFC 2119 keywords (SHALL/MUST/SHOULD/MAY/MUST NOT) + Given/When/Then scenarios. Every feature build MUST emit a Spec Delta in CHANGELOG.md and merge back into ARCHITECTURE.md + PRD.md.
 
 <!-- STP:stp-dirmap:end -->
-
-## Memory Strategy (how STP remembers across sessions)
-STP uses file-based memory — everything lives in .stp/docs/. No reliance on Claude's conversation memory.
-- **What was built + decisions + spec deltas**: CHANGELOG.md (append per feature — includes spec deltas showing how each feature mutated the system's architectural assumptions)
-- **What exists now**: ARCHITECTURE.md (full map) + CONTEXT.md (concise)
-- **What's planned**: PLAN.md (milestones, features, status)
-- **What was promised**: PRD.md (requirements as structured Given/When/Then scenarios with RFC 2119 keywords)
-- **Production health**: AUDIT.md (Sentry, deploy, billing — refreshed by /stp:review)
-- **Bug patterns**: AUDIT.md Patterns & Lessons section (every debug writes a generalizable lesson — build reads these to avoid repeating mistakes)
-- **Project conventions**: CLAUDE.md `## Project Conventions` section (living rules — grows from build decisions, debug lessons, Critic findings, and onboarding detection. Read on every session, enforced by Critic.)
-- **Session continuity**: handoff.md (created by /stp:pause, consumed by /stp:continue — lessons preserved to CHANGELOG before deletion)
-- **Session restore**: hook fires on start, reads state files, suggests /stp:continue
-
-## Structured Spec Format (Given/When/Then + RFC 2119)
-
-ALL acceptance criteria in PRD.md and PLAN.md MUST use structured scenarios with RFC 2119 severity keywords. This makes specs testable by design — each scenario maps directly to an executable test.
-
-**Format:**
-```markdown
-### SPEC: [Feature Name]
-
-**Requirements:**
-- The system SHALL [mandatory behavior] (MUST-level)
-- The system SHOULD [recommended behavior] (RECOMMENDED-level)
-- The system MUST NOT [prohibited behavior]
-
-**Scenarios:**
-- Given [precondition], When [action], Then [expected outcome]
-- Given [precondition], When [invalid action], Then [error handling]
-- Given [edge case], When [action], Then [graceful behavior]
-```
-
-**RFC 2119 keywords** (use precisely):
-- **SHALL / MUST** — absolute requirement. Tests MUST verify this. Failure = BLOCK.
-- **SHOULD / RECOMMENDED** — expected unless good reason to deviate. Tests SHOULD verify.
-- **MAY / OPTIONAL** — truly optional. Test if time allows.
-- **MUST NOT / SHALL NOT** — absolute prohibition. Tests MUST verify this NEVER happens.
-
-**Why this matters:** Freeform prose like "user can log in" is ambiguous. "Given a user with valid credentials, When they submit login, Then they SHALL receive a session token within 2 seconds" is testable, measurable, and unambiguous. The executor writes tests directly from scenarios. The Critic verifies each scenario has a corresponding test.
-
-## Spec Delta System (tracks HOW the system evolves — with merge-back)
-
-Every feature build produces a **Spec Delta** that captures how the feature mutated the system's architectural assumptions. Deltas are NOT just logged — they **merge back** into canonical docs.
-
-**Spec Delta format (in CHANGELOG.md entries):**
-```markdown
-### Spec Delta
-- **Added:** [new models, routes, integrations, patterns that didn't exist before]
-- **Changed:** [existing assumptions that this feature invalidated or replaced]
-- **Constraints introduced:** [new rules the system must now follow]
-- **Dependencies created:** [what now depends on this feature]
-```
-
-**Delta merge-back (MANDATORY after every feature):**
-After writing the spec delta to CHANGELOG.md, merge the changes into the canonical docs:
-1. **Added** items → add to ARCHITECTURE.md (new models, routes, components sections)
-2. **Changed** items → update ARCHITECTURE.md (replace outdated assumptions)
-3. **Constraints introduced** → add to PRD.md `## System Constraints` section (append, don't replace)
-4. **Dependencies created** → update ARCHITECTURE.md Feature Dependency Map
-5. **If a SHOULD/SHALL requirement was added** → add to PRD.md as a new structured scenario
-
-The canonical docs (PRD.md, ARCHITECTURE.md) are always the source of truth. CHANGELOG.md is the history. Spec deltas are the bridge — they describe what changed and drive the merge into canonical docs.
-
-**Update vs New Change heuristic:**
-When the user requests work that touches an existing feature:
-- **Same intent + >50% overlap** with existing spec → UPDATE the existing scenarios in PRD.md. This is a refinement, not a new feature.
-- **New intent or <50% overlap** → ADD new scenarios to PRD.md. This is net-new work.
-- When uncertain, default to ADD (safer — doesn't risk losing existing spec intent).
-
-**The Critic reads spec deltas** during verification to check: does the new feature contradict any previously established constraint? Does it create circular dependencies? Are all deltas properly merged back into canonical docs?
-
-On any new session: read CHANGELOG.md (with spec deltas) for evolution history, ARCHITECTURE.md for current state, PLAN.md for what's next. This gives full project memory regardless of /clear, compaction, or machine changes.
 
 ## Statusline
 Node.js statusline (stp-statusline.js) registered in ~/.claude/settings.json globally. Shows: model + effort level, project version, active feature + progress, current milestone, context usage bar with compaction threshold (green/yellow/orange/red).
 
 <!-- STP:stp-hooks:start -->
-## Hooks (16 enforcement gates across 4 events)
+## Hooks (19 gates — full detail in `.claude/rules/hooks.md`)
 
-**IMPORTANT — hooks load at Claude Code SESSION STARTUP, not hot-reload.** After `/stp:upgrade` or any plugin update that adds or modifies hooks, you MUST exit Claude Code and restart it to pick up the new hooks. A running session keeps whatever hooks.json it loaded at launch. If a hook you expect to fire is silently ignored, this is almost always the cause — check your version with `cat ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` and restart if the cached version is stale. (This is a Claude Code limitation, not fixable at the plugin level.)
+**CRITICAL — hooks load at SESSION STARTUP, not hot-reload.** After `/stp:upgrade` or any plugin change touching hooks, you MUST `/exit` and restart Claude Code. `/clear` alone does NOT reload hooks. Cached version check: `cat ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`.
 
-**PreToolUse (2 gates — fire BEFORE Write/Edit/MultiEdit):**
-1. **ui-gate.sh** → BLOCK new UI-file writes (`*.html`, `*.tsx`, `*.jsx`, `*.vue`, `*.svelte`, `*.astro`, `*.css`, etc.) until `.stp/state/ui-gate-passed` marker exists. Carve-outs: tests, stories, configs, migrations, file overwrites. Escape hatch: `STP_BYPASS_UI_GATE=1`. Closes v0.3.1 AI-slop landing page bug.
-2. **whiteboard-gate.sh** → BLOCK writes to forbidden legacy filenames (`.stp/explore-data.json`, `.stp/whiteboard.json`, `.stp/board-data.json`, `.stp/design-data.json`) with correction instruction. For the canonical `.stp/whiteboard-data.json`, auto-start the whiteboard server if not running. Escape hatch: `STP_BYPASS_WHITEBOARD_GATE=1`. Closes v0.3.0 empty-localhost bug + v0.3.2 wrong-filename hallucination.
+**Compressed index** (name|event|action|bypass):
+```
+ui-gate|PreToolUse|BLOCK new UI files until .stp/state/ui-gate-passed exists|STP_BYPASS_UI_GATE=1
+whiteboard-gate|PreToolUse|BLOCK forbidden legacy filenames + auto-start server for canonical path|STP_BYPASS_WHITEBOARD_GATE=1
+post-edit-check|PostToolUse|stack-aware type/compile check, stderr feedback only|—
+anti-slop-scan|PostToolUse|grep 7 AI-slop patterns, 1=WARN 2+=BLOCK|STP_BYPASS_SLOP_SCAN=1
+stop:unchecked-items|Stop|BLOCK workflow, no retry|—
+stop:missing-plan|Stop|WARN if PLAN.md missing|—
+stop:no-tests|Stop|BLOCK source files without tests|—
+stop:secrets|Stop|BLOCK sk_live_/sk_test_/AKIA... patterns|—
+stop:placeholders|Stop|WARN on TODO/FIXME/lorem ipsum/mock data|—
+stop:hollow-tests|Stop|WARN on tautological/assertion-free tests|—
+stop:type-errors|Stop|BLOCK (technical, 3-retry)|—
+stop:test-failures|Stop|BLOCK (technical, 3-retry)|—
+stop:schema-drift|Stop|BLOCK ORM schema changes without migrations (Prisma/TypeORM/Django/Rails/Drizzle)|—
+stop:scope-reduction|Stop|WARN if PRD.md SHALL/MUST coverage in PLAN.md <70%|—
+stop:spec-delta|Stop|WARN on missing CHANGELOG spec-delta block or stale ARCHITECTURE.md|—
+stop:critic-required|Stop|BLOCK workflow if no critic-report-*.md newer than feature|—
+stop:qa-required|Stop|BLOCK workflow for UI features without qa-report-*.md|—
+SessionStart|SessionStart|wipe ui-gate-passed, migrate layout, restore context|—
+PreCompact|PreCompact|emergency save to .stp/state/state.json|—
+```
 
-**PostToolUse (2 hooks — fire AFTER Write/Edit/MultiEdit):**
-3. **post-edit-check.sh** → Stack-aware type/compile check (tsc, mypy, cargo check, go vet, etc.). Feedback via stderr, never blocks (feedback-only).
-4. **anti-slop-scan.sh** → Deterministic grep scanner for 7 AI-slop patterns (gradient headlines, "Now in beta" eyebrow pills, template copy, "ship in minutes", sparkles brand marks, center-everything defaults, 3+ boxed benefit cards). 1 hit → WARN. 2+ hits → BLOCK. Escape hatch: `STP_BYPASS_SLOP_SCAN=1`.
-
-**Stop (12 gates — fire when Claude tries to finish):**
-5. Unchecked feature items → BLOCK (workflow gate, no retry)
-6. PLAN.md should exist → WARN
-7. Source files without tests → BLOCK
-8. Hardcoded secrets → BLOCK (matches `sk_live_`, `sk_test_`, `AKIA...` patterns)
-9. Placeholder/mock patterns → WARN (scans for `// TODO`, `// FIXME`, `lorem ipsum`, `mock data`, etc.)
-10. Hollow test detection → WARN (tautological asserts, assertion-free test files)
-11. Type/compile errors → BLOCK (Gate 7 in stop-verify.sh)
-12. Test failures → BLOCK (Gate 8 in stop-verify.sh)
-13. Schema drift detection → BLOCK (ORM schema files changed without migrations — catches Prisma, TypeORM, Django, Rails, Drizzle)
-14. Scope reduction detection → WARN (PRD.md SHALL/MUST coverage in PLAN.md below 70%)
-15. **Spec delta merge-back** → WARN (completed feature's CHANGELOG.md missing `### Spec Delta` block OR ARCHITECTURE.md not touched in last 5 commits)
-16. **Critic required** → BLOCK (PLAN.md exists + feature complete + no `.stp/state/critic-report-*.md` newer than feature file — workflow gate, no retry count)
-17. **QA required for UI features** → BLOCK (`.stp/state/ui-gate-passed` exists + feature complete + no `.stp/state/qa-report-*.md` — workflow gate, no retry count)
-
-**SessionStart (1 hook — fires at every Claude Code session start):**
-18. Wipes `.stp/state/ui-gate-passed` (forces re-confirmation of design direction every fresh session) + migrate old layout + restore context from disk.
-
-**PreCompact (1 hook — fires before context compaction):**
-19. Saves emergency state to `.stp/state/state.json` + broadcasts "commit your work now" to the active turn.
-
-**3-retry safety valve:** Technical BLOCKs (tests, types, schema) count toward a 3-retry limit to prevent session bricking from stuck states. Workflow BLOCKs (unchecked items, Critic, QA) do NOT count — they require action but can't brick the session.
+**3-retry safety valve:** technical BLOCKs (tests, types, schema) count toward a 3-retry limit. Workflow BLOCKs (unchecked, Critic, QA) never count — can't brick the session.
 
 <!-- STP:stp-hooks:end -->
 
