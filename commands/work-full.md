@@ -84,7 +84,7 @@ AskUserQuestion(
 ```
 Each subsystem gets its own spec → plan → build cycle. Don't plan a sprawling system in one pass.
 
-**Then ask focused product questions — ONE AT A TIME.** The user is the PM — ask about WHAT and WHY, never HOW. Prefer multiple choice when possible.
+**Then ask focused product questions — ONE AT A TIME, ALWAYS via AskUserQuestion.** The user is the PM — ask about WHAT and WHY, never HOW. **Never print numbered options as chat text** — if you catch yourself typing `1. Option A\n2. Option B`, STOP and call AskUserQuestion instead. The only exception is truly freeform input (describe-your-users, paste-an-error) where structured options can't express the answer.
 
 **ONE question per message. Wait for the answer before asking the next.**
 
