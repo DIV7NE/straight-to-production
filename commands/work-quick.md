@@ -425,11 +425,11 @@ When the user says go:
    These are foundational — every executor depends on them being correct. Opus builds these, then delegates features on top.
 
    **For each feature ON TOP of foundation:** Spawn Sonnet executor with worktree isolation.
-   **For multiple independent features:** Create an Agent Team and spawn all in parallel.
+   **For multiple independent features:** Spawn parallel one-shot subagents (Task tool) — NOT Agent Teams. Wave members are independent and share nothing mid-build; parallel `Agent()` spawns are 3–4× cheaper and simpler. See `CLAUDE.md > ## Agent Teams vs Subagents`.
 
-3. **Create a build team for the wave.**
+3. **Plan the wave and spawn parallel builders.**
 
-   Use Agent Teams for maximum parallelism. Each team member is a Sonnet executor working in an isolated worktree.
+   Spawn one Sonnet executor per wave feature in parallel via the Task tool. Each runs in an isolated worktree, reports back when done, and terminates. No team lifecycle.
 
    **Wave analysis first** (from .stp/docs/PLAN.md's dependency graph):
    - Read each feature's "Create" and "Modify" file lists
@@ -449,24 +449,22 @@ When the user says go:
    )
    ```
 
-   **Create the team and spawn:**
+   **Spawn parallel builders (single message, multiple Agent tool calls):**
 
    > **Profile-aware spawn — MANDATORY.** Use `STP_MODEL_EXECUTOR` (resolved by the Profile Resolution preamble). If `STP_MODEL_EXECUTOR == "inherit"`, OMIT the `model=` parameter entirely. Otherwise pass it.
 
    ```
-   TeamCreate(name="wave-1-build", description="Milestone [N] Wave 1 parallel build")
-
-   # All current profiles (intended / balanced / budget) resolve STP_MODEL_EXECUTOR to "sonnet":
+   # All current profiles (intended / balanced / budget) resolve STP_MODEL_EXECUTOR to "sonnet".
+   # Spawn ALL wave members in a single message — parallel tool calls, NO TeamCreate.
    Agent(
      name="build-[feature-name]",
      subagent_type="stp-executor",
      model="sonnet",
      isolation="worktree",
-     team_name="wave-1-build",
      run_in_background=true,
      prompt="[focused spec — see below]"
    )
-   # ... repeat for every feature in the wave
+   # ... repeat (in the SAME message) for every feature in the wave
 
    # Forward-compatible: if STP_MODEL_EXECUTOR ever resolves to "inherit"
    # (reserved for future profiles / non-Anthropic runtimes), OMIT the model= param.
@@ -496,19 +494,13 @@ When the user says go:
    - Executors use ONLY: Read, Write, Edit, Bash, Glob, Grep
    - This keeps their 200K context free for actual code work
 
-     ┊ Launching a team of builder agents — each in its own isolated copy of the code. They can't interfere with each other. I'll review and merge their work when they're done.
+     ┊ Launching parallel builder subagents — each in its own isolated copy of the code. They can't interfere with each other. I'll review and merge their work when they're done.
 
-   **Wait for all team members to complete.** As each reports back:
+   **Wait for all subagents to complete.** Each one returns a structured report and terminates automatically — no shutdown, no team cleanup. As each reports back:
    - Read their structured report (files, tests, decisions, issues)
    - TaskUpdate the corresponding task to `completed`
 
-   **Then shut down the team:**
-   ```
-   SendMessage(to="build-[name]", type="shutdown_request") // for each member
-   TeamDelete(name="wave-1-build")
-   ```
-
-   **Merge Wave 1** → verify (type check + ALL tests) → update .stp/docs/CONTEXT.md → **then create Wave 2 team.**
+   **Merge Wave 1** → verify (type check + ALL tests) → update .stp/docs/CONTEXT.md → **then spawn Wave 2.**
 
    Wave 2 features DEPEND on Wave 1 — they MUST wait. Never spawn a dependent feature in parallel with its dependency. The dependency chain from .stp/docs/PLAN.md is the law.
 

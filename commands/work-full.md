@@ -719,20 +719,20 @@ Everything else goes to Sonnet executors.
 - INDEPENDENT features (zero shared files) → same wave (parallel)
 - DEPENDENT features → later wave (sequential)
 
-**Create Agent Teams for each wave:**
+**Spawn parallel Sonnet executor subagents for each wave — NOT Agent Teams:**
+
+> Wave members are intentionally independent (no shared files, no mid-build negotiation). Parallel one-shot subagents via the Task tool are 3–4× cheaper than `TeamCreate` for the same throughput and isolate failures cleanly. See `CLAUDE.md > ## Agent Teams vs Subagents`. Only reach for Agent Teams when workers must SendMessage each other mid-build — not the case here.
 
 > **Profile-aware spawn — MANDATORY.** Use `STP_MODEL_EXECUTOR` (resolved by the Profile Resolution preamble at the top of this command). If `STP_MODEL_EXECUTOR == "inherit"`, OMIT the `model=` parameter entirely. Otherwise pass it.
 
 ```
-TeamCreate(name="wave-1-build", description="Milestone [N] Wave 1 parallel build")
-
+# Spawn ALL wave members in a single message (parallel tool calls). No TeamCreate.
 # All current profiles (intended / balanced / budget) resolve STP_MODEL_EXECUTOR to "sonnet":
 Agent(
   name="build-[feature-name]",
   subagent_type="stp-executor",
   model="sonnet",
   isolation="worktree",
-  team_name="wave-1-build",
   run_in_background=true,
   prompt="[focused spec — under 3K tokens]"
 )
@@ -743,7 +743,6 @@ Agent(
   name="build-[feature-name]",
   subagent_type="stp-executor",
   isolation="worktree",
-  team_name="wave-1-build",
   run_in_background=true,
   prompt="[focused spec — under 3K tokens]"
   # NO model param — inherits parent session model
@@ -762,13 +761,9 @@ Agent(
 - Full CONTEXT.md, PLAN.md, or reference files (agent reads these itself)
 - MCP tool instructions (executors use only: Read, Write, Edit, Bash, Glob, Grep)
 
-Wait for all team members → read reports → TaskUpdate each → shut down team:
-```
-SendMessage(to="build-[name]", type="shutdown_request")
-TeamDelete(name="wave-1-build")
-```
+Wait for all subagents → read each structured report → TaskUpdate each to `completed`. Subagents terminate automatically on return — no shutdown, no team cleanup.
 
-**Merge Wave 1** → verify base SHA → merge → verify (type check + ALL tests) → update CONTEXT.md → **then create Wave 2 team.**
+**Merge Wave 1** → verify base SHA → merge → verify (type check + ALL tests) → update CONTEXT.md → **then spawn Wave 2.**
 
 > **Pre-merge base check is mandatory** (see 6d). Never `git merge` a worktree branch without confirming its merge-base equals current trunk HEAD — trunk can shift between spawn and merge, and a silent stale-base merge produces green tests over corrupt state.
 
