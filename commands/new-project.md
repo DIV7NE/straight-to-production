@@ -10,59 +10,27 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Age
 
 # STP: New Project
 
-## Pre-Flight Check (run silently before anything else)
-
-Before starting, quickly check the environment. Don't show raw output — just note what's available:
+## Pre-Flight Check (quick, silent)
 
 ```bash
-# Git
-git --version > /dev/null 2>&1 && echo "git: yes" || echo "git: no"
-
-# Node/npm (for JS stacks)
-node --version 2>/dev/null | head -1
-npm --version 2>/dev/null | head -1
-
-# Python (for Python stacks)
-python3 --version 2>/dev/null | head -1
-
-# Existing project state
-[ -f "CLAUDE.md" ] && echo "claude_md: exists" || echo "claude_md: none"
-[ -f ".stp/docs/PRD.md" ] && echo "prd: exists" || echo "prd: none"
+# Project state
 [ -d ".stp" ] && echo "stp_dir: exists" || echo "stp_dir: none"
+[ -f "CLAUDE.md" ] && echo "claude_md: exists" || echo "claude_md: none"
 [ -d ".git" ] && echo "git_repo: yes" || echo "git_repo: no"
-ls *.json 2>/dev/null | head -3
 
-# Required companion plugins
-[ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ] && echo "ui-ux-pro-max: installed" || echo "ui-ux-pro-max: MISSING"
-
-# Statusline
-[ -f "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stp-statusline.js" ] && echo "statusline: available" || echo "statusline: MISSING"
-
-# Required MCP servers (check if tools are available)
-# Context7: try calling resolve-library-id to see if it responds
-# Tavily: try calling tavily_search to see if it responds
-echo "mcp-check: Context7 and Tavily availability will be verified by attempting tool calls during research phases"
+# Runtimes (informs stack recommendations)
+git --version > /dev/null 2>&1 && echo "git: yes" || echo "git: no"
+node --version 2>/dev/null | head -1
+python3 --version 2>/dev/null | head -1
 ```
 
 **Based on findings:**
 - If `.stp/` already exists → "This project already has STP. Did you mean `/stp:work-quick` or `/stp:onboard-existing`?"
 - If no `git` → init git automatically during setup
 - If existing code files detected → "This folder has existing code. Did you mean `/stp:onboard-existing`?"
-- Note which runtimes are available — this informs stack recommendations (don't recommend Python if only Node is installed)
-- If `ui-ux-pro-max: MISSING` → install automatically: `npm i -g uipro-cli && uipro init --ai claude`. This is a required companion plugin — do NOT skip.
-- If `statusline: MISSING` → warn: "STP statusline script not found. The status bar won't show project version, active feature, or context usage. This usually means the plugin installation is incomplete. Try `/stp:upgrade` or reinstall the plugin."
-- **MCP server check:** Attempt a Context7 `resolve-library-id` call and a Tavily `tavily_search` call. If either fails:
-  ```
-  AskUserQuestion(
-    question: "[Context7/Tavily] MCP server is not available. STP's research phases depend on it for [live docs/deep research]. Install it now?",
-    options: [
-      "(Recommended) Show me how to install it",
-      "Skip — I'll install later (research quality will be reduced)",
-      "Chat about this"
-    ]
-  )
-  ```
-  If "show me how": provide the install command from the MCP server's documentation. Context7: `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest`. Tavily: `claude mcp add tavily -- npx -y tavily-mcp@latest` (requires TAVILY_API_KEY env var).
+- Note which runtimes are available — this informs stack recommendations
+
+**Companion plugins and MCP servers are NOT checked here.** That's handled by `/stp:welcome` (first-time setup). If the user skipped welcome, the research phases will gracefully degrade when Context7/Tavily aren't available.
 
 ### CLAUDE.md Handling (check BEFORE starting project setup)
 

@@ -137,49 +137,15 @@ Migrate old flat layout → organized .stp/docs/ + .stp/state/ (idempotent, safe
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/migrate-layout.sh"
 ```
 
-### Step 3: Sync Companion Plugins
+### Step 3: Quick Companion Check
 
-Check and install all required companion plugins:
+Companion plugins and MCP servers are fully verified by `/stp:welcome`. Upgrade only does a quick status check — no installs, no prompts:
 
 ```bash
-# ui-ux-pro-max (required for UI/UX work)
 [ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ] && echo "ui-ux-pro-max: installed" || echo "ui-ux-pro-max: MISSING"
 ```
 
-**If ui-ux-pro-max is MISSING:**
-```bash
-command -v uipro >/dev/null 2>&1 || npm i -g uipro-cli
-uipro init --ai claude
-```
-Report: "Installed ui-ux-pro-max design intelligence skill."
-
-**If already installed**, check if outdated:
-```bash
-INSTALLED_VER=$(grep -oP 'version:\s*\K[0-9.]+' .claude/skills/ui-ux-pro-max/SKILL.md 2>/dev/null || echo "unknown")
-LATEST_VER=$(npm view uipro-cli version 2>/dev/null || echo "unknown")
-```
-If `$INSTALLED_VER` != `$LATEST_VER` and both are known:
-```bash
-uipro init --ai claude
-```
-Report: "Updated ui-ux-pro-max from v$INSTALLED_VER to v$LATEST_VER."
-
-**Check required MCP servers:**
-
-Attempt tool calls to verify each is available:
-- Context7: try `resolve-library-id`
-- Tavily: try `tavily_search`
-- Context Mode: try `ctx_stats`
-
-**Install commands for missing MCP servers** (these are passive — show the command, the user runs it):
-
-```
-Context7:       claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
-Tavily:         claude mcp add tavily -- npx -y tavily-mcp@latest  (requires TAVILY_API_KEY)
-Context Mode:   claude mcp add context-mode -- npx -y context-mode-mcp@latest
-```
-
-Report status in the upgrade summary: `[✓/✗] Context7`, `[✓/✗] Tavily`, `[✓/✗] Context Mode`.
+Report status in the upgrade summary. If anything is missing, note: "Run `/stp:welcome` to verify and install companion plugins."
 
 ### Step 4: Sync Project CLAUDE.md (CAREFUL — never destroy user content)
 

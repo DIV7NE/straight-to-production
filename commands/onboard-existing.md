@@ -75,29 +75,9 @@ TaskCreate("Step 7: Observation summary → .stp/docs/PLAN.md (no action items)"
 
 ## Process
 
-### Pre-Step: Companion Plugins & MCP Servers (DETECT — do not install)
+### Pre-Step: Environment Note
 
-**This step is detection only.** Onboarding is read-only — it does NOT install plugins, MCP servers, or anything else. Missing companions become observations the user can act on after onboarding finishes.
-
-```bash
-# Plugin check (read-only)
-[ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ] && echo "ui-ux-pro-max: installed" || echo "ui-ux-pro-max: MISSING"
-
-# Statusline check (read-only)
-[ -f "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stp-statusline.js" ] && echo "statusline: available" || echo "statusline: MISSING"
-```
-
-**Handling missing companions:**
-- `ui-ux-pro-max: MISSING` → record in AUDIT.md under `## Onboarding Environment Notes`. Tell the user (in the final handoff) that they can install it later with `npm i -g uipro-cli && uipro init --ai claude`. **Do NOT auto-install.** Onboarding does not need it (no UI is being built — only mapped).
-- `statusline: MISSING` → record in AUDIT.md. Tell user (in handoff) they can fix via `/stp:upgrade` later. Do NOT touch the install.
-
-**MCP server check:** Attempt a Context7 `resolve-library-id` call and a Tavily `tavily_search` call to see if they respond. If either fails, record the absence in AUDIT.md under `## Onboarding Environment Notes` and continue without them. Tell the user (in the final handoff) they can install later with:
-- Context7: `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest`
-- Tavily: `claude mcp add tavily -- npx -y tavily-mcp@latest` (requires TAVILY_API_KEY)
-
-**Do NOT execute these install commands during onboarding** — they mutate the user's Claude config, which violates the Read-Only Mandate. The user runs them themselves if they want them.
-
-Onboarding works without MCP servers. Missing them means architecture mapping uses only what's already in the codebase (which is the truth anyway). The trade-off is acceptable for read-only mode.
+**Companion plugins and MCP servers are NOT checked here.** That's handled by `/stp:welcome` (first-time setup). Onboarding is read-only and works fine without any companion plugins — it only reads what's already in the codebase.
 
 ### Step 0: CLAUDE.md Handling (check BEFORE any analysis)
 
