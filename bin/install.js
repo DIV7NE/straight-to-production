@@ -334,7 +334,7 @@ function run() {
   }
 
   console.log('');
-  console.log(c.dim('  https://github.com/DIV7NE/stp'));
+  console.log(c.dim('  https://github.com/DIV7NE/straight-to-production'));
   console.log('');
 }
 

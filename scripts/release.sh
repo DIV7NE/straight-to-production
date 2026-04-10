@@ -268,7 +268,7 @@ echo -e "${CYAN}║${GREEN}  ✓ STP v${NEW} released ${RESET}${CYAN}║${RESET}
 echo -e "${CYAN}╠───────────────────────────────────────────────╣${RESET}"
 echo -e "${CYAN}║${RESET}  git: v${CURRENT} → v${NEW} (${BUMP_TYPE})               ${CYAN}║${RESET}"
 echo -e "${CYAN}║${RESET}  npm: stp-cc@${NEW}                        ${CYAN}║${RESET}"
-echo -e "${CYAN}║${RESET}  gh:  github.com/DIV7NE/stp/releases      ${CYAN}║${RESET}"
+echo -e "${CYAN}║${RESET}  gh:  github.com/DIV7NE/straight-to-production/releases      ${CYAN}║${RESET}"
 echo -e "${CYAN}╠───────────────────────────────────────────────╣${RESET}"
 echo -e "${CYAN}║${RESET}  Users update with:                         ${CYAN}║${RESET}"
 echo -e "${CYAN}║${RESET}    ${BOLD}npx stp-cc@latest${RESET}                        ${CYAN}║${RESET}"

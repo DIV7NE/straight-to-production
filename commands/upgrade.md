@@ -108,7 +108,7 @@ No manual steps. No uninstall/reinstall. Just download the latest and swap.
 TEMP_DIR=$(mktemp -d)
 OLD_VER=$(cat "$PLUGIN_DIR/VERSION" 2>/dev/null || echo "unknown")
 
-git clone --depth 1 --branch main https://github.com/DIV7NE/stp.git "$TEMP_DIR/stp" 2>&1
+git clone --depth 1 --branch main https://github.com/DIV7NE/straight-to-production.git "$TEMP_DIR/stp" 2>&1
 if [ $? -eq 0 ]; then
   rm -rf "$TEMP_DIR/stp/.git"
   # Safe swap: backup → replace → verify → cleanup backup
@@ -578,5 +578,5 @@ Do NOT recommend just `/clear` — that was the pre-v0.3.3 text and it is WRONG 
 
 - **No .stp/ directory:** This project isn't STP-managed. Say: "This project doesn't have STP set up. Run `/stp:new-project` or `/stp:onboard-existing` first."
 - **Git pull fails (network):** Report the error, still run Steps 3-7 to sync what's already downloaded.
-- **Plugin is a fork:** If `git remote -v` shows a different origin than DIV7NE/stp, warn but still pull.
+- **Plugin is a fork:** If `git remote -v` shows a different origin than DIV7NE/straight-to-production, warn but still pull.
 - **Dirty working tree in plugin dir:** Stash before pull, pop after. If stash conflicts, warn and skip pull.

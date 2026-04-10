@@ -27,12 +27,12 @@
     "url": "https://github.com/DIV7NE"
   },
   "license": "MIT",
-  "homepage": "https://github.com/DIV7NE/stp",
+  "homepage": "https://github.com/DIV7NE/straight-to-production",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DIV7NE/stp.git"
+    "url": "git+https://github.com/DIV7NE/straight-to-production.git"
   },
   "bugs": {
-    "url": "https://github.com/DIV7NE/stp/issues"
+    "url": "https://github.com/DIV7NE/straight-to-production/issues"
   }
 }
