@@ -19,7 +19,7 @@ python3 --version 2>/dev/null || echo "python3: NOT FOUND"
 cat "${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json" | grep version
 ```
 
-Display results in a banner:
+Display results as direct text output in your response (NOT via bash echo — Claude Code collapses long bash output):
 ```
 ╔═══════════════════════════════════════════════╗
 ║  STP Welcome — System Check                   ║
@@ -62,7 +62,7 @@ If it returns → ✓ installed. If tool not found → ✗ missing.
 [ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ] && echo "installed" || echo "missing"
 ```
 
-Display:
+Display as direct text output in your response:
 ```
 ╔═══════════════════════════════════════════════╗
 ║  Companion Plugins                             ║
@@ -132,7 +132,7 @@ Confirm:
 
 ## Phase 4 — Quick Tour
 
-Display the STP workflow as a clean overview. Don't explain everything — just enough to orient them.
+Display the STP workflow as direct text output in your response. Don't explain everything — just enough to orient them. This MUST be fully visible — never behind a collapsed bash output.
 
 ```
 ╔═══════════════════════════════════════════════════════════╗
@@ -213,8 +213,8 @@ Based on results:
 
 ## Rules
 
+- **NEVER use `echo -e` / Bash for displaying results, boxes, tours, or checklists.** Claude Code collapses long bash outputs behind "ctrl+o to expand" — the user misses everything. Instead, output ALL formatted results as direct text in your response using markdown code blocks. Bash is ONLY for running actual commands (version checks, profile set, file checks). Results go in your response text.
 - Never install MCP servers without showing the command first. The user runs them in their terminal.
 - Don't block on missing plugins — STP works without them, just with reduced capability.
 - Don't over-explain. This is onboarding, not documentation. Keep each phase under 30 seconds.
 - If the user says "skip" at any phase, skip it and move on.
-- Use `echo -e` with ANSI colors per STP CLI output format (cyan borders, green ✓, red ✗, yellow ⚠).
