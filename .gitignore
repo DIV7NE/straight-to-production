@@ -1,6 +1,7 @@
 whiteboard/__pycache__/
 .pilot/
 .stp-upgrade-cache.json
+node_modules/
 
 # Local-only — NEVER distributed to users via STP plugin
 # The plugin's own repo dogfoods STP, so these contain local dev state,

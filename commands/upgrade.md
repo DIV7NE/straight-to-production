@@ -33,7 +33,14 @@ PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT}"
 **Detect install type and update accordingly:**
 
 ```bash
-if [ -L "$PLUGIN_DIR" ]; then
+if [ -f "$PLUGIN_DIR/.install-manifest.json" ]; then
+  echo "install_type: npm"
+  # npm-managed install — delegate to npx
+  echo "Running npx stp-cc@latest..."
+  npx stp-cc@latest
+  # npx handles: file copy, manifest update, statusline registration, local patch backup
+  # After npx completes, skip to Step 3 (companion plugins) — Steps 2 and 5.5-6 are handled by the installer
+elif [ -L "$PLUGIN_DIR" ]; then
   echo "install_type: symlink (developer mode)"
   # Symlink to dev repo — pull from the actual repo
   REAL_DIR=$(readlink -f "$PLUGIN_DIR")

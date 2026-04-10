@@ -1,0 +1,38 @@
+{
+  "name": "stp-cc",
+  "version": "0.3.9",
+  "description": "Your CTO in a plugin. Makes all technical decisions, explains them with industry backing, builds autonomously, and teaches you your own codebase. For solo developers who want production-quality apps.",
+  "bin": {
+    "stp-cc": "bin/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "production",
+    "standards",
+    "security",
+    "accessibility",
+    "evaluation",
+    "solo-dev",
+    "quality",
+    "multi-stack",
+    "ai-agent",
+    "cto"
+  ],
+  "author": {
+    "name": "visionch",
+    "url": "https://github.com/DIV7NE"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/DIV7NE/stp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DIV7NE/stp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DIV7NE/stp/issues"
+  }
+}

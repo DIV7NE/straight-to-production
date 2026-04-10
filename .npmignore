@@ -1,0 +1,20 @@
+# Local dev state (never publish)
+.planning/
+.stp/
+.pilot/
+.stp-upgrade-cache.json
+
+# Internal dev docs
+docs/
+
+# Maintainer-only
+.claude/commands/
+scripts/
+
+# Python bytecode
+**/__pycache__
+**/*.pyc
+
+# Git and node
+.git/
+node_modules/

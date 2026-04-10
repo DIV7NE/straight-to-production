@@ -8,7 +8,7 @@
 
 <br />
 
-[![Version](https://img.shields.io/badge/version-0.2.0-06b6d4?style=for-the-badge&labelColor=0e1117)](VERSION)
+[![npm](https://img.shields.io/npm/v/stp-cc?style=for-the-badge&labelColor=0e1117&color=06b6d4)](https://www.npmjs.com/package/stp-cc)
 [![License](https://img.shields.io/badge/license-MIT-06b6d4?style=for-the-badge&labelColor=0e1117)](LICENSE)
 [![Claude](https://img.shields.io/badge/claude-opus%204.6-22d3ee?style=for-the-badge&labelColor=0e1117&logo=anthropic&logoColor=white)](https://claude.ai)
 [![Status](https://img.shields.io/badge/status-active-10b981?style=for-the-badge&labelColor=0e1117)]()
@@ -21,6 +21,43 @@
 [![Learning loops](https://img.shields.io/badge/learning%20loops-4-22d3ee?style=flat-square&labelColor=0e1117)]()
 
 </div>
+
+---
+
+## Install
+
+```bash
+npx stp-cc
+```
+
+That's it. Copies the plugin into `~/.claude/plugins/stp/`, registers the statusline, and writes a manifest for tracking updates. Node 18+ required.
+
+Then start a Claude Code session and run:
+```
+/stp:new-project         # start from scratch
+/stp:onboard-existing    # onboard an existing codebase
+```
+
+### Update
+
+```bash
+npx stp-cc@latest
+```
+
+Or from inside Claude Code:
+```
+/stp:upgrade
+```
+
+Both do the same thing. The installer detects your existing installation via its manifest, backs up any files you've locally modified to `~/.stp-local-patches/`, and overwrites with the new version. The statusline shows an update indicator at session start when a newer version is available on npm.
+
+### Uninstall
+
+```bash
+npx stp-cc --uninstall
+```
+
+Removes all plugin files and deregisters the statusline. Your project files (`.stp/`, `CLAUDE.md`, etc.) are untouched.
 
 ---
 
@@ -335,7 +372,7 @@ Reads all state files (handoff, feature checklist, plan) and immediately picks u
 /stp:pause             → Save state → /clear → resume next session
 /stp:autopilot         → Overnight autonomous: same as work-full but AI decides every option
 /stp:onboard-existing  → READ-ONLY. Explore existing project → map architecture → generate observation report (no fixes, no installs, no edits)
-/stp:upgrade           → Pull latest STP version + sync companion plugins + refresh CLAUDE.md sections + verify MCP servers
+/stp:upgrade           → Update STP (auto-detects npm/git/marketplace) + sync companion plugins + refresh CLAUDE.md sections
 /stp:set-profile-model → Switch optimization profile: intended (Opus 1M baseline) | balanced (Opus plans + Sonnet executes) | budget (Sonnet + Haiku, strict context discipline)
 ```
 

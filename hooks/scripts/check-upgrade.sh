@@ -14,7 +14,27 @@ if [ -f "$CACHE_FILE" ]; then
   fi
 fi
 
-# Must be a git repo to check
+# Get local version (always needed regardless of install type)
+LOCAL_VER=$(grep -m1 '"version"' "$PLUGIN_DIR/.claude-plugin/plugin.json" 2>/dev/null | sed 's/.*"\([0-9][0-9.]*\)".*/\1/')
+
+# ── npm install: check registry ──────────────────────────────────────────────
+if [ -f "$PLUGIN_DIR/.install-manifest.json" ]; then
+  REMOTE_VER=$(npm view stp-cc version 2>/dev/null)
+
+  if [ -z "$REMOTE_VER" ]; then
+    echo "{\"ts\":$(date +%s)000,\"behind\":false,\"version\":\"${LOCAL_VER}\",\"source\":\"npm\"}" > "$CACHE_FILE"
+    exit 0
+  fi
+
+  if [ "$LOCAL_VER" != "$REMOTE_VER" ]; then
+    echo "{\"ts\":$(date +%s)000,\"behind\":true,\"local_ver\":\"${LOCAL_VER}\",\"remote_ver\":\"${REMOTE_VER}\",\"behind_count\":1,\"source\":\"npm\",\"upgrade_cmd\":\"npx stp-cc@latest\"}" > "$CACHE_FILE"
+  else
+    echo "{\"ts\":$(date +%s)000,\"behind\":false,\"version\":\"${LOCAL_VER}\",\"source\":\"npm\"}" > "$CACHE_FILE"
+  fi
+  exit 0
+fi
+
+# ── git install: check remote ────────────────────────────────────────────────
 cd "$PLUGIN_DIR" || exit 0
 [ -d ".git" ] || exit 0
 
@@ -33,12 +53,9 @@ LOCAL=$(git rev-parse HEAD 2>/dev/null)
 REMOTE=$(git rev-parse origin/main 2>/dev/null)
 
 if [ -z "$LOCAL" ] || [ -z "$REMOTE" ]; then
-  echo "{\"ts\":$(date +%s)000,\"behind\":false,\"version\":\"\"}" > "$CACHE_FILE"
+  echo "{\"ts\":$(date +%s)000,\"behind\":false,\"version\":\"${LOCAL_VER}\",\"source\":\"git\"}" > "$CACHE_FILE"
   exit 0
 fi
-
-# Get local version
-LOCAL_VER=$(grep -m1 '"version"' "$PLUGIN_DIR/.claude-plugin/plugin.json" 2>/dev/null | sed 's/.*"\([0-9][0-9.]*\)".*/\1/')
 
 # Check if remote has commits we don't have (we're behind)
 BEHIND_COUNT=$(git rev-list --count HEAD..origin/main 2>/dev/null)
@@ -48,7 +65,7 @@ if [ "$BEHIND_COUNT" -gt 0 ]; then
   # Try to get remote version from origin/main's plugin.json
   REMOTE_VER=$(git show origin/main:.claude-plugin/plugin.json 2>/dev/null | grep -m1 '"version"' | sed 's/.*"\([0-9][0-9.]*\)".*/\1/')
   REMOTE_VER=${REMOTE_VER:-"newer"}
-  echo "{\"ts\":$(date +%s)000,\"behind\":true,\"local_ver\":\"${LOCAL_VER}\",\"remote_ver\":\"${REMOTE_VER}\",\"behind_count\":${BEHIND_COUNT}}" > "$CACHE_FILE"
+  echo "{\"ts\":$(date +%s)000,\"behind\":true,\"local_ver\":\"${LOCAL_VER}\",\"remote_ver\":\"${REMOTE_VER}\",\"behind_count\":${BEHIND_COUNT},\"source\":\"git\"}" > "$CACHE_FILE"
 else
-  echo "{\"ts\":$(date +%s)000,\"behind\":false,\"version\":\"${LOCAL_VER}\"}" > "$CACHE_FILE"
+  echo "{\"ts\":$(date +%s)000,\"behind\":false,\"version\":\"${LOCAL_VER}\",\"source\":\"git\"}" > "$CACHE_FILE"
 fi
