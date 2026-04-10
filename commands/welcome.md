@@ -139,20 +139,29 @@ Display the STP workflow as direct text output in your response. Don't explain e
 ║  How STP Works                                            ║
 ╠═══════════════════════════════════════════════════════════╣
 ║                                                           ║
-║  First time only:                                         ║
-║    new-project / onboard-existing                         ║
+║  One-time setup (you already did this):                   ║
+║    /stp:welcome → /stp:new-project or /stp:onboard       ║
 ║                                                           ║
-║  Every feature (whiteboard first):                        ║
-║    whiteboard → plan → work-full / work-quick             ║
+║  ★ Your daily starting point:                             ║
 ║                                                           ║
-║  Think         Build              Verify                  ║
-║  ─────         ─────              ──────                  ║
-║  whiteboard    work-full          review                  ║
-║  plan          work-quick         (auto-Critic)           ║
-║  research      debug / autopilot                          ║
+║    /stp:whiteboard  — start almost every feature here.    ║
+║      Shape the idea, explore tradeoffs, research options. ║
+║      Hands off to work-full or work-quick when ready.     ║
 ║                                                           ║
-║  Session: continue, pause, progress                       ║
-║  Update:  upgrade, set-profile-model                      ║
+║  Shortcut (you already know exactly what + how):          ║
+║    /stp:work-quick   — small task, ≤3 files              ║
+║    /stp:work-full    — big feature, multi-file            ║
+║    /stp:work-adaptive — let STP decide which              ║
+║                                                           ║
+║  Other commands:                                          ║
+║    plan       — architecture blueprint (after whiteboard) ║
+║    research   — investigate without building              ║
+║    debug      — something broke? root cause analysis      ║
+║    review     — grade your work (7 criteria + Critic)     ║
+║    autopilot  — build overnight, AI decides everything    ║
+║    progress   — what's done, what's next                  ║
+║    continue   — resume after /clear or new session        ║
+║    pause      — save state, come back later               ║
 ║                                                           ║
 ║  Every build updates your docs automatically.             ║
 ║  Every bug fix becomes a rule that prevents recurrence.   ║
