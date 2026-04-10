@@ -5,6 +5,19 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4] — 2026-04-10 — statusline reliability + upgrade notifications
+
+### Summary
+
+Users now get a visible stderr notification at session start when an STP update is available — no statusline dependency. The statusline script itself is hardened with fallback output on timeout/error. Welcome command now auto-registers the statusline in settings.json during first-time setup.
+
+### Fixed
+- Statusline script: timeout and stdin error now output "STP" fallback instead of silent exit
+- Upgrade check: prints `⬆ STP update available: vX → vY. Run /stp:upgrade` to stderr (always visible)
+
+### Added
+- Welcome Phase 1: auto-checks and registers statusline in `~/.claude/settings.json` if missing
+
 ## [0.4.3] — 2026-04-10 — welcome command polish + deduplicated plugin checks
 
 ### Summary
