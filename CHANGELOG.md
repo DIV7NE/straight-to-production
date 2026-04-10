@@ -5,6 +5,17 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.4] — 2026-04-11 — fix: hide internal phase/step files from slash command picker
+
+### Summary
+
+`work-full` and `work-quick` phase/step files were showing up as user-facing slash commands (`/stp:work-full:phase5-plan` etc.) because Claude Code registers every `.md` file in `commands/` subdirectories. Moved to `references/` where they're implementation details, not commands.
+
+### Fixed
+- `commands/work-full/` → `references/work-full-phases/` — phases no longer appear in the command picker
+- `commands/work-quick/` → `references/work-quick-steps/` — steps no longer appear in the command picker
+- `work-full.md` + `work-quick.md`: updated all phase/step file paths to new locations
+
 ## [0.5.3] — 2026-04-11 — fix: 20-pro-plan now visible in /stp:welcome profile picker
 
 ### Summary

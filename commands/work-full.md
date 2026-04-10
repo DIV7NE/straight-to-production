@@ -43,12 +43,12 @@ TaskCreate("Phase 6: Execute — TDD build")
 
 | Phase | File | Lines | What happens |
 |-------|------|-------|-------------|
-| 1. Understand | `${CLAUDE_PLUGIN_ROOT}/commands/work-full/phase1-understand.md` | ~93 | Requirements, scope, downshift check |
-| 2. Context | `${CLAUDE_PLUGIN_ROOT}/commands/work-full/phase2-context.md` | ~40 | Codebase + production state |
-| 3. Tools + UI/UX | `${CLAUDE_PLUGIN_ROOT}/commands/work-full/phase3-tools.md` | ~168 | Tool discovery, design system |
-| 4. Research | `${CLAUDE_PLUGIN_ROOT}/commands/work-full/phase4-research.md` | ~63 | Deep dive, approach selection |
-| 5. Plan | `${CLAUDE_PLUGIN_ROOT}/commands/work-full/phase5-plan.md` | ~226 | 13 sub-phase architecture blueprint |
-| 6. Execute | `${CLAUDE_PLUGIN_ROOT}/commands/work-full/phase6-execute.md` | ~335 | TDD build → QA → Critic → ship |
+| 1. Understand | `${CLAUDE_PLUGIN_ROOT}/references/work-full-phases/phase1-understand.md` | ~93 | Requirements, scope, downshift check |
+| 2. Context | `${CLAUDE_PLUGIN_ROOT}/references/work-full-phases/phase2-context.md` | ~40 | Codebase + production state |
+| 3. Tools + UI/UX | `${CLAUDE_PLUGIN_ROOT}/references/work-full-phases/phase3-tools.md` | ~168 | Tool discovery, design system |
+| 4. Research | `${CLAUDE_PLUGIN_ROOT}/references/work-full-phases/phase4-research.md` | ~63 | Deep dive, approach selection |
+| 5. Plan | `${CLAUDE_PLUGIN_ROOT}/references/work-full-phases/phase5-plan.md` | ~226 | 13 sub-phase architecture blueprint |
+| 6. Execute | `${CLAUDE_PLUGIN_ROOT}/references/work-full-phases/phase6-execute.md` | ~335 | TDD build → QA → Critic → ship |
 
 **Execution pattern:**
 1. Read Phase 1 file → execute Phase 1 → mark task complete
