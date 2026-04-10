@@ -139,22 +139,6 @@ If everything PASSED:
 
 9. If the user says yes to fixes,, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.
 
-## Browser Verification (for web projects)
-
-If the Vercel Agent Browser CLI is installed (`command -v agent-browser`) AND the project has UI, use it via the Bash tool to visually verify the rendered app. Read `.claude/skills/agent-browser/SKILL.md` first for the snapshot-ref workflow.
-
-Verify each of these:
-- Pages load without errors (`agent-browser open <url>` then check the snapshot for error overlays / blank states)
-- Navigation works (snapshot → `agent-browser click @eN` through the primary user flow)
-- Responsive layout (`agent-browser viewport 375 667`, `768 1024`, `1280 800` and re-snapshot at each)
-- Forms submit correctly (`agent-browser fill @e3 "test@example.com"` then submit)
-- Error states render properly (trigger a validation error and snapshot the result)
-- Take screenshots of any visual issues for the report (`agent-browser screenshot finding-N.png`)
-
-This supplements the Critic's code-level review with real rendered-state verification — catches CSS regressions, broken hydration, and visual bugs that pass code review.
-
-If `agent-browser` is not installed, note in the review report: "Browser verification skipped — Vercel Agent Browser not installed. Install: `npm i -g agent-browser && agent-browser install && npx skills add vercel-labs/agent-browser`. Code-level review only."
-
 ## Focus Areas
 
 If the user specified a focus, still run all 7 criteria but go deeper on the focused area:

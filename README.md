@@ -13,11 +13,11 @@
 [![Claude](https://img.shields.io/badge/claude-opus%204.6-22d3ee?style=for-the-badge&labelColor=0e1117&logo=anthropic&logoColor=white)](https://claude.ai)
 [![Status](https://img.shields.io/badge/status-active-10b981?style=for-the-badge&labelColor=0e1117)]()
 
-[![Commands](https://img.shields.io/badge/commands-16-06b6d4?style=flat-square&labelColor=0e1117)]()
-[![Hook gates](https://img.shields.io/badge/hook%20gates-10-06b6d4?style=flat-square&labelColor=0e1117)]()
+[![Commands](https://img.shields.io/badge/commands-18-06b6d4?style=flat-square&labelColor=0e1117)]()
+[![Hook gates](https://img.shields.io/badge/hook%20gates-19-06b6d4?style=flat-square&labelColor=0e1117)]()
 [![Verification layers](https://img.shields.io/badge/verification%20layers-6-06b6d4?style=flat-square&labelColor=0e1117)]()
-[![Reference standards](https://img.shields.io/badge/reference%20standards-26-06b6d4?style=flat-square&labelColor=0e1117)]()
-[![Stack templates](https://img.shields.io/badge/stack%20templates-20-06b6d4?style=flat-square&labelColor=0e1117)]()
+[![Reference standards](https://img.shields.io/badge/reference%20standards-33-06b6d4?style=flat-square&labelColor=0e1117)]()
+[![Stack templates](https://img.shields.io/badge/stack%20templates-18-06b6d4?style=flat-square&labelColor=0e1117)]()
 [![Learning loops](https://img.shields.io/badge/learning%20loops-4-22d3ee?style=flat-square&labelColor=0e1117)]()
 
 </div>
@@ -152,13 +152,18 @@ STP:
 
 ```
 stp/
-├── commands/           # 17 commands
+├── bin/                # npm installer (npx stp-cc)
+│   ├── cli.js              # CLI entry point — install/uninstall/version/help
+│   ├── install.js           # Install + upgrade logic with SHA manifest
+│   └── uninstall.js         # Clean removal + statusline deregistration
+├── commands/           # 18 commands
+│   ├── welcome.md          # /stp:welcome — First-time guided setup
 │   ├── whiteboard.md       # /stp:whiteboard — Explore ideas + research (design brief output)
 │   ├── new-project.md      # /stp:new-project — Start a new project
 │   ├── plan.md             # /stp:plan — Design the architecture
 │   ├── work-adaptive.md    # /stp:work-adaptive — Impact scan → auto-routes to quick or full
-│   ├── work-full.md        # /stp:work-full — Full cycle, zero compromise (22 sub-phases)
-│   ├── work-quick.md       # /stp:work-quick — Quick build (≤3 files, no new models)
+│   ├── work-full.md        # /stp:work-full — Full cycle (6 phase files loaded on demand)
+│   ├── work-quick.md       # /stp:work-quick — Quick build (4 step files loaded on demand)
 │   ├── research.md         # /stp:research — "I need to think first" (no code)
 │   ├── review.md           # /stp:review — "Grade my work" (7 criteria + 6-layer verification)
 │   ├── autopilot.md        # /stp:autopilot — "Build overnight" (AI decides)
@@ -168,43 +173,49 @@ stp/
 │   ├── continue.md         # /stp:continue — Resume where you left off
 │   ├── pause.md            # /stp:pause — Save progress, take a break
 │   ├── onboard-existing.md # /stp:onboard-existing — Read-only exploration of existing project
-│   ├── upgrade.md          # /stp:upgrade — Pull latest + sync everything
-│   └── set-profile-model.md # /stp:set-profile-model — Switch intended/balanced/budget profile (added v0.3.8)
+│   ├── upgrade.md          # /stp:upgrade — Update STP (auto-detects npm/git/marketplace)
+│   └── set-profile-model.md # /stp:set-profile-model — Switch between 4 model profiles
 ├── agents/             # 5 sub-agents (Sonnet by default; profile-aware)
 │   ├── executor.md     # Builder — TDD in isolated worktrees
 │   ├── qa.md           # QA tester — tests running app against PRD
-│   ├── critic.md       # Reviewer — grades code against 7 criteria + System Constraint compliance (Haiku→Sonnet escalation in budget-profile)
-│   ├── researcher.md   # Research isolator — Context7/Tavily/Web in fresh context, returns ≤30 line summary (added v0.3.8)
-│   └── explorer.md     # Codebase explorer — Glob/Grep in fresh context, returns ≤30 line file:line map (added v0.3.8)
-├── hooks/              # 11 scripts (4 hook-triggered + 5 utilities + 2 statusline)
+│   ├── critic.md       # Reviewer — 7 criteria + System Constraint compliance
+│   ├── researcher.md   # Research isolator — Context7/Tavily/Web, returns ≤30 line summary
+│   └── explorer.md     # Codebase explorer — Glob/Grep, returns ≤30 line file:line map
+├── hooks/              # 16 scripts (19 gates across 5 hook events)
 │   ├── hooks.json
 │   └── scripts/
-│       ├── stop-verify.sh       # Quality gate: 10 enforcement gates (stack-aware, 3-attempt max)
+│       ├── stop-verify.sh       # Quality gates (19 enforcement checks, 3-attempt safety valve)
 │       ├── post-edit-check.sh   # Type check after edits (stack-aware)
+│       ├── anti-slop-scan.sh    # AI slop pattern detection (7 patterns)
+│       ├── ui-gate.sh           # Blocks UI files until design system approved
+│       ├── whiteboard-gate.sh   # Enforces canonical whiteboard filename
+│       ├── context-budget-warn.sh # Warns on context window pressure
 │       ├── pre-compact-save.sh  # State save before compaction
 │       ├── session-restore.sh   # State restore on session start
 │       ├── migrate-layout.sh    # Auto-migrate old flat layout → organized
 │       ├── setup-references.sh  # Copy reference files into project
 │       ├── start-whiteboard.sh  # Launch whiteboard server
-│       ├── check-upgrade.sh     # Check for newer STP version
+│       ├── check-upgrade.sh     # Check npm/git for newer STP version
 │       ├── stp-auto.sh          # Autonomous loop (overnight mode)
 │       ├── stp-statusline.js    # Node.js statusline (primary)
 │       └── stp-statusline.sh    # Bash statusline (fallback)
-├── references/         # Universal production standards (26 files)
-│   ├── security/       # OWASP, env handling, auth, validation, API
+├── references/         # Universal production standards (33 files)
+│   ├── security/       # OWASP, env handling, auth, validation, API, AI code vulns
 │   ├── accessibility/  # WCAG AA, keyboard, screen reader, contrast
 │   ├── performance/    # Web Vitals, bundles, queries, images
 │   ├── production/     # Errors, loading, empty states, edge cases, SEO, legal
+│   ├── shared/         # Reusable check blocks (companion plugins, section markers)
+│   ├── profiles.md     # 4 model profiles with cost/quality tradeoffs
 │   └── cli-output-format.md  # ANSI color system — cyan banners, severity colors
 ├── whiteboard/         # Visual whiteboard (live diagrams in browser)
 │   ├── index.html      # Dark-theme dashboard with Mermaid rendering
 │   └── serve.py        # Lightweight Python server (zero dependencies)
-└── templates/          # 20 stack templates + extensibility guide
+└── templates/          # 18 stack templates + extensibility guide
     ├── nextjs-supabase.md
     ├── python-fastapi.md
     ├── rust-axum.md
     ├── csharp-aspnet.md
-    ├── ... (20 total)
+    ├── ... (18 total)
     └── TEMPLATE-GUIDE.md
 ```
 
@@ -253,7 +264,6 @@ STP checks for these during setup (`/stp:new-project`, `/stp:onboard-existing`) 
 | **[Context7](https://github.com/upstash/context7)** | Live documentation — query current API docs, verify patterns against latest library versions. Prevents building on stale training data. | `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest` |
 | **[Tavily](https://tavily.com)** | Deep web research — best practices, industry standards, security advisories, competitive analysis. | `claude mcp add tavily -- npx -y tavily-mcp@latest` + set `TAVILY_API_KEY` |
 | **[Context Mode](https://github.com/context-labs/context-mode)** | Context window protection — runs commands in sandbox, prevents context flooding, enables longer sessions before compaction. | `claude mcp add context-mode -- npx -y context-mode-mcp@latest` |
-| **[Vercel Agent Browser](https://github.com/vercel-labs/agent-browser)** | Browser automation CLI for AI agents — navigate pages, click elements, verify rendered state, take screenshots, test responsive layouts. Native Rust CLI + Claude Code skill. | `npm i -g agent-browser && agent-browser install && npx skills add vercel-labs/agent-browser` (the second command downloads Chrome for Testing; the third installs the Claude Code skill that teaches the snapshot-ref workflow) |
 
 When any STP command detects UI/UX work, it:
 1. Generates a design system via ui-ux-pro-max
@@ -437,22 +447,31 @@ Everything persisted — the learning system:
   .stp/docs/CHANGELOG.md             → Full history + decisions + spec deltas
 ```
 
-## Quality Enforcement (Hook Gates — Cannot Be Bypassed)
+## Quality Enforcement (19 Hook Gates — Cannot Be Bypassed)
 
-| # | Gate | What It Blocks | Enforcement |
+| Event | Gate | What It Catches | Enforcement |
 |---|------|---------------|-------------|
-| 1 | Unchecked items | Stopping with work remaining | 100% — hook exit 2 |
-| 2 | `.stp/docs/PLAN.md` missing | Building features without a plan | Warning (non-blocking) |
-| 3 | Tests must exist | Source files without any test files | 100% — hook exit 2 |
-| 4 | No hardcoded secrets | Stripe keys, AWS keys, passwords in source | 100% — hook exit 2 |
-| 5 | Placeholder/mock patterns | TODO, FIXME, lorem ipsum, mock data in source | Warning (non-blocking) |
-| 6 | Hollow test detection | Tautological asserts, assertion-free test files | Warning (non-blocking) |
-| 7 | Type/compile errors | Code with errors | 100% — hook exit 2 |
-| 8 | Tests must pass | Failing tests | 100% — hook exit 2 |
-| 9 | Schema drift detection | ORM schema changed without corresponding migration (Prisma, TypeORM, Django, Rails, Drizzle) | 100% — hook exit 2 |
-| 10 | Scope reduction detection | PLAN.md covers <70% of PRD.md SHALL/MUST requirements | Warning (non-blocking) |
+| PreToolUse | UI gate | New UI files before design system approved | BLOCK |
+| PreToolUse | Whiteboard gate | Forbidden legacy filenames + auto-starts server | BLOCK |
+| PostToolUse | Post-edit type check | Type/compile errors after edits (stack-aware) | Feedback (stderr) |
+| PostToolUse | Anti-slop scan | 7 AI-slop patterns (duplicate logic, generic names, etc.) | WARN at 1, BLOCK at 2+ |
+| Stop | Unchecked items | Stopping with work remaining | BLOCK |
+| Stop | PLAN.md missing | Building features without a plan | WARN |
+| Stop | Tests must exist | Source files without any test files | BLOCK |
+| Stop | No hardcoded secrets | Stripe keys, AWS keys, passwords in source | BLOCK |
+| Stop | Placeholder/mock patterns | TODO, FIXME, lorem ipsum, mock data | WARN |
+| Stop | Hollow test detection | Tautological asserts, assertion-free tests | WARN |
+| Stop | Type/compile errors | Code with errors | BLOCK (3-retry) |
+| Stop | Tests must pass | Failing tests | BLOCK (3-retry) |
+| Stop | Schema drift | ORM changes without migrations (Prisma, TypeORM, Django, Rails, Drizzle) | BLOCK (3-retry) |
+| Stop | Scope reduction | PLAN.md covers <70% of PRD.md SHALL/MUST requirements | WARN |
+| Stop | Spec delta missing | CHANGELOG missing spec delta block | WARN |
+| Stop | Critic required | No critic-report newer than feature | BLOCK |
+| Stop | QA required | UI features without qa-report | BLOCK |
+| PreCompact | Emergency state save | Saves state.json before context compaction | Auto |
+| SessionStart | Session restore | Wipes ui-gate, migrates layout, restores context | Auto |
 
-3-attempt safety valve prevents session bricking if an issue is truly unfixable.
+3-attempt safety valve on technical BLOCKs (tests, types, schema) prevents session bricking. Workflow BLOCKs (unchecked, Critic, QA) never count toward the limit.
 
 ### Deterministic Checks the Critic Runs (Layer 1–4 of the verification stack)
 

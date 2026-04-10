@@ -441,8 +441,8 @@ if feature_is_complete && [ -f "$RUNTIME_DIR/ui-gate-passed" ]; then
   fi
   if [ -z "$QA_REPORT" ]; then
     echo "BLOCKED: UI feature complete but no recent QA report found." >&2
-    echo "UI work requires agent-browser QA before stop." >&2
-    echo "Run the QA agent (see .stp/references/agent-browser/) or write qa-report-<feature>.md to .stp/state/." >&2
+    echo "UI work requires a QA report before stop." >&2
+    echo "Run the QA agent or write qa-report-<feature>.md to .stp/state/." >&2
     echo "Workflow gate — does not count toward the 3-retry technical limit." >&2
     HAS_ERRORS=true
   fi

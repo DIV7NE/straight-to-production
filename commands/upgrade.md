@@ -164,13 +164,12 @@ uipro init --ai claude
 ```
 Report: "Updated ui-ux-pro-max from v$INSTALLED_VER to v$LATEST_VER."
 
-**Check required MCP servers and Vercel Agent Browser:**
+**Check required MCP servers:**
 
-Attempt tool calls / file checks to verify each is available:
+Attempt tool calls to verify each is available:
 - Context7: try `resolve-library-id`
 - Tavily: try `tavily_search`
 - Context Mode: try `ctx_stats`
-- Vercel Agent Browser: `command -v agent-browser` AND `[ -f ".claude/skills/agent-browser/SKILL.md" ]` (it's a CLI + Claude Code skill, NOT an MCP server)
 
 **Install commands for missing MCP servers** (these are passive — show the command, the user runs it):
 
@@ -180,36 +179,7 @@ Tavily:         claude mcp add tavily -- npx -y tavily-mcp@latest  (requires TAV
 Context Mode:   claude mcp add context-mode -- npx -y context-mode-mcp@latest
 ```
 
-**Vercel Agent Browser install (active — upgrade can run this):**
-
-If `agent-browser: MISSING` OR `agent-browser-skill: MISSING`, ask the user:
-```
-AskUserQuestion(
-  question: "Vercel Agent Browser is not fully installed. STP's QA agent and /stp:review use it to test apps like a real user. Want me to install/repair it now?",
-  options: [
-    "(Recommended) Yes — install agent-browser CLI + Chrome for Testing + Claude Code skill",
-    "Skip — I'll install later",
-    "Already installed differently — let me verify",
-    "Chat about this"
-  ]
-)
-```
-If "Yes", run the 3-step install and report each step's result:
-```bash
-# Step 1: install the CLI globally (only if missing)
-command -v agent-browser >/dev/null 2>&1 || npm install -g agent-browser
-
-# Step 2: download Chrome for Testing (idempotent — skips if Chrome already detected)
-agent-browser install
-
-# Step 3: install/refresh the Claude Code skill (teaches the snapshot-ref workflow)
-[ -f ".claude/skills/agent-browser/SKILL.md" ] || npx skills add vercel-labs/agent-browser
-```
-After install, re-verify both checks (`command -v agent-browser` + skill file presence) and report PASS/FAIL for each step. If any step fails (network, permissions, missing Rust toolchain), surface the error verbatim and link to https://github.com/vercel-labs/agent-browser for manual install.
-
-If the user already has agent-browser working but installed differently (`Already installed differently — let me verify`), just verify both checks pass and skip the install steps.
-
-Report status in the upgrade summary: `[✓/✗] Context7`, `[✓/✗] Tavily`, `[✓/✗] Context Mode`, `[✓/✗] Agent Browser CLI`, `[✓/✗] Agent Browser skill`.
+Report status in the upgrade summary: `[✓/✗] Context7`, `[✓/✗] Tavily`, `[✓/✗] Context Mode`.
 
 ### Step 4: Sync Project CLAUDE.md (CAREFUL — never destroy user content)
 
@@ -476,7 +446,6 @@ Present the summary in **three separate echo -e blocks** so the restart banner i
 ║  [✓/✗] Core files updated                             ║
 ║  [✓/✗] Companion plugins (ui-ux-pro-max v[VER])      ║
 ║  [✓/✗] MCP servers (Context7, Tavily, Context Mode)  ║
-║  [✓/✗] Agent Browser (CLI v[VER] + skill)            ║
 ║  [✓/✗] Reference files refreshed (.stp/references/)   ║
 ║  [✓/✗] Project CLAUDE.md sections refreshed           ║
 ║  [✓/✗] Global CLAUDE.md (STP Awareness)              ║

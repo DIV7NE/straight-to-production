@@ -128,7 +128,7 @@ When user describes work WITHOUT specifying a command, run **Impact Scan** silen
 
 <!-- STP:stp-plugins:start -->
 ## Required Companion Plugins & MCP Servers
-Required: **ui-ux-pro-max** (design), **Context7** (docs), **Tavily** (research), **Context Mode** (context protection), **agent-browser** (QA). UI code MUST invoke `/ui-ux-pro-max` first. Research MUST use Context7+Tavily. QA MUST use `agent-browser` for UI projects. Full details + install commands: `${CLAUDE_PLUGIN_ROOT}/references/companion-plugins.md`.
+Required: **ui-ux-pro-max** (design), **Context7** (docs), **Tavily** (research), **Context Mode** (context protection). UI code MUST invoke `/ui-ux-pro-max` first. Research MUST use Context7+Tavily. Full details + install commands: `${CLAUDE_PLUGIN_ROOT}/references/companion-plugins.md`.
 <!-- STP:stp-plugins:end -->
 
 <!-- STP:stp-philosophy:start -->
