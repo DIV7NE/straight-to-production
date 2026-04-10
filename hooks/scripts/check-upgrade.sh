@@ -14,8 +14,11 @@ if [ -f "$CACHE_FILE" ]; then
   fi
 fi
 
-# Fetch remote (timeout 5s, silent)
+# Must be a git repo to check
 cd "$PLUGIN_DIR" || exit 0
+[ -d ".git" ] || exit 0
+
+# Fetch remote (timeout 5s, silent)
 git fetch origin main --quiet 2>/dev/null &
 FETCH_PID=$!
 
@@ -30,13 +33,22 @@ LOCAL=$(git rev-parse HEAD 2>/dev/null)
 REMOTE=$(git rev-parse origin/main 2>/dev/null)
 
 if [ -z "$LOCAL" ] || [ -z "$REMOTE" ]; then
-  # Can't determine — write not-behind
-  echo "{\"ts\":$(date +%s)000,\"behind\":false}" > "$CACHE_FILE"
+  echo "{\"ts\":$(date +%s)000,\"behind\":false,\"version\":\"\"}" > "$CACHE_FILE"
   exit 0
 fi
 
-if [ "$LOCAL" != "$REMOTE" ]; then
-  echo "{\"ts\":$(date +%s)000,\"behind\":true}" > "$CACHE_FILE"
+# Get local version
+LOCAL_VER=$(grep -m1 '"version"' "$PLUGIN_DIR/.claude-plugin/plugin.json" 2>/dev/null | sed 's/.*"\([0-9][0-9.]*\)".*/\1/')
+
+# Check if remote has commits we don't have (we're behind)
+BEHIND_COUNT=$(git rev-list --count HEAD..origin/main 2>/dev/null)
+BEHIND_COUNT=${BEHIND_COUNT:-0}
+
+if [ "$BEHIND_COUNT" -gt 0 ]; then
+  # Try to get remote version from origin/main's plugin.json
+  REMOTE_VER=$(git show origin/main:.claude-plugin/plugin.json 2>/dev/null | grep -m1 '"version"' | sed 's/.*"\([0-9][0-9.]*\)".*/\1/')
+  REMOTE_VER=${REMOTE_VER:-"newer"}
+  echo "{\"ts\":$(date +%s)000,\"behind\":true,\"local_ver\":\"${LOCAL_VER}\",\"remote_ver\":\"${REMOTE_VER}\",\"behind_count\":${BEHIND_COUNT}}" > "$CACHE_FILE"
 else
-  echo "{\"ts\":$(date +%s)000,\"behind\":false}" > "$CACHE_FILE"
+  echo "{\"ts\":$(date +%s)000,\"behind\":false,\"version\":\"${LOCAL_VER}\"}" > "$CACHE_FILE"
 fi

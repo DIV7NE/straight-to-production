@@ -26,7 +26,11 @@ process.stdin.on('end', () => {
     try {
       const pluginDir = process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, '../..');
       const cache = JSON.parse(fs.readFileSync(path.join(pluginDir, '.stp-upgrade-cache.json'), 'utf8'));
-      if (cache.behind) parts.push('\x1b[5;35m/stp:upgrade\x1b[0m');
+      if (cache.behind) {
+        const ver = cache.remote_ver ? `v${cache.remote_ver}` : 'update';
+        const count = cache.behind_count ? ` (${cache.behind_count} commits)` : '';
+        parts.push(`\x1b[5;35m↑ ${ver}${count}\x1b[0m`);
+      }
     } catch (e) {} // no cache = no indicator
 
     // Model (dim) + effort level
