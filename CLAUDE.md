@@ -94,6 +94,7 @@ When user describes work WITHOUT specifying a command, run **Impact Scan** silen
 
 **Rules:** default to MORE ceremony; auth/payments/security = always work-full; AskUserQuestion for EVERY routing decision showing scan results; scan before any downshift/upshift.
 
+<!-- STP:stp-commands:start -->
 ## Commands
 **Getting started:**
 - `/stp:new-project` — "I'm starting from scratch." Pre-flight → questions → stack → PRD.md
@@ -118,6 +119,7 @@ When user describes work WITHOUT specifying a command, run **Impact Scan** silen
 - `/stp:pause` — "I'm done for now." Saves context for next session
 - `/stp:upgrade` — "Update STP." Pulls latest + syncs companion plugins + refreshes CLAUDE.md sections + verifies hooks
 - `/stp:set-profile-model` — "Pick how STP allocates models." Switch between intended-profile (Opus inline research), balanced-profile (default — Opus plans + Sonnet subagents), budget-profile (Sonnet + Haiku critic), or sonnet-main (Sonnet 200K primary, no Opus needed)
+<!-- STP:stp-commands:end -->
 
 <!-- STP:stp-plugins:start -->
 ## Required Companion Plugins & MCP Servers
@@ -176,8 +178,10 @@ Full detail lives in **`.stp/CLAUDE.md`** — auto-loads when Claude accesses fi
 
 <!-- STP:stp-dirmap:end -->
 
+<!-- STP:stp-statusline:start -->
 ## Statusline
 Node.js statusline (stp-statusline.js) registered in ~/.claude/settings.json globally. Shows: model + effort level, project version, active feature + progress, current milestone, context usage bar with compaction threshold (green/yellow/orange/red).
+<!-- STP:stp-statusline:end -->
 
 <!-- STP:stp-hooks:start -->
 ## Hooks (19 gates — full detail in `.claude/rules/hooks.md`)
@@ -211,8 +215,10 @@ PreCompact|PreCompact|emergency save to .stp/state/state.json|—
 
 <!-- STP:stp-hooks:end -->
 
+<!-- STP:stp-research:start -->
 ## Research
 All research sources in RESEARCH-SOURCES.md. Key: Anthropic harness blog, Vercel AGENTS.md (100% vs 53%), Phil Schmid "Build to Delete", OX Security AI anti-patterns.
+<!-- STP:stp-research:end -->
 
 <!-- STP:stp-effort:start -->
 ## Effort Levels
