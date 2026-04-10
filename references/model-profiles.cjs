@@ -79,16 +79,16 @@ const path = require('path');
 //   "sonnet" / "opus" / "haiku" — pass this exact value as the spawn model parameter.
 
 const MODEL_PROFILES = {
-  // ┌─────────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┐
-  // │ Agent                   │ intended-profile    │ balanced-profile    │ budget-profile      │
-  // ├─────────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┤
-  'stp-executor':             { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet' },
-  'stp-qa':                   { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet' },
-  'stp-critic':               { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'haiku'  },
-  'stp-critic-escalation':    { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet' },
-  'stp-researcher':           { 'intended-profile': 'inline',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet' },
-  'stp-explorer':             { 'intended-profile': 'inline',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet' },
-  // └─────────────────────────┴─────────────────────┴─────────────────────┴─────────────────────┘
+  // ┌─────────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┐
+  // │ Agent                   │ intended-profile    │ balanced-profile    │ budget-profile      │ sonnet-main         │
+  // ├─────────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┤
+  'stp-executor':             { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet' },
+  'stp-qa':                   { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'haiku'  },
+  'stp-critic':               { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'haiku',  'sonnet-main': 'haiku'  },
+  'stp-critic-escalation':    { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet' },
+  'stp-researcher':           { 'intended-profile': 'inline',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet' },
+  'stp-explorer':             { 'intended-profile': 'inline',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet' },
+  // └─────────────────────────┴─────────────────────┴─────────────────────┴─────────────────────┴─────────────────────┘
 };
 
 // Discipline rules (independent of model selection — affects how commands behave)
@@ -116,6 +116,14 @@ const PROFILE_DISCIPLINE = {
     explorer_mandatory: true,
     max_main_session_kb: 100,
     description: 'Sonnet writes, Haiku verifies (with Sonnet escalation). Hardcore context discipline.',
+  },
+  'sonnet-main': {
+    clear_between_phases: 'enforced',
+    context_mode_required: 'hard-block',
+    researcher_mandatory: true,
+    explorer_mandatory: true,
+    max_main_session_kb: 80,
+    description: 'Sonnet 200K main session. Haiku QA/critic (Sonnet escalation). Strict context discipline.',
   },
 };
 

@@ -10,26 +10,26 @@ STP supports three optimization profiles that change which Claude models run the
 
 ## Quick Comparison
 
-| Sub-agent | intended-profile | balanced-profile | budget-profile |
-|---|---|---|---|
-| **stp-executor** (builds features) | `sonnet` | `sonnet` | `sonnet` |
-| **stp-qa** (independent tester) | `sonnet` | `sonnet` | `sonnet` |
-| **stp-critic** (Double-Check Protocol) | `sonnet` | `sonnet` | `haiku` (→ sonnet escalation on ≥2 issues) |
-| **stp-critic-escalation** (Sonnet fallback) | `sonnet` | `sonnet` | `sonnet` |
-| **stp-researcher** (Context7/Tavily/Web) | `inline` | `sonnet` | `sonnet` |
-| **stp-explorer** (codebase Glob/Grep) | `inline` | `sonnet` | `sonnet` |
+| Sub-agent | intended-profile | balanced-profile | budget-profile | sonnet-main |
+|---|---|---|---|---|
+| **stp-executor** (builds features) | `sonnet` | `sonnet` | `sonnet` | `sonnet` |
+| **stp-qa** (independent tester) | `sonnet` | `sonnet` | `sonnet` | `haiku` |
+| **stp-critic** (Double-Check Protocol) | `sonnet` | `sonnet` | `haiku` (→ sonnet escalation on ≥2 issues) | `haiku` (→ sonnet escalation) |
+| **stp-critic-escalation** (Sonnet fallback) | `sonnet` | `sonnet` | `sonnet` | `sonnet` |
+| **stp-researcher** (Context7/Tavily/Web) | `inline` | `sonnet` | `sonnet` | `sonnet` |
+| **stp-explorer** (codebase Glob/Grep) | `inline` | `sonnet` | `sonnet` | `sonnet` |
 
 > **Why intended-profile uses `sonnet` (not `inherit`):** STP's original architecture deliberately uses Sonnet sub-agents even when the main session is Opus. This is the cost optimization at the heart of STP's design — Opus thinks (architecture, planning, review), Sonnet builds (cheap, equally capable for code writing per the SWE-bench numbers). The `inherit` sentinel is reserved for future profiles or non-Anthropic runtimes (Codex, OpenCode, Gemini CLI) where matching the main session model is the desired behavior.
 
-| Discipline | intended-profile | balanced-profile | budget-profile |
-|---|---|---|---|
-| **/clear between phases** | recommended | mandatory | enforced (hook warns at 60%) |
-| **Context Mode MCP** | recommended | mandatory | hard-block on >50 line ops |
-| **Researcher mandatory** | false | true | true |
-| **Explorer mandatory** | false | true | true |
-| **Max main session** | unlimited | ~120K | ~100K |
-| **Cost vs intended** | baseline (100%) | ~35-50% | ~20% |
-| **Quality vs intended** | 100% | ~95% | ~85-90% (compensated by stricter Layers 1-4) |
+| Discipline | intended-profile | balanced-profile | budget-profile | sonnet-main |
+|---|---|---|---|---|
+| **/clear between phases** | recommended | mandatory | enforced (hook warns at 60%) | enforced |
+| **Context Mode MCP** | recommended | mandatory | hard-block on >50 line ops | hard-block |
+| **Researcher mandatory** | false | true | true | true |
+| **Explorer mandatory** | false | true | true | true |
+| **Max main session** | unlimited | ~120K | ~100K | ~80K |
+| **Cost vs intended** | baseline (100%) | ~35-50% | ~20% | ~15% |
+| **Quality vs intended** | 100% | ~95% | ~85-90% (compensated by stricter Layers 1-4) | ~80-85% |
 
 **Reading the table:**
 - `inherit` means the sub-agent uses the parent session's model. On an Opus 1M session, `inherit` is Opus. On a Sonnet 200K session, `inherit` is Sonnet. Works on Codex/OpenCode/Gemini CLI too.
@@ -55,6 +55,13 @@ STP supports three optimization profiles that change which Claude models run the
 - You're willing to trade some architectural depth for ~80% cost savings
 - You can tolerate a slightly looser Critic in exchange for tighter deterministic verification (Layers 1-4 catch more)
 - You're OK with the strictest context discipline (mandatory researcher/explorer, hard-block on large outputs)
+
+**Pick `sonnet-main` if:**
+- You're running Claude Code with Sonnet 4.6 as the primary model (no Opus access)
+- You want STP's full workflow on a 200K context budget
+- You accept Haiku for QA + Critic (with Sonnet escalation on critical findings)
+- You need the absolute lowest cost — ~85% cheaper than intended-profile
+- You're OK with enforced /clear between phases and 80K main session cap
 
 ## Profile Details
 
@@ -126,6 +133,27 @@ The verification stack as a whole compensates for Haiku's reasoning gap. The Cri
 **Cost profile**: ~20% of intended-profile cost. Best for prototyping, learning STP, or running on a tight budget.
 
 **Quality drop**: ~10-15% on the rawest measure (model intelligence) but the strict context discipline + tighter Layers 1-4 + Sonnet escalation pull most of that back. Real-world quality drop on shipped code is closer to 5-8% if the discipline is followed.
+
+### sonnet-main
+
+> The no-Opus profile. Main session runs on Sonnet 200K. Haiku handles QA and first-pass critic. Sonnet escalation for critical findings.
+
+**Main session model**: Sonnet 4.6 [200K] — this is for users running Claude Code with Sonnet, not Opus.
+
+**Sub-agent strategy**:
+- Executors: Sonnet 4.6 (worktree isolation, same as all profiles)
+- QA: **Haiku 4.5** — standard test assertions don't need Sonnet-level reasoning
+- Critic: **Haiku 4.5** → escalates to Sonnet when ≥2 critical issues found
+- Researcher: Sonnet 4.6 — **mandatory** (main session can't afford inline research at 200K)
+- Explorer: Sonnet 4.6 — **mandatory**
+
+**Context engineering**: Same as budget-profile but with tighter main session cap (80K vs 100K). The reasoning: Sonnet 200K is the hard ceiling, and with CLAUDE.md + command file + state files, the usable planning context is ~80K before risk of coherence degradation.
+
+**When to use this over budget-profile**: Budget-profile assumes an Opus main session that delegates cheap work to Sonnet/Haiku. Sonnet-main assumes the main session IS Sonnet. The discipline rules are identical, but sonnet-main drops QA to Haiku (saving tokens on test assertion verification that doesn't need Sonnet intelligence).
+
+**Cost profile**: ~15% of intended-profile cost. The cheapest STP profile that still runs the full verification stack.
+
+**Quality drop**: ~15-20% on model intelligence, compensated by Layers 1-4 + Sonnet escalation. Adequate for feature work, fixes, and refactors. Not recommended for complex multi-system architecture planning (use balanced-profile for that).
 
 ## Research/Exploration Decision (200K profiles)
 

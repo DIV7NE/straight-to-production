@@ -18,6 +18,7 @@ Pick the optimization profile for this project. The active profile determines wh
 | **intended-profile** | sonnet | sonnet | sonnet | inline | inline | recommended |
 | **balanced-profile** (default) | sonnet | sonnet | sonnet | sonnet (sub) | sonnet (sub) | mandatory |
 | **budget-profile** | sonnet | sonnet | haiku → sonnet escalation | sonnet (sub) | sonnet (sub) | enforced |
+| **sonnet-main** | sonnet | haiku | haiku → sonnet escalation | sonnet (sub) | sonnet (sub) | enforced |
 
 - **sonnet / opus / haiku** — pass the literal value as the spawn `model=` parameter
 - **inline** — no sub-agent spawned; main session does the work directly (intended-profile only, because Opus 1M can absorb research/exploration inline)

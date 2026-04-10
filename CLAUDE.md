@@ -70,6 +70,7 @@ Every `/stp:*` command MUST run `node "${CLAUDE_PLUGIN_ROOT}/references/model-pr
 intended-profile :{stp-executor:sonnet,stp-qa:sonnet,stp-critic:sonnet,stp-critic-escalation:sonnet,stp-researcher:inline,stp-explorer:inline,clear:rec,ctx:rec,res-mand:no,exp-mand:no}
 balanced-profile :{stp-executor:sonnet,stp-qa:sonnet,stp-critic:sonnet,stp-critic-escalation:sonnet,stp-researcher:sonnet,stp-explorer:sonnet,clear:mand,ctx:mand,res-mand:yes,exp-mand:yes,max-kb:120}
 budget-profile   :{stp-executor:sonnet,stp-qa:sonnet,stp-critic:haiku→escal-sonnet,stp-critic-escalation:sonnet,stp-researcher:sonnet,stp-explorer:sonnet,clear:enforced,ctx:hard-block,res-mand:yes,exp-mand:yes,max-kb:100}
+sonnet-main      :{stp-executor:sonnet,stp-qa:haiku,stp-critic:haiku→escal-sonnet,stp-critic-escalation:sonnet,stp-researcher:sonnet,stp-explorer:sonnet,clear:enforced,ctx:hard-block,res-mand:yes,exp-mand:yes,max-kb:80}
 ```
 
 Full profile docs, spawn patterns, discipline rules, trade-off tables: `${CLAUDE_PLUGIN_ROOT}/references/profiles.md`.
