@@ -129,72 +129,32 @@ Before presenting ANY section to the user, run this self-review:
 
 Fix any issues inline. Don't present known gaps to the user.
 
-#### 5m. Section-by-Section Design Approval (incremental, not dump-all-at-once)
+#### 5m. Architecture Approval (batch by default)
 
-**Do NOT present the entire architecture blueprint in one message.** Present each major section, get approval, then move to the next. This catches misunderstandings early before they compound.
+**Default: show all 4 sections in ONE message, ONE approval.** Most users approve all sections. Per-section review is available with `--section-approval` flag in the user's original message.
 
-**Present in this order, one section per message:**
+Present all 4 sections in a single message using Architecture Section boxes (see cli-output-format.md Template 13):
+1. **System Architecture** (5c) — Components, data flow, integrations, diagram
+2. **Data & API** (5d + 5e) — Models, endpoints, migrations
+3. **Auth & Safety** (5f + 5g + 5k) — Auth model, error strategy, security risks
+4. **Execution Plan** (5i + 5j + 5h) — Tests planned, wave order, touchpoint map
 
-**Section 1: System Architecture (5c)**
-```
-┌─── Architecture: System Design ──────────────────────┐
-│                                                       │
-│  Components:    [list with 1-line purpose each]       │
-│  Data flow:     [how data moves through the system]   │
-│  Integrations:  [external services]                   │
-│                                                       │
-│  [Mermaid diagram pushed to whiteboard if running]    │
-│                                                       │
-└──────────────────────────────────────────────────────┘
-```
+Then ONE AskUserQuestion:
 ```
 AskUserQuestion(
-  question: "System architecture — does this structure make sense?",
+  question: "Architecture blueprint — 4 sections above. Review and approve?",
   options: [
-    "Looks right, continue to data models",
-    "Change something — [describe]",
+    "(Recommended) Approve all — proceed to build",
+    "Section [N] needs changes — [describe]",
+    "Review section by section instead",
     "Chat about this"
   ]
 )
 ```
 
-**Section 2: Data Models + API Design (5d + 5e)**
-```
-┌─── Architecture: Data & API ─────────────────────────┐
-│                                                       │
-│  Models:      [fields, types, relationships]          │
-│  Endpoints:   [routes with auth, request/response]    │
-│  Migrations:  [what changes in the database]          │
-│                                                       │
-└──────────────────────────────────────────────────────┘
-```
-Ask for approval. Wait.
+If "Review section by section" → present each section separately with individual approval (4 rounds).
 
-**Section 3: Auth + Error Handling + Security (5f + 5g + 5k)**
-```
-┌─── Architecture: Auth & Safety ──────────────────────┐
-│                                                       │
-│  Auth model:       [provider, routes, authz matrix]   │
-│  Error strategy:   [format, propagation, tracking]    │
-│  Security risks:   [attack surface, mitigations]      │
-│                                                       │
-└──────────────────────────────────────────────────────┘
-```
-Ask for approval. Wait.
-
-**Section 4: Build Plan + Tests (5i + 5j + 5h)**
-```
-┌─── Architecture: Execution Plan ─────────────────────┐
-│                                                       │
-│  Tests:    [N] spec · [N] behavioral · [N] property   │
-│  Waves:    Wave 1 → Wave 2 → ...                      │
-│  Touches:  [touchpoint map summary]                   │
-│                                                       │
-└──────────────────────────────────────────────────────┘
-```
-Ask for approval. Wait.
-
-**After all sections approved, present the summary:**
+**After approval, present the summary:**
 ```
 ╔═══════════════════════════════════════════════════════╗
 ║  ✓ ARCHITECTURE BLUEPRINT COMPLETE                    ║
