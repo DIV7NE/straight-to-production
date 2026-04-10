@@ -133,14 +133,24 @@ AskUserQuestion(
   options: [
     "(Recommended) balanced — Opus plans, Sonnet builds. Best cost/quality ratio. ~50% cheaper than intended.",
     "intended — Opus does everything inline. Maximum quality, highest cost. For critical/complex projects.",
-    "budget — Sonnet builds, Haiku reviews. Cheapest option (~70% savings). Good for iteration-heavy work.",
-    "sonnet-main — Sonnet 200K only, no Opus. ~85% cheaper. For when you don't have Opus access.",
-    "20-pro-plan — $20/mo Claude Pro plan. ZERO sub-agents, ≤30 msgs/feature. Stripped-down but real production workflow."
+    "budget / sonnet-main — Sonnet everywhere, Haiku critic. ~80-85% quality, ~15-20% cost. Type 'budget' (has Opus) or 'sonnet-main' (no Opus).",
+    "20-pro-plan — $20/mo Claude Pro plan. ZERO sub-agents, ≤30 msgs/feature. work-quick + debug only."
   ]
 )
 ```
 
-Apply the chosen profile:
+Apply the chosen profile. **If the user picked "budget / sonnet-main"**, ask before setting:
+```
+AskUserQuestion(
+  question: "Do you have Opus access, or are you running Sonnet only?",
+  header: "Budget Profile",
+  options: [
+    "budget — I have Opus access (Opus main + Sonnet/Haiku subagents)",
+    "sonnet-main — I'm running Sonnet only, no Opus"
+  ]
+)
+```
+Then set whichever they pick. For all other options, set directly:
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" set <chosen-profile> --raw
 ```
