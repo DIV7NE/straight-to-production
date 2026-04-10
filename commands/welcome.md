@@ -33,6 +33,27 @@ Display results as direct text output in your response (NOT via bash echo — Cl
 
 If Python is missing, note: "Python 3 is needed for `/stp:whiteboard` (visual diagrams). STP works fine without it — whiteboard just won't be available. Install with your package manager if you want it."
 
+**Statusline check:** Verify the STP statusline is registered in `~/.claude/settings.json`:
+```bash
+grep -q "stp-statusline" ~/.claude/settings.json 2>/dev/null && echo "statusline: registered" || echo "statusline: MISSING"
+```
+
+If `statusline: MISSING`, register it automatically:
+```bash
+# Read current settings.json, add statusline entry, write back
+node -e "
+const fs = require('fs');
+const p = require('path').join(process.env.HOME, '.claude', 'settings.json');
+let s = {};
+try { s = JSON.parse(fs.readFileSync(p, 'utf8')); } catch {}
+s.statusLine = { type: 'command', command: 'node \"' + process.env.CLAUDE_PLUGIN_ROOT + '/hooks/scripts/stp-statusline.js\"' };
+fs.writeFileSync(p, JSON.stringify(s, null, 2));
+"
+```
+Report: "✓ Statusline registered — restart Claude Code to activate."
+
+If already registered, report: "✓ Statusline: registered"
+
 Don't stop. Continue to Phase 2.
 
 ## Phase 2 — Companion Plugin Audit

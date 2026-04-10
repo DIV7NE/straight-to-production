@@ -8,9 +8,17 @@ const fs = require('fs');
 const path = require('path');
 
 let input = '';
-const stdinTimeout = setTimeout(() => process.exit(0), 3000);
+const stdinTimeout = setTimeout(() => {
+  // Fallback — always output something so the statusline isn't blank
+  process.stdout.write('\x1b[34mSTP\x1b[0m');
+  process.exit(0);
+}, 3000);
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', chunk => input += chunk);
+process.stdin.on('error', () => {
+  clearTimeout(stdinTimeout);
+  process.stdout.write('\x1b[34mSTP\x1b[0m');
+});
 process.stdin.on('end', () => {
   clearTimeout(stdinTimeout);
   try {
