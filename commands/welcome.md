@@ -139,23 +139,20 @@ Display the STP workflow as a clean overview. Don't explain everything — just 
 ║  How STP Works                                            ║
 ╠═══════════════════════════════════════════════════════════╣
 ║                                                           ║
+║  First time only:                                         ║
+║    new-project / onboard-existing                         ║
+║                                                           ║
+║  Every feature (whiteboard first):                        ║
+║    whiteboard → plan → work-full / work-quick             ║
+║                                                           ║
 ║  Think         Build              Verify                  ║
 ║  ─────         ─────              ──────                  ║
 ║  whiteboard    work-full          review                  ║
-║  new-project   work-quick         (auto-Critic)           ║
-║  plan          debug                                      ║
-║  research      autopilot                                  ║
+║  plan          work-quick         (auto-Critic)           ║
+║  research      debug / autopilot                          ║
 ║                                                           ║
-║  Session                          Update                  ║
-║  ───────                          ──────                  ║
-║  continue      progress           upgrade                 ║
-║  pause                            set-profile-model       ║
-║                                                           ║
-║  The typical flow:                                        ║
-║                                                           ║
-║    /stp:new-project  →  /stp:plan  →  /stp:work-full     ║
-║         or                                                ║
-║    /stp:onboard-existing  →  /stp:work-quick              ║
+║  Session: continue, pause, progress                       ║
+║  Update:  upgrade, set-profile-model                      ║
 ║                                                           ║
 ║  Every build updates your docs automatically.             ║
 ║  Every bug fix becomes a rule that prevents recurrence.   ║

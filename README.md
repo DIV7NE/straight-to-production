@@ -383,24 +383,29 @@ Reads all state files (handoff, feature checklist, plan) and immediately picks u
 
 ### The full flow
 ```
-/stp:welcome           → First-time setup: system check, plugin audit, profile selection, quick tour
-/stp:whiteboard        → Shape ideas, research approaches (optional, anytime)
-/stp:new-project       → Everything needed to start: PRD.md, PLAN.md, CONTEXT.md, CHANGELOG.md, VERSION, CLAUDE.md
-/stp:plan              → .stp/docs/PLAN.md (how we're building it — verified by Critic)
-/stp:work-adaptive     → Impact scan → auto-routes to quick or full based on scope
-/stp:work-full         → Full cycle: understand → tools → research → architecture blueprint → TDD build → QA → Critic → doc cycle
-/stp:research          → Research → approaches → architecture fit → impact → saved plan (stops before building)
-/stp:work-quick        → Executes plan → TDD → milestone auto-eval → full doc cycle
-/stp:review            → Separate AI grades against PRD + PLAN + 7 criteria + System Constraint compliance
-/stp:debug             → Systematic root-cause debugging → fix → full doc cycle (bug fix = release: VERSION bump, CHANGELOG, delta merge-back, AUDIT lesson, Patterns extracted)
-/stp:codebase-mapping  → Export self-contained HTML map — open in any browser, share via gist, reference offline
-/stp:progress          → Check what's done, in progress, and next
-/stp:continue          → Resume exactly where you left off (after /clear or new session)
-/stp:pause             → Save state → /clear → resume next session
-/stp:autopilot         → Overnight autonomous: same as work-full but AI decides every option
-/stp:onboard-existing  → READ-ONLY. Explore existing project → map architecture → generate observation report (no fixes, no installs, no edits)
-/stp:upgrade           → Update STP (auto-detects npm/git/marketplace) + sync companion plugins + refresh CLAUDE.md sections
-/stp:set-profile-model → Switch profile: balanced (default) | intended (max quality) | budget (cheapest) | sonnet-main (no Opus)
+First time only (one-time setup):
+  /stp:welcome           → Guided setup: system check, plugin audit, profile selection
+  /stp:new-project       → New project: PRD.md, PLAN.md, CONTEXT.md, CHANGELOG.md, VERSION, CLAUDE.md
+  /stp:onboard-existing  → Existing project: read-only exploration → architecture map → observation report
+
+Every feature (whiteboard first, then build):
+  /stp:whiteboard        → Start here. Shape ideas, research approaches, explore tradeoffs
+  /stp:plan              → .stp/docs/PLAN.md (architecture blueprint — verified by Critic)
+  /stp:research          → Investigate approaches → impact analysis → saved plan (no code)
+  /stp:work-adaptive     → Impact scan → auto-routes to quick or full based on scope
+  /stp:work-full         → Full cycle: understand → research → blueprint → TDD → QA → Critic → doc cycle
+  /stp:work-quick        → Quick build: TDD → milestone auto-eval → full doc cycle
+  /stp:review            → Separate AI grades against PRD + PLAN + 7 criteria
+  /stp:debug             → Root-cause debugging → fix → full doc cycle + lessons extracted
+
+Session + utility:
+  /stp:progress          → Check what's done, in progress, and next
+  /stp:continue          → Resume exactly where you left off
+  /stp:pause             → Save state → /clear → resume next session
+  /stp:autopilot         → Overnight autonomous: same as work-full but AI decides every option
+  /stp:codebase-mapping  → Export self-contained HTML map
+  /stp:upgrade           → Update STP (auto-detects npm/git/marketplace)
+  /stp:set-profile-model → Switch profile: balanced | intended | budget | sonnet-main
 ```
 
 ### Working on an existing project
