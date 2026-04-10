@@ -5,6 +5,38 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-04-10 — npm distribution, token optimization, sonnet-main profile
+
+### Summary
+
+STP is now installable via `npx stp-cc`. Users can install, update, and uninstall with one command. Token usage cut ~50% through CLAUDE.md compression (34.7KB → 19.1KB), work-full/work-quick monolith splits, and a new balanced-profile default. New sonnet-main profile runs without Opus for ~85% cost reduction.
+
+### Added
+- npm distribution: `npx stp-cc` to install, `npx stp-cc@latest` to update, `npx stp-cc --uninstall` to remove
+- SHA-256 install manifest for tracking files + local patch backup on upgrade
+- Statusline upgrade indicator (magenta pulse when update available on npm/git)
+- sonnet-main profile (Sonnet 200K primary, no Opus needed)
+- Subagent cost discipline: `model="sonnet"` enforced on all Agent() calls
+- Profile migration step in `/stp:upgrade` for pre-v0.4.0 projects
+- `scripts/release.sh` for one-command releases
+- Gate audit reference (`references/gate-audit.md`)
+- Extracted shared references (`references/shared/`)
+
+### Changed
+- Default profile: intended → balanced (~50% Opus token savings)
+- CLAUDE.md: 34.7KB → 19.1KB (compressed index + on-demand references)
+- work-full.md: 966 → 90 lines (6 phase files loaded on demand)
+- work-quick.md: 909 → 65 lines (4 step files loaded on demand)
+- critic.md: 392 → 128 lines (all 7 criteria preserved)
+- cli-output-format.md: 380 → 79 lines
+- set-profile-model: full quality/cost/tradeoff comparison guide
+- check-upgrade.sh: auto-detects npm vs git install for version checks
+- `/stp:upgrade`: auto-detects npm/git/marketplace install type
+
+### Fixed
+- 4 missing STP section markers in CLAUDE.md (upgrade-compat)
+- 5 cross-reference issues from post-implementation audit
+
 ## [0.3.9] — 2026-04-09 — perf: parallel subagent waves + CLAUDE.md compression (cost + token savings)
 
 ### Summary
