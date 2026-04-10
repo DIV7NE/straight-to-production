@@ -387,6 +387,7 @@ Reads all state files (handoff, feature checklist, plan) and immediately picks u
 /stp:whiteboard        → Shape ideas, research approaches (optional, anytime)
 /stp:new-project       → Everything needed to start: PRD.md, PLAN.md, CONTEXT.md, CHANGELOG.md, VERSION, CLAUDE.md
 /stp:plan              → .stp/docs/PLAN.md (how we're building it — verified by Critic)
+/stp:work-adaptive     → Impact scan → auto-routes to quick or full based on scope
 /stp:work-full         → Full cycle: understand → tools → research → architecture blueprint → TDD build → QA → Critic → doc cycle
 /stp:research          → Research → approaches → architecture fit → impact → saved plan (stops before building)
 /stp:work-quick        → Executes plan → TDD → milestone auto-eval → full doc cycle
@@ -399,7 +400,7 @@ Reads all state files (handoff, feature checklist, plan) and immediately picks u
 /stp:autopilot         → Overnight autonomous: same as work-full but AI decides every option
 /stp:onboard-existing  → READ-ONLY. Explore existing project → map architecture → generate observation report (no fixes, no installs, no edits)
 /stp:upgrade           → Update STP (auto-detects npm/git/marketplace) + sync companion plugins + refresh CLAUDE.md sections
-/stp:set-profile-model → Switch optimization profile: intended (Opus 1M baseline) | balanced (Opus plans + Sonnet executes) | budget (Sonnet + Haiku, strict context discipline)
+/stp:set-profile-model → Switch profile: balanced (default) | intended (max quality) | budget (cheapest) | sonnet-main (no Opus)
 ```
 
 ### Working on an existing project
