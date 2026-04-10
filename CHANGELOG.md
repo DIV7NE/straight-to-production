@@ -5,6 +5,24 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] — 2026-04-10 — welcome command polish + deduplicated plugin checks
+
+### Summary
+
+Welcome command now shows whiteboard as the daily starting point (not new-project/plan). All output displays as text instead of bash echo to prevent Claude Code from collapsing it. Plugin/MCP checks removed from new-project, onboard-existing, and upgrade — welcome is now the single source of truth for setup.
+
+### Changed
+- Welcome tour: whiteboard is the daily entry point, work commands are the shortcut
+- Welcome output: all boxes/tours rendered as text, not bash echo (prevents collapse)
+- README: whiteboard-first flow, one-time setup separated from recurring workflow
+- new-project: stripped MCP/plugin pre-flight (welcome handles it, -30 lines)
+- onboard-existing: stripped companion plugin detection (-20 lines)
+- upgrade: slimmed companion check to status-only, no installs/prompts
+
+### Fixed
+- Tavily repo URL (tavily.com → github.com/tavily-ai/tavily-mcp)
+- Context Mode repo URL (context-labs → mksglu/context-mode)
+
 ## [0.4.2] — 2026-04-10 — public release prep: hygiene, agent-browser removal, README accuracy
 
 ### Summary
