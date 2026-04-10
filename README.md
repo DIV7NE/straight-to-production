@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logo.png" alt="STP — Straight To Production" width="720" />
+<img src="https://raw.githubusercontent.com/DIV7NE/stp/main/assets/logo.png" alt="STP — Straight To Production" width="720" />
 
 ### Your CTO in a plugin.
 
