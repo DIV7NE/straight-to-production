@@ -5,6 +5,44 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.3] — 2026-04-11 — fix: 20-pro-plan now visible in /stp:welcome profile picker
+
+### Summary
+
+`AskUserQuestion` has a hard cap of 4 user-defined options — a 5th is silently dropped. The `budget` and `sonnet-main` options are merged into one slot with a follow-up question to disambiguate, freeing the 4th slot for `20-pro-plan`.
+
+### Fixed
+- Welcome Phase 3: `budget` and `sonnet-main` merged into one picker option; follow-up `AskUserQuestion` asks whether user has Opus access before setting the profile
+- `20-pro-plan` now visible as option 4 in the welcome profile picker
+
+## [0.5.2] — 2026-04-11 — 20-pro-plan in set-profile-model + lean planning step
+
+### Summary
+
+Two fixes from the 0.5.1 release: the `/stp:set-profile-model` command was missing `20-pro-plan` from its comparison banner and picker, and `/stp:work-quick`'s planning step had no awareness of the Pro plan's message constraints.
+
+### Fixed
+- `set-profile-model`: added `20-pro-plan` to comparison banner (echo block), profile picker `AskUserQuestion`, and argument-hint
+
+### Added
+- `step3-plan`: profile-aware planning — on `20-pro-plan`, outputs a lean 15-line plan (what/files/approach/risks/tests) with a hard `AskUserQuestion` approval gate before building; all other profiles use the existing 30-line 9-layer checklist
+
+## [0.5.1] — 2026-04-11 — add 20-pro-plan profile for $20/mo Claude Pro subscribers
+
+### Summary
+
+New profile targeting the $20/month Claude Pro plan, where the hard constraint is message count (~45-100 msgs per 5-hour window shared across all Claude surfaces), not token cost. Every sub-agent spawn costs 5-20+ messages — so this profile eliminates sub-agents entirely and enforces strict per-feature message budgets.
+
+### Added
+- `20-pro-plan` profile in `references/model-profiles.cjs`: all 6 agents set to `inline` (zero sub-agents), new discipline fields: `no_subagents`, `max_messages_per_feature: 30`, `max_messages_per_5h: 80`, `allowed_commands`, `blocked_commands`, `verification: deterministic-only`, 60K main session cap
+- `references/profiles.md`: full profile documentation — message budgets, allowed/blocked commands, verification strategy, message-stretching tips, who it's for
+- `CLAUDE.md` profile index: `20-pro-plan` row added
+- `commands/welcome.md`: Pro-plan-specific tour in Phase 4, constrained next-steps in Phase 5 (blocked commands not suggested)
+
+### Changed
+- `resolve-all` CLI output now emits `STP_NO_SUBAGENTS`, `STP_MAX_MSGS_PER_FEATURE`, `STP_MAX_MSGS_PER_5H`, `STP_VERIFICATION`, `STP_ALLOWED_COMMANDS`, `STP_BLOCKED_COMMANDS` when profile is `20-pro-plan`
+- `formatTable` CLI output shows sub-agent, message budget, and command allow/block fields for `20-pro-plan`
+
 ## [0.4.5] — 2026-04-10 — remove GSD references from upgrade command
 
 ### Summary
