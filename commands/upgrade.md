@@ -285,19 +285,11 @@ chmod +x "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/"*.sh
 
 If `stp-statusline.js` is MISSING → warn: "STP statusline script not found. The status bar won't display project info. The plugin installation may be incomplete — try reinstalling."
 
-### Step 7: Reapply Local Patches (if configured)
+### Step 7: Local Patches (npm installs only)
 
-Check if the user has local patches configured in their global CLAUDE.md:
-```bash
-grep -q "Local Patches" "$HOME/.claude/CLAUDE.md" 2>/dev/null && echo "local_patches: configured" || echo "local_patches: none"
-```
+If the install type is `npm` (detected in Step 1), the installer automatically backs up user-modified files to `~/.stp-local-patches/` before overwriting. No manual action needed — just note in the summary: `[✓] Local patches: handled by installer`.
 
-If local patches are configured, remind the user:
-```
-NOTE: You have local patches configured in your global CLAUDE.md.
-The git pull may have overwritten patched files. Check your Local Patches
-section and reapply if needed (e.g., `cp ~/.claude/gsd-local-patches/... ...`).
-```
+For git/marketplace installs, skip this step — there's no patch tracking.
 
 ### Step 8: Migrate Project Docs (if outdated format detected)
 
