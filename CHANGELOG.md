@@ -5,6 +5,28 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] — 2026-04-10 — public release prep: hygiene, agent-browser removal, README accuracy
+
+### Summary
+
+Pre-public release cleanup. Removed Vercel Agent Browser dependency (10 files), added LICENSE + SECURITY.md, expanded .gitignore, scrubbed personal email from git history, renamed repo to `straight-to-production`, and brought README fully in sync with the codebase (badges, architecture tree, hook gates table, command lists, profile docs).
+
+### Changed
+- README: badges updated (commands 16→18, hook gates 10→19, references 26→33, templates 20→18)
+- README: architecture tree now shows bin/, welcome.md, work-full/work-quick subdirs, all 16 hook scripts
+- README: hook gates table expanded from 10 rows to 19 with event types and enforcement levels
+- README: full flow list includes work-adaptive, set-profile-model shows all 4 profiles
+- README: logo uses absolute GitHub raw URL (renders on npm)
+- All repo URLs updated from DIV7NE/stp to DIV7NE/straight-to-production
+
+### Removed
+- Vercel Agent Browser dependency from 10 files (QA agent, review, new-project, upgrade, onboard-existing, hooks, references, CLAUDE.md)
+
+### Added
+- MIT LICENSE file
+- SECURITY.md with vulnerability reporting policy
+- .gitignore: .env, .DS_Store, *.log, __pycache__, settings.local.json
+
 ## [0.4.1] — 2026-04-10 — onboarding: /stp:welcome + enhanced installer
 
 ### Summary
