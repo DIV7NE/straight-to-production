@@ -15,8 +15,8 @@ Pick the optimization profile for this project. The active profile determines wh
 
 | Profile | stp-executor | stp-qa | stp-critic | stp-researcher | stp-explorer | Discipline |
 |---|---|---|---|---|---|---|
-| **intended-profile** (default) | sonnet | sonnet | sonnet | inline | inline | recommended |
-| **balanced-profile** | sonnet | sonnet | sonnet | sonnet (sub) | sonnet (sub) | mandatory |
+| **intended-profile** | sonnet | sonnet | sonnet | inline | inline | recommended |
+| **balanced-profile** (default) | sonnet | sonnet | sonnet | sonnet (sub) | sonnet (sub) | mandatory |
 | **budget-profile** | sonnet | sonnet | haiku → sonnet escalation | sonnet (sub) | sonnet (sub) | enforced |
 
 - **sonnet / opus / haiku** — pass the literal value as the spawn `model=` parameter

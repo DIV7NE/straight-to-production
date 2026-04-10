@@ -14,72 +14,11 @@ The complete development cycle. One command takes you from idea → understandin
 
 ## Profile Resolution (MANDATORY — runs before any sub-agent spawn)
 
-Before doing any work, resolve all sub-agent model assignments + discipline rules from the active STP profile. The single source of truth is `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs` (GSD-style resolver). Run this **once** at orchestration start and remember the values for the rest of the session:
-
+Run **once** at orchestration start, remember values for the session:
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" resolve-all
 ```
-
-This prints KEY=VALUE lines suitable for sourcing or remembering in your context:
-
-```
-STP_PROFILE=balanced-profile
-STP_MODEL_EXECUTOR=sonnet
-STP_MODEL_QA=sonnet
-STP_MODEL_CRITIC=sonnet
-STP_MODEL_CRITIC_ESCALATION=sonnet
-STP_MODEL_RESEARCHER=sonnet
-STP_MODEL_EXPLORER=sonnet
-STP_CLEAR_DISCIPLINE=mandatory
-STP_CONTEXT_MODE_LEVEL=mandatory
-STP_RESEARCHER_MANDATORY=true
-STP_EXPLORER_MANDATORY=true
-STP_MAX_MAIN_KB=120
-```
-
-**Sentinel values you must understand:**
-- `inherit` — when an agent's resolved model is `inherit`, **omit the `model=` parameter from the `Agent()` spawn call entirely**. This causes Claude Code to inherit the parent session's model. Works on any runtime (Opus 1M, Sonnet 200K, Codex, OpenCode, Gemini CLI).
-- `inline` — when an agent's resolved model is `inline`, **do NOT spawn a sub-agent at all**. The main session handles this work directly. Used in `intended-profile` for researcher/explorer (Opus 1M can absorb research/exploration inline).
-- `sonnet` / `opus` / `haiku` — pass the literal value as the spawn `model=` parameter.
-
-**Sub-agent spawn pattern (MANDATORY):**
-```
-# If STP_MODEL_EXECUTOR == "inherit":
-Agent(name="build-X", subagent_type="stp-executor", prompt="...")   # NO model param
-
-# If STP_MODEL_EXECUTOR == "sonnet" / "opus" / "haiku":
-Agent(name="build-X", subagent_type="stp-executor", model="sonnet", prompt="...")
-```
-
-**Discipline rules:**
-- `STP_RESEARCHER_MANDATORY=true` → every Phase 4 research call (Context7/Tavily/WebSearch/WebFetch) MUST be delegated to a fresh `stp-researcher` sub-agent. Main session may NOT call those tools directly.
-- `STP_EXPLORER_MANDATORY=true` → every Phase 2 codebase exploration touching >5 files MUST be delegated to a fresh `stp-explorer` sub-agent.
-- `STP_CONTEXT_MODE_LEVEL=hard-block` → do NOT run any operation producing >50 lines of output in the main session. Use `ctx_execute_file` or a sub-agent.
-- `STP_CLEAR_DISCIPLINE=mandatory` or `enforced` → every command's completion box MUST recommend `/clear, then /stp:next-command` and the user is expected to follow it.
-
-**Inline `intended-profile` paths:**
-- If `STP_MODEL_RESEARCHER=inline`: do research directly in the main session (Opus 1M handles it). Skip stp-researcher spawn.
-- If `STP_MODEL_EXPLORER=inline`: do codebase exploration directly in the main session. Skip stp-explorer spawn.
-
-**Researcher delegation example** (when not inline):
-```
-Agent(
-  name="research-<topic>",
-  subagent_type="stp-researcher",
-  # If STP_MODEL_RESEARCHER == "inherit", omit model entirely.
-  # Otherwise pass model="<STP_MODEL_RESEARCHER>"
-  prompt="Research <topic>. Use Context7/Tavily/WebSearch. Return ≤30 line structured summary with citations."
-)
-```
-
-**Explorer delegation example** (when not inline):
-```
-Agent(
-  name="explore-<scope>",
-  subagent_type="stp-explorer",
-  prompt="Map the <scope> in this codebase using Read/Glob/Grep. Return ≤30 line structured file:line map."
-)
-```
+Outputs KEY=VALUE lines (STP_PROFILE, STP_MODEL_EXECUTOR, STP_MODEL_QA, etc.). **Sentinels:** `inherit` → omit `model=` from spawn; `inline` → no sub-agent, main session does work; `sonnet`/`opus`/`haiku` → pass literally. **Discipline:** if `STP_RESEARCHER_MANDATORY=true`, delegate all research to `stp-researcher` sub-agent; if `STP_EXPLORER_MANDATORY=true`, delegate multi-file exploration to `stp-explorer` sub-agent. Full sentinel docs + spawn patterns + examples: `${CLAUDE_PLUGIN_ROOT}/references/profiles.md`.
 
 **This handles ANY scope:**
 - Single feature: "add PDF invoice export"

@@ -1,6 +1,6 @@
 # STP Optimization Profiles
 
-STP supports three optimization profiles that change which Claude models run the sub-agents. Pick the one that matches your budget and quality bar. Switch with `/stp:set-profile-model`.
+STP supports three optimization profiles that change which Claude models run the sub-agents. **Default: `balanced-profile`** — best cost/quality ratio for most users. Switch with `/stp:set-profile-model`.
 
 > **Architecture:** Inspired by [GSD's `set-profile` design](https://github.com/gsd-build/get-shit-done) which works reliably. The single source of truth is `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs` — a Node.js file with the canonical agent × profile → model mapping table, plus a CLI that STP commands and hooks call to resolve models at spawn time. Adding a new profile is one column in that file; no other changes needed.
 
@@ -37,17 +37,17 @@ STP supports three optimization profiles that change which Claude models run the
 
 ## Which Profile Should I Use?
 
-**Pick `intended-profile` if:**
-- You have Claude Code with Opus 4.6 [1M] access (Claude Max, Team, or Enterprise tier with extended context)
-- Cost is not the primary constraint
-- You're building production software where the highest quality bar matters
-- You want the original STP architecture as documented in the [Anthropic harness research](https://www.anthropic.com/engineering/harness-design-long-running-apps)
-
-**Pick `balanced-profile` if:**
-- You have Opus access but want to reduce token spend
-- You're doing iterative work where planning quality matters more than execution polish
+**Pick `balanced-profile` (DEFAULT) if:**
+- You have Opus access and want the best cost/quality ratio
+- You're doing any standard development work — features, fixes, refactors
 - You're comfortable with /clear between phases and trust sub-agent delegation
 - You want ~50% cost savings with minimal quality drop on routine builds
+
+**Pick `intended-profile` if:**
+- You have Claude Code with Opus 4.6 [1M] access AND cost is not a constraint
+- You want Opus to handle research/exploration inline (no delegation overhead)
+- You're building high-stakes production software where the absolute highest quality bar matters
+- You want the original STP architecture as documented in the [Anthropic harness research](https://www.anthropic.com/engineering/harness-design-long-running-apps)
 
 **Pick `budget-profile` if:**
 - You only have Sonnet/Haiku access (Pro tier or self-hosted)

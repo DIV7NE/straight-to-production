@@ -121,7 +121,7 @@ const PROFILE_DISCIPLINE = {
 
 // Derive valid profile names from the table (so adding a profile = add a column, no other changes)
 const VALID_PROFILES = Object.keys(MODEL_PROFILES['stp-executor']);
-const DEFAULT_PROFILE = 'intended-profile';
+const DEFAULT_PROFILE = 'balanced-profile';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Core resolver functions

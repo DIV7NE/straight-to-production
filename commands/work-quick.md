@@ -14,34 +14,11 @@ You are building, fixing, refactoring, or updating code using test-driven develo
 
 ## Profile Resolution (MANDATORY — runs before any sub-agent spawn)
 
-Resolve sub-agent model assignments from the active STP profile. Single source of truth is `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs`. Run **once** at orchestration start:
-
+Run **once** at orchestration start, remember values for the session:
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" resolve-all
 ```
-
-Output:
-```
-STP_PROFILE=...
-STP_MODEL_EXECUTOR=...     (sonnet | inherit)
-STP_MODEL_QA=...
-STP_MODEL_CRITIC=...        (sonnet | haiku | inherit)
-STP_MODEL_CRITIC_ESCALATION=...
-STP_MODEL_RESEARCHER=...    (sonnet | inline)
-STP_MODEL_EXPLORER=...
-STP_CLEAR_DISCIPLINE=...
-STP_CONTEXT_MODE_LEVEL=...
-STP_RESEARCHER_MANDATORY=...
-STP_EXPLORER_MANDATORY=...
-STP_MAX_MAIN_KB=...
-```
-
-**Sentinels:**
-- `inherit` → omit `model=` from `Agent()` spawn (use parent session model)
-- `inline`  → do NOT spawn a sub-agent; main session does the work
-- `sonnet` / `opus` / `haiku` → pass literally as `model=` parameter
-
-If `STP_RESEARCHER_MANDATORY=true`, every Context7/Tavily/WebSearch call MUST be delegated to a fresh `stp-researcher` sub-agent. If `STP_EXPLORER_MANDATORY=true`, every multi-file Glob/Grep MUST be delegated to a fresh `stp-explorer` sub-agent. See `${CLAUDE_PLUGIN_ROOT}/references/profiles.md` for details.
+Outputs KEY=VALUE lines (STP_PROFILE, STP_MODEL_EXECUTOR, STP_MODEL_QA, etc.). **Sentinels:** `inherit` → omit `model=` from spawn; `inline` → no sub-agent, main session does work; `sonnet`/`opus`/`haiku` → pass literally. **Discipline:** if `STP_RESEARCHER_MANDATORY=true`, delegate all research to `stp-researcher` sub-agent; if `STP_EXPLORER_MANDATORY=true`, delegate multi-file exploration to `stp-explorer` sub-agent. Full docs: `${CLAUDE_PLUGIN_ROOT}/references/profiles.md`.
 
 **This command handles ALL work types:**
 - **New feature**: "add Stripe payments" → full research, TDD, architecture integration
