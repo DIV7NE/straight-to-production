@@ -5,6 +5,20 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] — 2026-04-10 — onboarding: /stp:welcome + enhanced installer
+
+### Summary
+
+New `/stp:welcome` command walks first-time users through system checks, live MCP server verification, profile selection, and a quick tour. The npm installer (`npx stp-cc`) now shows environment checks, MCP install commands, and points users to `/stp:welcome` for full guided setup.
+
+### Added
+- `/stp:welcome` command — 5-phase onboarding: system check, live MCP audit, profile selection, workflow tour, smart next-step detection
+- Installer environment check — verifies Node.js and Python 3 after install
+- Installer MCP server checklist — copy-paste install commands for Context7, Tavily, Context Mode
+
+### Changed
+- Installer "first-time" output — replaced basic box with environment check + MCP commands + get started guide
+
 ## [0.4.0] — 2026-04-10 — npm distribution, token optimization, sonnet-main profile
 
 ### Summary
