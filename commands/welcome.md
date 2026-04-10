@@ -128,13 +128,14 @@ If all installed → skip the prompt, just show the green checklist and continue
 
 ```
 AskUserQuestion(
-  question: "Which model profile should STP use? This controls how work is split between Opus and Sonnet.",
+  question: "Which model profile should STP use? This controls how work is split between models — and how many messages you'll burn per feature.",
   header: "Profile",
   options: [
     "(Recommended) balanced — Opus plans, Sonnet builds. Best cost/quality ratio. ~50% cheaper than intended.",
     "intended — Opus does everything inline. Maximum quality, highest cost. For critical/complex projects.",
     "budget — Sonnet builds, Haiku reviews. Cheapest option (~70% savings). Good for iteration-heavy work.",
-    "sonnet-main — Sonnet 200K only, no Opus. ~85% cheaper. For when you don't have Opus access."
+    "sonnet-main — Sonnet 200K only, no Opus. ~85% cheaper. For when you don't have Opus access.",
+    "20-pro-plan — $20/mo Claude Pro plan. ZERO sub-agents, ≤30 msgs/feature. Stripped-down but real production workflow."
   ]
 )
 ```
@@ -144,16 +145,77 @@ Apply the chosen profile:
 node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" set <chosen-profile> --raw
 ```
 
-Confirm:
+Confirm (adapt message to chosen profile):
+
+For `20-pro-plan`:
 ```
-  ✓ Profile set: balanced-profile
-    Opus plans and reviews. Sonnet builds and tests.
-    Estimated cost: ~50% less than intended-profile.
+  ✓ Profile set: 20-pro-plan
+    $20/mo Pro plan mode. Zero sub-agents. All work inline.
+    Budget: ≤30 messages/feature, ≤80 messages per 5h window.
+    Allowed: /stp:work-quick, /stp:debug, session commands.
+    Blocked: work-full, autopilot, plan, review, whiteboard, new-project, onboard-existing.
+```
+
+For all other profiles:
+```
+  ✓ Profile set: <profile-name>
+    <one-line description from profile>.
 ```
 
 ## Phase 4 — Quick Tour
 
 Display the STP workflow as direct text output in your response. Don't explain everything — just enough to orient them. This MUST be fully visible — never behind a collapsed bash output.
+
+**If the user chose `20-pro-plan`, show THIS tour instead of the standard one:**
+
+```
+╔═══════════════════════════════════════════════════════════╗
+║  How STP Works — $20/mo Pro Plan                          ║
+╠═══════════════════════════════════════════════════════════╣
+║                                                           ║
+║  ⚠ You're on the Pro plan (~45-100 msgs per 5h window).  ║
+║  Every message counts. STP adapts: zero sub-agents,       ║
+║  deterministic verification only, ≤30 msgs per feature.   ║
+║                                                           ║
+║  ★ Your workflow:                                         ║
+║                                                           ║
+║  1. Describe what you want to build in ONE message.       ║
+║     Be specific — include file paths, behavior, edge      ║
+║     cases. The more detail upfront, the fewer follow-up   ║
+║     messages you'll burn.                                 ║
+║                                                           ║
+║  2. /stp:work-quick — your main build command.            ║
+║     Builds the feature inline (no sub-agents).            ║
+║     Verifies with tests + types + lint (no AI critic).    ║
+║     Target: done in ≤30 messages.                         ║
+║                                                           ║
+║  3. /stp:debug — when something breaks.                   ║
+║     Root cause analysis, all inline. Fix + verify.        ║
+║                                                           ║
+║  Session commands (nearly free):                          ║
+║    /stp:progress  — what's done, what's next              ║
+║    /stp:continue  — resume after /clear or new session    ║
+║    /stp:pause     — save state, come back later           ║
+║                                                           ║
+║  ✗ NOT available on Pro plan (too message-heavy):         ║
+║    work-full, autopilot, plan, review, whiteboard,        ║
+║    new-project, onboard-existing, research                ║
+║                                                           ║
+║  Tips to stretch your messages:                           ║
+║    • /clear after every task (smaller context = faster)   ║
+║    • Use Sonnet, not Opus (Opus burns msgs 2-3× faster)  ║
+║    • Batch questions — ask multiple things per message    ║
+║    • Be specific — "add a login form to app/login/page   ║
+║      .tsx with email+password fields" beats "add login"   ║
+║    • Don't explore — if you know the file, say so         ║
+║                                                           ║
+║  The philosophy stays: no mocks, no placeholders, real    ║
+║  tests, production-quality code. Just fewer AI guardrails.║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
+```
+
+**For all other profiles, show the standard tour:**
 
 ```
 ╔═══════════════════════════════════════════════════════════╗
@@ -206,6 +268,34 @@ ls package.json requirements.txt Cargo.toml go.mod Gemfile 2>/dev/null | head -1
 ```
 
 Based on results:
+
+**If the user is on `20-pro-plan`:**
+
+Skip the new-project/onboard detection. Those commands are blocked on Pro plan. Instead:
+
+```
+  ✓ STP is ready — Pro Plan mode.
+
+  Your budget: ~45-100 messages per 5-hour window.
+  STP will use ≤30 of those per feature. /clear between tasks.
+
+  ► Getting started:
+    Just describe what you want to build, then run:
+    /clear, then /stp:work-quick
+
+  ► If something breaks:
+    /clear, then /stp:debug
+
+  ► Session management:
+    /stp:pause     — save and stop
+    /stp:continue  — resume later
+    /stp:progress  — check status
+
+  Tip: Use Sonnet (not Opus) to stretch your message budget.
+  Tip: Run /stp:welcome again anytime to re-check your setup.
+```
+
+**For all other profiles, use the standard detection:**
 
 **If `.stp/` already exists:**
 ```

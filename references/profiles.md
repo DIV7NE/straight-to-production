@@ -10,26 +10,31 @@ STP supports three optimization profiles that change which Claude models run the
 
 ## Quick Comparison
 
-| Sub-agent | intended-profile | balanced-profile | budget-profile | sonnet-main |
-|---|---|---|---|---|
-| **stp-executor** (builds features) | `sonnet` | `sonnet` | `sonnet` | `sonnet` |
-| **stp-qa** (independent tester) | `sonnet` | `sonnet` | `sonnet` | `haiku` |
-| **stp-critic** (Double-Check Protocol) | `sonnet` | `sonnet` | `haiku` (→ sonnet escalation on ≥2 issues) | `haiku` (→ sonnet escalation) |
-| **stp-critic-escalation** (Sonnet fallback) | `sonnet` | `sonnet` | `sonnet` | `sonnet` |
-| **stp-researcher** (Context7/Tavily/Web) | `inline` | `sonnet` | `sonnet` | `sonnet` |
-| **stp-explorer** (codebase Glob/Grep) | `inline` | `sonnet` | `sonnet` | `sonnet` |
+| Sub-agent | intended-profile | balanced-profile | budget-profile | sonnet-main | 20-pro-plan |
+|---|---|---|---|---|---|
+| **stp-executor** (builds features) | `sonnet` | `sonnet` | `sonnet` | `sonnet` | `inline` |
+| **stp-qa** (independent tester) | `sonnet` | `sonnet` | `sonnet` | `haiku` | `inline` |
+| **stp-critic** (Double-Check Protocol) | `sonnet` | `sonnet` | `haiku` (→ sonnet escalation on ≥2 issues) | `haiku` (→ sonnet escalation) | `inline` |
+| **stp-critic-escalation** (Sonnet fallback) | `sonnet` | `sonnet` | `sonnet` | `sonnet` | `inline` |
+| **stp-researcher** (Context7/Tavily/Web) | `inline` | `sonnet` | `sonnet` | `sonnet` | `inline` |
+| **stp-explorer** (codebase Glob/Grep) | `inline` | `sonnet` | `sonnet` | `sonnet` | `inline` |
 
 > **Why intended-profile uses `sonnet` (not `inherit`):** STP's original architecture deliberately uses Sonnet sub-agents even when the main session is Opus. This is the cost optimization at the heart of STP's design — Opus thinks (architecture, planning, review), Sonnet builds (cheap, equally capable for code writing per the SWE-bench numbers). The `inherit` sentinel is reserved for future profiles or non-Anthropic runtimes (Codex, OpenCode, Gemini CLI) where matching the main session model is the desired behavior.
 
-| Discipline | intended-profile | balanced-profile | budget-profile | sonnet-main |
-|---|---|---|---|---|
-| **/clear between phases** | recommended | mandatory | enforced (hook warns at 60%) | enforced |
-| **Context Mode MCP** | recommended | mandatory | hard-block on >50 line ops | hard-block |
-| **Researcher mandatory** | false | true | true | true |
-| **Explorer mandatory** | false | true | true | true |
-| **Max main session** | unlimited | ~120K | ~100K | ~80K |
-| **Cost vs intended** | baseline (100%) | ~35-50% | ~20% | ~15% |
-| **Quality vs intended** | 100% | ~95% | ~85-90% (compensated by stricter Layers 1-4) | ~80-85% |
+| Discipline | intended-profile | balanced-profile | budget-profile | sonnet-main | 20-pro-plan |
+|---|---|---|---|---|---|
+| **/clear between phases** | recommended | mandatory | enforced (hook warns at 60%) | enforced | enforced |
+| **Context Mode MCP** | recommended | mandatory | hard-block on >50 line ops | hard-block | hard-block |
+| **Researcher mandatory** | false | true | true | true | false (inline) |
+| **Explorer mandatory** | false | true | true | true | false (inline) |
+| **Sub-agents** | yes | yes | yes | yes | **DISABLED** |
+| **Max main session** | unlimited | ~120K | ~100K | ~80K | ~60K |
+| **Max msgs/feature** | — | — | — | — | **≤30** |
+| **Max msgs/5h window** | — | — | — | — | **≤80** |
+| **Verification** | 6-layer | 6-layer | 6-layer | 6-layer | deterministic only |
+| **Allowed commands** | all | all | all | all | work-quick, debug, progress, continue, pause |
+| **Cost vs intended** | baseline (100%) | ~35-50% | ~20% | ~15% | **$20/mo flat** |
+| **Quality vs intended** | 100% | ~95% | ~85-90% (compensated by stricter Layers 1-4) | ~80-85% | ~70-75% |
 
 **Reading the table:**
 - `inherit` means the sub-agent uses the parent session's model. On an Opus 1M session, `inherit` is Opus. On a Sonnet 200K session, `inherit` is Sonnet. Works on Codex/OpenCode/Gemini CLI too.
@@ -62,6 +67,14 @@ STP supports three optimization profiles that change which Claude models run the
 - You accept Haiku for QA + Critic (with Sonnet escalation on critical findings)
 - You need the absolute lowest cost — ~85% cheaper than intended-profile
 - You're OK with enforced /clear between phases and 80K main session cap
+
+**Pick `20-pro-plan` if:**
+- You're on the **$20/month Claude Pro plan** (the cheapest paid tier)
+- Your hard constraint is **message count** (~45-100 msgs per 5-hour window), not token cost
+- You can only do **1-2 features per session** and need every message to count
+- You're OK with **no AI verification** (critic, QA) — deterministic tests/types/lint only
+- You accept that only `/stp:work-quick` and `/stp:debug` are available (no work-full, plan, autopilot, whiteboard)
+- You understand this is a **constrained but functional** STP experience — real production code, just fewer guardrails
 
 ## Profile Details
 
@@ -154,6 +167,57 @@ The verification stack as a whole compensates for Haiku's reasoning gap. The Cri
 **Cost profile**: ~15% of intended-profile cost. The cheapest STP profile that still runs the full verification stack.
 
 **Quality drop**: ~15-20% on model intelligence, compensated by Layers 1-4 + Sonnet escalation. Adequate for feature work, fixes, and refactors. Not recommended for complex multi-system architecture planning (use balanced-profile for that).
+
+### 20-pro-plan
+
+> The $20/month profile. ZERO sub-agents. All work happens inline in the main session. Designed around the Pro plan's hard constraint: ~45-100 messages per 5-hour window, shared across all Claude surfaces.
+
+**Main session model**: Whatever the Pro plan gives you (currently Sonnet 4.6 200K, with some Opus access that burns messages faster). Use Sonnet for all STP work — Opus messages count heavier against the rate limit.
+
+**Sub-agent strategy**: **None.** Every Agent() spawn burns 5-20+ messages from the shared pool. A single `/stp:work-full` run with executor + QA + critic could exhaust an entire 5-hour window. All agents are set to `inline` — the main session does everything directly.
+
+**Verification**: **Deterministic only.** No AI critic pass, no AI QA pass. Rely entirely on:
+- Type checking (tsc --noEmit)
+- Test suite (vitest/jest/pytest)
+- Linting (eslint/biome)
+- The stop hooks still fire (type-errors, test-failures, secrets, placeholders, hollow-tests)
+
+The AI verification layers (critic, QA, mutation challenge) are skipped because each costs 5-15 messages.
+
+**Allowed commands**: Only lightweight STP commands that don't spawn sub-agents:
+- `/stp:work-quick` — the primary build command. Inline research → inline build → deterministic verify
+- `/stp:debug` — root cause analysis, all inline
+- `/stp:progress`, `/stp:continue`, `/stp:pause` — session management (read-only, nearly free)
+- `/stp:set-profile-model`, `/stp:upgrade` — utility
+
+**Blocked commands** (too message-heavy for Pro plan):
+- `/stp:work-full` — spawns executor + QA + critic = 30-60+ messages
+- `/stp:autopilot` — designed for unlimited usage, antithetical to Pro plan
+- `/stp:plan` — research-heavy, burns 15-25 messages on architecture alone
+- `/stp:review` — spawns critic sub-agent
+- `/stp:whiteboard` — research + exploration + server management
+- `/stp:new-project` — full project setup, 40+ messages
+- `/stp:onboard-existing` — deep codebase analysis, 30+ messages
+
+**Message budget discipline**:
+- **≤30 messages per feature** — plan your work before starting, don't explore aimlessly
+- **≤80 messages per 5-hour window** — leaves ~20 messages for non-STP Claude usage
+- **Every /clear saves messages** — smaller context = shorter responses = fewer tokens per message
+- **Read before you grep** — if you know the file, Read it directly instead of searching
+- **Batch questions** — ask multiple things in one message instead of separate turns
+
+**Context engineering**: Strictest of all profiles.
+1. `/clear` between EVERY task (not just phases — every discrete piece of work)
+2. Context Mode MCP hard-block on any operation >50 lines
+3. 60K main session cap (aggressive — compaction risk above this with Pro plan response limits)
+4. No research sub-agents, no explorer sub-agents — but also minimize inline research. Know your stack; don't explore unless stuck.
+5. Prefer targeted `Read file:line` over broad `Grep` searches
+
+**Cost profile**: $20/month flat. No usage-based billing. The constraint is throughput, not cost.
+
+**Quality drop**: ~25-30% compared to intended-profile. No AI-powered code review, no independent QA tester, no mutation testing. You get: STP's production philosophy (no mocks, no placeholders, real tests), the stop hooks (17 gates still fire), and deterministic verification. It's a significant quality reduction but still far better than unstructured development.
+
+**Who this is for**: Solo developers learning STP, side projects, prototyping before committing to a paid tier, students, or anyone who wants production-quality discipline on a $20/month budget. The philosophy stays; the AI verification layers don't.
 
 ## Research/Exploration Decision (200K profiles)
 

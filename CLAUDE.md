@@ -76,6 +76,7 @@ intended-profile :{stp-executor:sonnet,stp-qa:sonnet,stp-critic:sonnet,stp-criti
 balanced-profile :{stp-executor:sonnet,stp-qa:sonnet,stp-critic:sonnet,stp-critic-escalation:sonnet,stp-researcher:sonnet,stp-explorer:sonnet,clear:mand,ctx:mand,res-mand:yes,exp-mand:yes,max-kb:120}
 budget-profile   :{stp-executor:sonnet,stp-qa:sonnet,stp-critic:haiku→escal-sonnet,stp-critic-escalation:sonnet,stp-researcher:sonnet,stp-explorer:sonnet,clear:enforced,ctx:hard-block,res-mand:yes,exp-mand:yes,max-kb:100}
 sonnet-main      :{stp-executor:sonnet,stp-qa:haiku,stp-critic:haiku→escal-sonnet,stp-critic-escalation:sonnet,stp-researcher:sonnet,stp-explorer:sonnet,clear:enforced,ctx:hard-block,res-mand:yes,exp-mand:yes,max-kb:80}
+20-pro-plan      :{ALL:inline,clear:enforced,ctx:hard-block,no-subagents:yes,max-kb:60,max-msgs/feature:30,max-msgs/5h:80,verify:deterministic-only,allowed:work-quick+debug+progress+continue+pause}
 ```
 
 Full profile docs, spawn patterns, discipline rules, trade-off tables: `${CLAUDE_PLUGIN_ROOT}/references/profiles.md`.

@@ -55,6 +55,14 @@ const path = require('path');
 //                       Critic = haiku for first pass; commands escalate to sonnet on ≥2 issues.
 //                       Strict context discipline: mandatory researcher/explorer.
 //
+//   20-pro-plan          — $20/month Claude Pro plan. ZERO sub-agents. All work inline.
+//                       The constraint is message count (~45-100 msgs/5h window), not tokens.
+//                       Every sub-agent spawn burns 5-20+ messages from the shared pool.
+//                       All agents set to "inline" — main session does everything directly.
+//                       Only /stp:work-quick and /stp:debug are recommended (work-full is
+//                       too message-heavy). Deterministic verification only (no AI critic/QA).
+//                       Hard target: ≤30 messages per feature.
+//
 // Sentinel values:
 //   "inherit" — omit the model parameter from Agent() spawn; use parent session's model.
 //               Reserved for future profiles or non-Anthropic runtimes (Codex, OpenCode,
@@ -79,16 +87,16 @@ const path = require('path');
 //   "sonnet" / "opus" / "haiku" — pass this exact value as the spawn model parameter.
 
 const MODEL_PROFILES = {
-  // ┌─────────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┐
-  // │ Agent                   │ intended-profile    │ balanced-profile    │ budget-profile      │ sonnet-main         │
-  // ├─────────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┤
-  'stp-executor':             { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet' },
-  'stp-qa':                   { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'haiku'  },
-  'stp-critic':               { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'haiku',  'sonnet-main': 'haiku'  },
-  'stp-critic-escalation':    { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet' },
-  'stp-researcher':           { 'intended-profile': 'inline',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet' },
-  'stp-explorer':             { 'intended-profile': 'inline',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet' },
-  // └─────────────────────────┴─────────────────────┴─────────────────────┴─────────────────────┴─────────────────────┘
+  // ┌─────────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┐
+  // │ Agent                   │ intended-profile    │ balanced-profile    │ budget-profile      │ sonnet-main         │ 20-pro-plan            │
+  // ├─────────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┤
+  'stp-executor':             { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet', '20-pro-plan': 'inline' },
+  'stp-qa':                   { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'haiku',  '20-pro-plan': 'inline' },
+  'stp-critic':               { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'haiku',  'sonnet-main': 'haiku',  '20-pro-plan': 'inline' },
+  'stp-critic-escalation':    { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet', '20-pro-plan': 'inline' },
+  'stp-researcher':           { 'intended-profile': 'inline',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet', '20-pro-plan': 'inline' },
+  'stp-explorer':             { 'intended-profile': 'inline',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet', '20-pro-plan': 'inline' },
+  // └─────────────────────────┴─────────────────────┴─────────────────────┴─────────────────────┴─────────────────────┴─────────────────────┘
 };
 
 // Discipline rules (independent of model selection — affects how commands behave)
@@ -124,6 +132,20 @@ const PROFILE_DISCIPLINE = {
     explorer_mandatory: true,
     max_main_session_kb: 80,
     description: 'Sonnet 200K main session. Haiku QA/critic (Sonnet escalation). Strict context discipline.',
+  },
+  '20-pro-plan': {
+    clear_between_phases: 'enforced',
+    context_mode_required: 'hard-block',
+    researcher_mandatory: false,
+    explorer_mandatory: false,
+    max_main_session_kb: 60,
+    max_messages_per_feature: 30,
+    max_messages_per_5h: 80,
+    no_subagents: true,
+    allowed_commands: ['work-quick', 'debug', 'progress', 'continue', 'pause', 'set-profile-model', 'upgrade'],
+    blocked_commands: ['work-full', 'autopilot', 'plan', 'review', 'whiteboard', 'new-project', 'onboard-existing'],
+    verification: 'deterministic-only',
+    description: '$20/mo Pro plan. ZERO sub-agents — all work inline. ≤30 msgs/feature, deterministic verification only.',
   },
 };
 
@@ -256,6 +278,14 @@ function formatTable(profile) {
   out += `    Researcher mandatory  : ${disc.researcher_mandatory}\n`;
   out += `    Explorer mandatory    : ${disc.explorer_mandatory}\n`;
   out += `    Max main session KB   : ${disc.max_main_session_kb === null ? 'unlimited' : disc.max_main_session_kb}\n`;
+  if (disc.no_subagents) {
+    out += `    Sub-agents            : DISABLED (all work inline)\n`;
+    out += `    Max msgs/feature      : ${disc.max_messages_per_feature}\n`;
+    out += `    Max msgs/5h window    : ${disc.max_messages_per_5h}\n`;
+    out += `    Verification          : ${disc.verification}\n`;
+    out += `    Allowed commands      : ${disc.allowed_commands.join(', ')}\n`;
+    out += `    Blocked commands      : ${disc.blocked_commands.join(', ')}\n`;
+  }
   out += '\n  Sentinels:\n';
   out += '    "inherit" → omit model param from Agent() spawn (use parent session model)\n';
   out += '    "inline"  → do NOT spawn a sub-agent; main session handles this work\n';
@@ -353,6 +383,12 @@ function main(argv) {
       process.stdout.write(`STP_RESEARCHER_MANDATORY=${disc.researcher_mandatory}\n`);
       process.stdout.write(`STP_EXPLORER_MANDATORY=${disc.explorer_mandatory}\n`);
       process.stdout.write(`STP_MAX_MAIN_KB=${disc.max_main_session_kb === null ? '' : disc.max_main_session_kb}\n`);
+      if (disc.no_subagents) process.stdout.write(`STP_NO_SUBAGENTS=true\n`);
+      if (disc.max_messages_per_feature) process.stdout.write(`STP_MAX_MSGS_PER_FEATURE=${disc.max_messages_per_feature}\n`);
+      if (disc.max_messages_per_5h) process.stdout.write(`STP_MAX_MSGS_PER_5H=${disc.max_messages_per_5h}\n`);
+      if (disc.verification) process.stdout.write(`STP_VERIFICATION=${disc.verification}\n`);
+      if (disc.allowed_commands) process.stdout.write(`STP_ALLOWED_COMMANDS=${disc.allowed_commands.join(',')}\n`);
+      if (disc.blocked_commands) process.stdout.write(`STP_BLOCKED_COMMANDS=${disc.blocked_commands.join(',')}\n`);
       break;
     }
 
