@@ -28,6 +28,7 @@ if [ -f "$PLUGIN_DIR/.install-manifest.json" ]; then
 
   if [ "$LOCAL_VER" != "$REMOTE_VER" ]; then
     echo "{\"ts\":$(date +%s)000,\"behind\":true,\"local_ver\":\"${LOCAL_VER}\",\"remote_ver\":\"${REMOTE_VER}\",\"behind_count\":1,\"source\":\"npm\",\"upgrade_cmd\":\"npx stp-cc@latest\"}" > "$CACHE_FILE"
+    echo "⬆ STP update available: v${LOCAL_VER} → v${REMOTE_VER}. Run /stp:upgrade or npx stp-cc@latest" >&2
   else
     echo "{\"ts\":$(date +%s)000,\"behind\":false,\"version\":\"${LOCAL_VER}\",\"source\":\"npm\"}" > "$CACHE_FILE"
   fi
@@ -66,6 +67,7 @@ if [ "$BEHIND_COUNT" -gt 0 ]; then
   REMOTE_VER=$(git show origin/main:.claude-plugin/plugin.json 2>/dev/null | grep -m1 '"version"' | sed 's/.*"\([0-9][0-9.]*\)".*/\1/')
   REMOTE_VER=${REMOTE_VER:-"newer"}
   echo "{\"ts\":$(date +%s)000,\"behind\":true,\"local_ver\":\"${LOCAL_VER}\",\"remote_ver\":\"${REMOTE_VER}\",\"behind_count\":${BEHIND_COUNT},\"source\":\"git\"}" > "$CACHE_FILE"
+    echo "⬆ STP update available: v${LOCAL_VER} → v${REMOTE_VER} (${BEHIND_COUNT} commits). Run /stp:upgrade" >&2
 else
   echo "{\"ts\":$(date +%s)000,\"behind\":false,\"version\":\"${LOCAL_VER}\",\"source\":\"git\"}" > "$CACHE_FILE"
 fi
