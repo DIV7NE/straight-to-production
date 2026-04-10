@@ -1,4 +1,56 @@
-### Step 4: Present Plan
+### Step 3: Present Plan
+
+**Check active profile first:**
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" current
+```
+
+---
+
+#### If profile is `20-pro-plan` — use the LEAN plan format
+
+Output this plan as direct text in your response (≤15 lines). No bash echo — must be visible:
+
+```
+## [Work Type]: [Name]
+
+### What I'll do
+[1-2 sentences. Exactly what changes, nothing more.]
+
+### Files
+- [path/to/file.ts] — [create / modify: what changes]
+- [path/to/file.ts] — [create / modify: what changes]
+
+### Approach
+- [Key decision 1 — e.g. "extend existing X rather than create new Y"]
+- [Key decision 2]
+
+### Risks
+- [What could break and why — 1-2 lines max]
+
+### Tests I'll write first
+- [Test case 1 — what behavior it verifies]
+- [Test case 2]
+```
+
+Then immediately call:
+```
+AskUserQuestion(
+  question: "Plan looks good? I'll start building once you confirm.",
+  header: "Approve Plan",
+  options: [
+    "(Recommended) Yes — build it",
+    "Change the approach — [user types what]",
+    "Scope it down — too much"
+  ]
+)
+```
+
+Do NOT proceed to build until the user approves. Every message counts — the plan is the checkpoint.
+
+---
+
+#### If profile is anything else — use the STANDARD plan format
 
 ```
 ## [Work Type]: [Name]
@@ -46,4 +98,3 @@ Skip this section if no notable decisions beyond what's in CLAUDE.md.]
 ```
 
 Keep the plan UNDER 30 lines. This is a checklist, not a document.
-

@@ -1,6 +1,6 @@
 ---
 description: Switch STP optimization profile. Controls which Claude model runs each sub-agent. Pass profile name as argument or invoke bare to see all profiles.
-argument-hint: <intended | balanced | budget | sonnet-main>  (or no arg to see profiles)
+argument-hint: <intended | balanced | budget | sonnet-main | 20-pro-plan>  (or no arg to see profiles)
 allowed-tools: ["Bash", "AskUserQuestion"]
 model: haiku
 ---
@@ -50,6 +50,12 @@ echo -e "\033[1;36m║\033[0m    Quality: \033[33m~80-85%\033[0m  Cost: \033[32m
 echo -e "\033[1;36m║\033[0m    Tradeoff: less creative architecture, 80K context cap                \033[1;36m║\033[0m"
 echo -e "\033[1;36m║\033[0m    Best for: \033[1musers without Opus access\033[0m, simple features               \033[1;36m║\033[0m"
 echo -e "\033[1;36m║\033[0m                                                                        \033[1;36m║\033[0m"
+echo -e "\033[1;36m║\033[0m  \033[33m● 20-pro-plan\033[0m — \$20/mo Claude Pro plan                                \033[1;36m║\033[0m"
+echo -e "\033[1;36m║\033[0m    ZERO sub-agents — all work inline. ≤30 msgs/feature                  \033[1;36m║\033[0m"
+echo -e "\033[1;36m║\033[0m    Quality: \033[33m~70-75%\033[0m  Cost: \033[32m\$20/mo flat\033[0m  Msgs: \033[1m≤30/feature\033[0m            \033[1;36m║\033[0m"
+echo -e "\033[1;36m║\033[0m    Tradeoff: no AI critic/QA, blocked: work-full/autopilot/plan         \033[1;36m║\033[0m"
+echo -e "\033[1;36m║\033[0m    Best for: \033[1mPro plan subscribers\033[0m — work-quick + debug only              \033[1;36m║\033[0m"
+echo -e "\033[1;36m║\033[0m                                                                        \033[1;36m║\033[0m"
 echo -e "\033[1;36m║\033[0m  \033[2mQuality gap is smaller than it looks — Layers 1-4 of STP's\033[0m           \033[1;36m║\033[0m"
 echo -e "\033[1;36m║\033[0m  \033[2mverification stack are deterministic and don't depend on model.\033[0m      \033[1;36m║\033[0m"
 echo -e "\033[1;36m║\033[0m  \033[2mOnly the Critic (Layer 5) degrades across profiles.\033[0m                  \033[1;36m║\033[0m"
@@ -70,7 +76,8 @@ AskUserQuestion(
     { label: "balanced-profile (Recommended)", description: "Opus plans + Sonnet subagents. ~95% quality, ~50% cost. Best for all standard work." },
     { label: "intended-profile", description: "Opus inline research/exploration. 100% quality, 100% cost. For critical production." },
     { label: "budget-profile", description: "Haiku critic + Sonnet escalation. ~85-90% quality, ~20% cost. Prototyping/tight budget." },
-    { label: "sonnet-main", description: "Sonnet 200K primary, no Opus. ~80-85% quality, ~15% cost. No Opus access needed." }
+    { label: "sonnet-main", description: "Sonnet 200K primary, no Opus. ~80-85% quality, ~15% cost. No Opus access needed." },
+    { label: "20-pro-plan", description: "$20/mo Pro plan. Zero sub-agents, ≤30 msgs/feature. work-quick + debug only. Deterministic verify." }
   ]
 )
 ```
