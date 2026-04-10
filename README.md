@@ -30,13 +30,28 @@
 npx stp-cc
 ```
 
-That's it. Copies the plugin into `~/.claude/plugins/stp/`, registers the statusline, and writes a manifest for tracking updates. Node 18+ required.
+That's it. Copies the plugin into `~/.claude/plugins/stp/`, registers the statusline, checks your environment (Node, Python), and shows which MCP servers to install. Node 18+ required.
 
 Then start a Claude Code session and run:
+```
+/stp:welcome             # guided setup — checks plugins, picks profile, shows you around
+```
+
+Or jump straight in:
 ```
 /stp:new-project         # start from scratch
 /stp:onboard-existing    # onboard an existing codebase
 ```
+
+### What `/stp:welcome` does
+
+First-time setup in 5 steps — takes about 2 minutes:
+
+1. **System check** — verifies Node, Python, STP version
+2. **Plugin audit** — tests Context7, Tavily, Context Mode live and shows install commands for anything missing
+3. **Profile selection** — pick how STP splits work between Opus and Sonnet (balanced, intended, budget, or sonnet-main)
+4. **Quick tour** — command categories and the typical workflow
+5. **Smart next step** — detects if you have existing code or a fresh directory and suggests the right command
 
 ### Update
 
@@ -358,6 +373,7 @@ Reads all state files (handoff, feature checklist, plan) and immediately picks u
 
 ### The full flow
 ```
+/stp:welcome           → First-time setup: system check, plugin audit, profile selection, quick tour
 /stp:whiteboard        → Shape ideas, research approaches (optional, anytime)
 /stp:new-project       → Everything needed to start: PRD.md, PLAN.md, CONTEXT.md, CHANGELOG.md, VERSION, CLAUDE.md
 /stp:plan              → .stp/docs/PLAN.md (how we're building it — verified by Critic)
