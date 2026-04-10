@@ -5,6 +5,16 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.5] — 2026-04-10 — remove GSD references from upgrade command
+
+### Summary
+
+The `/stp:upgrade` command was incorrectly picking up GSD local patches from the user's global CLAUDE.md and surfacing them as STP upgrade actions. Removed the naive "Local Patches" grep — npm installs now handle patch backup automatically via the SHA manifest.
+
+### Fixed
+- Upgrade Step 7: no longer greps global CLAUDE.md for "Local Patches" (was showing GSD paths)
+- npm installs handle local patches via installer manifest — no manual reapply needed
+
 ## [0.4.4] — 2026-04-10 — statusline reliability + upgrade notifications
 
 ### Summary
