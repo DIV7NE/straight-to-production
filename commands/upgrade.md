@@ -396,6 +396,65 @@ Commands renamed in this version:
   NEW: /stp:work-adaptive (impact scan → auto-routes to quick or full)
 ```
 
+**Structural changes (v0.4.0 token optimization):**
+Surface these to the user if upgrading from pre-v0.4.0:
+```
+Token optimization changes in this version:
+
+  CLAUDE.md           34.7KB → 19.1KB (compressed index + on-demand refs)
+  work-full.md        1027 → 90 lines (6 phase files loaded on demand)
+  work-quick.md       932 → 65 lines (4 step files loaded on demand)
+  critic.md           392 → 128 lines (all 7 criteria preserved)
+  cli-output-format   380 → 79 lines (table specs, not full examples)
+  set-profile-model   108 → 82 lines (now shows quality/cost/tradeoffs)
+
+  Default profile     intended → balanced (~50% Opus savings)
+  New profile          sonnet-main (no Opus needed, ~85% cheaper)
+  New flags            --skip-research, --skip-qa (work-quick)
+                       --section-approval (work-full Phase 5)
+  New rule             model="sonnet" enforced on all Agent() calls
+  Statusline           shows version + commit count when update available
+  Phase 5              batch approval by default (1 prompt, not 13)
+
+  Extracted to references/:
+    agent-teams-vs-subagents.md, companion-plugins.md,
+    gate-audit.md, shared/stp-section-markers.md,
+    shared/companion-plugin-checks.md
+```
+
+### Step 8b: Profile Migration (if upgrading from pre-v0.4.0)
+
+Check the current profile and whether the user is aware of the new default + new profiles:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" current
+```
+
+**If `intended-profile` is active AND the previous STP version was < 0.4.0** (check from CHANGELOG or old VERSION):
+
+The default changed from `intended-profile` to `balanced-profile` in v0.4.0 for token efficiency (~50% Opus savings). The user's explicit choice is preserved — they stay on `intended` — but inform them:
+
+```
+AskUserQuestion(
+  question: "STP v0.4.0 changed the default profile from intended to balanced (50% cheaper, ~95% quality). Your project is on intended-profile (preserved from before the upgrade). A new sonnet-main profile is also available (no Opus needed, ~85% cheaper). Want to review profiles?",
+  header: "Profile",
+  options: [
+    "(Recommended) Switch to balanced-profile — best cost/quality ratio for most work",
+    "Stay on intended-profile — I want maximum quality, cost is fine",
+    "Show me all profiles — run /stp:set-profile-model to compare",
+    "Skip — I'll decide later"
+  ]
+)
+```
+
+If they pick "Switch to balanced": `node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" set balanced --raw`
+If they pick "Show me all profiles": `node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" all-tables`
+If they pick "Stay" or "Skip": no change, continue to Step 9.
+
+**If `balanced-profile` or `budget-profile` is active:** no action needed — they're already on an efficient profile. Just note in the upgrade report: `Profile: [current] (no change needed)`.
+
+**If no profile.json exists** (fresh project or pre-profile STP): the new default (`balanced-profile`) will apply automatically. Note: `Profile: balanced-profile (new default applied)`.
+
 ### Step 9: Report (three blocks — upgrade summary + what's new + RESTART banner)
 
 Present the summary in **three separate echo -e blocks** so the restart banner is visually impossible to miss.
@@ -414,6 +473,7 @@ Present the summary in **three separate echo -e blocks** so the restart banner i
 ║  [✓/✗] Reference files refreshed (.stp/references/)   ║
 ║  [✓/✗] Project CLAUDE.md sections refreshed           ║
 ║  [✓/✗] Global CLAUDE.md (STP Awareness)              ║
+║  [✓/─] Profile ([current] — reviewed/default applied) ║
 ║  [✓/─] PRD.md format (structured / migrated)          ║
 ║  [✓/─] Layout migration                               ║
 ║  [✓/─] Hook scripts (all executable)                  ║
