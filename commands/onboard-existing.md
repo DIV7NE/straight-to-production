@@ -156,64 +156,24 @@ AskUserQuestion(
 When writing STP sections to ANY CLAUDE.md, wrap each STP-managed section in HTML comment markers so `/stp:upgrade` can find and refresh them without touching user content:
 
 ```
-<!-- STP v0.3.0 -->
-<!-- STP:stp-header:start -->
-# Project Name — description
-## Architecture
-...
-<!-- STP:stp-header:end -->
-
-<!-- STP:stp-confirmation-gate:start -->
-## Pre-Work Confirmation Gate (MANDATORY)
-Before ANY STP command writes code, modifies files, or runs destructive
-actions, Claude MUST present the plan and call AskUserQuestion with a
-"(Recommended)" option listed FIRST. Exceptions: user said "just do it"
-in session, answered a prior AskUserQuestion covering this work, the
-action is read-only, or `/stp:autopilot` is active.
-<!-- STP:stp-confirmation-gate:end -->
-
-<!-- STP:stp-philosophy:start -->
-## Philosophy (NON-NEGOTIABLE)
-...
-<!-- STP:stp-philosophy:end -->
-
-<!-- STP:stp-plugins:start -->
-## Required Companion Plugins
-...
-<!-- STP:stp-plugins:end -->
-
-<!-- STP:stp-rules:start -->
-## Key Rules
-...
-<!-- STP:stp-rules:end -->
-
-<!-- STP:stp-dirmap:start -->
-## Directory Map
-...
-<!-- STP:stp-dirmap:end -->
-
-<!-- STP:stp-hooks:start -->
-## Hooks
-...
-<!-- STP:stp-hooks:end -->
-
-<!-- STP:stp-effort:start -->
-## Effort Levels
-...
-<!-- STP:stp-effort:end -->
-
-<!-- STP:stp-output-format:start -->
-## CLI Output Formatting (ENFORCED)
-ALL STP command output MUST use the visual templates in `.stp/references/cli-output-format.md`. Read it before displaying any status, progress, or completion information. Key rules:
-- **Output formatted blocks via `echo -e` (Bash tool)** to render ANSI colors — monochrome is NOT acceptable
-- Every `/stp:` command starts with a **Command Banner** (╔═╗ cyan double-line box with command name + tagline)
-- Major events (feature complete, milestone, bug fixed) use **cyan double-line boxes** (╔═╗)
-- Evidence/data (scans, reports, QA) use **dim cyan single-line boxes** (┌─┐)
-- Teach moments use **dim magenta prefix** (┊) — subtle, never outshine actual output
-- Color palette: cyan borders, bold white titles, green ✓, red ✗, yellow ⚠, bold yellow ★, blue ► next steps
-- Always `\033[0m` reset after every colored segment
-<!-- STP:stp-output-format:end -->
+<!-- STP v[VERSION] -->
+<!-- STP:stp-header:start -->            ...header/arch...                    <!-- STP:stp-header:end -->
+<!-- STP:stp-confirmation-gate:start --> ...pre-work confirmation gate...     <!-- STP:stp-confirmation-gate:end -->
+<!-- STP:stp-subagent-cost:start -->     ...model="sonnet" enforcement...     <!-- STP:stp-subagent-cost:end -->
+<!-- STP:stp-profile-aware:start -->     ...profile index + resolution...     <!-- STP:stp-profile-aware:end -->
+<!-- STP:stp-commands:start -->          ...command list...                   <!-- STP:stp-commands:end -->
+<!-- STP:stp-plugins:start -->           ...companion plugins...              <!-- STP:stp-plugins:end -->
+<!-- STP:stp-philosophy:start -->        ...philosophy...                     <!-- STP:stp-philosophy:end -->
+<!-- STP:stp-rules:start -->             ...key rules...                      <!-- STP:stp-rules:end -->
+<!-- STP:stp-output-format:start -->     ...CLI output formatting...          <!-- STP:stp-output-format:end -->
+<!-- STP:stp-dirmap:start -->            ...directory map...                  <!-- STP:stp-dirmap:end -->
+<!-- STP:stp-statusline:start -->        ...statusline...                     <!-- STP:stp-statusline:end -->
+<!-- STP:stp-hooks:start -->             ...hooks list...                     <!-- STP:stp-hooks:end -->
+<!-- STP:stp-research:start -->          ...research sources...               <!-- STP:stp-research:end -->
+<!-- STP:stp-effort:start -->            ...effort levels...                  <!-- STP:stp-effort:end -->
 ```
+
+The actual content for each section comes from the plugin's canonical CLAUDE.md at `${CLAUDE_PLUGIN_ROOT}/CLAUDE.md`. Read each section from there and write it with the markers. Do NOT hardcode section content in this command file.
 
 **User-owned sections** (`## Project Conventions`, `## Standards Index`, any custom sections) go OUTSIDE these markers — they are never touched by `/stp:upgrade`.
 

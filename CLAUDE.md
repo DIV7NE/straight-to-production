@@ -60,6 +60,11 @@ Before ANY STP command writes code, modifies files, runs destructive actions, or
 
 > **Profile-dependent model assignments.** The sub-agent models above are NOT hardcoded in STP command files — they're resolved per-profile via `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs`. See `## Profile-Aware Execution` below for the resolver pattern every STP command MUST use.
 
+<!-- STP:stp-subagent-cost:start -->
+## Subagent Cost Discipline (STRICTLY ENFORCED)
+Every `Agent()` call — whether inside STP commands or freeform conversation — MUST include an explicit `model=` parameter. **Never omit it.** Omitting causes subagents to inherit Opus ($15/MTok) when Sonnet ($3/MTok) handles research, exploration, code review, and building equally well. Default: `model="sonnet"` for all subagent types. Only use `model="opus"` when the user explicitly requests it for a specific task. Only use `model="haiku"` when the resolved profile says so (budget/sonnet-main critic and QA).
+<!-- STP:stp-subagent-cost:end -->
+
 <!-- STP:stp-profile-aware:start -->
 ## Profile-Aware Execution (MANDATORY for every STP command)
 
