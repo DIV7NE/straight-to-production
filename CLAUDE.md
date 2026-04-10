@@ -53,8 +53,8 @@ Before ANY STP command writes code, modifies files, runs destructive actions, or
 ## Architecture
 - **Opus** = CTO (plans, researches, reviews, merges, teaches). Builds foundation work directly (DB, auth, config).
 - **stp-executor** = builder sub-agent (features on top of foundation, worktree isolation, parallel one-shot subagents via Task tool for wave parallelism — NOT Agent Teams; see `## Agent Teams vs Subagents` for cost rationale). Model = `sonnet` in all profiles.
-- **stp-qa** = independent tester sub-agent (tests running app against PRD acceptance criteria). Model = `sonnet` in all profiles.
-- **stp-critic** = code reviewer sub-agent (7 criteria + Double-Check Protocol + Claim Verification Gate + 6-layer verification). Model = `sonnet` in intended/balanced, **`haiku` → sonnet escalation in budget-profile** when ≥2 critical issues found.
+- **stp-qa** = independent tester sub-agent (tests running app against PRD acceptance criteria). Model = `sonnet` in intended/balanced/budget, `haiku` in sonnet-main.
+- **stp-critic** = code reviewer sub-agent (7 criteria + Double-Check Protocol + Claim Verification Gate + 6-layer verification). Model = `sonnet` in intended/balanced, **`haiku` → sonnet escalation in budget-profile and sonnet-main** when ≥2 critical issues found.
 - **stp-researcher** = context-isolation sub-agent for external research (Context7/Tavily/WebSearch). Model = `inline` in intended-profile (main session handles it), `sonnet` in balanced/budget.
 - **stp-explorer** = context-isolation sub-agent for codebase exploration (Glob/Grep across >5 files). Model = `inline` in intended-profile, `sonnet` in balanced/budget.
 
@@ -117,7 +117,7 @@ When user describes work WITHOUT specifying a command, run **Impact Scan** silen
 - `/stp:continue` — "Pick up where I left off." Reads state files, starts working immediately
 - `/stp:pause` — "I'm done for now." Saves context for next session
 - `/stp:upgrade` — "Update STP." Pulls latest + syncs companion plugins + refreshes CLAUDE.md sections + verifies hooks
-- `/stp:set-profile-model` — "Pick how STP allocates models." Switch between intended-profile (Opus 1M main + Sonnet sub-agents, original STP behavior), balanced-profile (Opus plans + Sonnet executes + mandatory researcher/explorer sub-agents), or budget-profile (Sonnet writes + Haiku critic with Sonnet escalation, strict context discipline)
+- `/stp:set-profile-model` — "Pick how STP allocates models." Switch between intended-profile (Opus inline research), balanced-profile (default — Opus plans + Sonnet subagents), budget-profile (Sonnet + Haiku critic), or sonnet-main (Sonnet 200K primary, no Opus needed)
 
 <!-- STP:stp-plugins:start -->
 ## Required Companion Plugins & MCP Servers

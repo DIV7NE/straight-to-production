@@ -40,19 +40,21 @@ process.stdin.on('end', () => {
       parts.push(`\x1b[34mv${ver}\x1b[0m`);
     } catch (e) {}
 
-    // Active profile tag (only show if not the default intended-profile)
-    // Color code: intended = no tag (silent default), balanced = yellow, budget = orange
+    // Active profile tag (only show if not the default balanced-profile)
+    // Color code: balanced = no tag (silent default), intended = cyan, budget = orange, sonnet-main = magenta
     try {
       const profileRaw = fs.readFileSync('.stp/state/profile.json', 'utf8');
       const profileData = JSON.parse(profileRaw);
-      const profile = profileData.profile || 'intended-profile';
-      if (profile === 'balanced-profile') {
-        parts.push('\x1b[33mbalanced\x1b[0m'); // yellow
+      const profile = profileData.profile || 'balanced-profile';
+      if (profile === 'intended-profile') {
+        parts.push('\x1b[36mintended\x1b[0m'); // cyan
       } else if (profile === 'budget-profile') {
         parts.push('\x1b[38;5;208mbudget\x1b[0m'); // orange
+      } else if (profile === 'sonnet-main') {
+        parts.push('\x1b[35msonnet-main\x1b[0m'); // magenta
       }
-      // intended-profile = no tag (it's the default, no need to clutter)
-    } catch (e) {} // no profile.json = intended-profile, no tag
+      // balanced-profile = no tag (it's the default, no need to clutter)
+    } catch (e) {} // no profile.json = balanced-profile, no tag
 
     // Active feature + progress OR plan progress
     const featureFile = '.stp/state/current-feature.md';
