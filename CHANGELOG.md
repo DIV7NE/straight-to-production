@@ -5,30 +5,18 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.7] — 2026-04-12 — fix: npm install now creates skill symlinks automatically
+## [0.5.8] — 2026-04-12 — fix: remove skill symlinks, rely on plugin system
 
 ### Summary
 
-`npm i -g stp-cc` now handles everything in one shot — no separate `/stp:upgrade` needed. The installer creates skill symlinks in `~/.claude/skills/` (gstack pattern) and copies the correct `skills/` + `agents/` directories. Previously, `commands/` (deleted in v0.5.5) was still referenced and symlinks required a manual step.
+Reverts the symlink approach from v0.5.6-0.5.7. Symlinks in `~/.claude/skills/` registered skills as bare names (`/welcome`, `/upgrade`) instead of with the `stp:` prefix (`/stp:welcome`, `/stp:upgrade`), polluting the command picker. The actual fix was updating `installed_plugins.json` to point to the live source directory instead of a stale v0.2.0 cache — the plugin system handles the `stp:` prefix correctly.
 
 ### Fixed
-- `bin/install.js`: replaced stale `commands` with `skills` + `agents` in COPY_ITEMS
-- `bin/install.js`: creates `~/.claude/skills/` symlinks automatically on install/upgrade
-- `bin/uninstall.js`: cleans up skill symlinks on uninstall
+- Removed symlink creation from `bin/install.js`, `bin/uninstall.js`, `welcome/SKILL.md`, `upgrade/SKILL.md`
+- `bin/install.js`: COPY_ITEMS now includes `skills` + `agents` (was stale `commands` ref from pre-v0.5.5)
 
-## [0.5.6] — 2026-04-12 — feat: global skill symlinks for cross-project discovery
-
-### Summary
-
-STP skills now register globally via symlinks in `~/.claude/skills/` (same pattern as gstack). Both `/stp:welcome` and `/stp:upgrade` create and refresh these symlinks automatically. Previously, skills only appeared in the autocomplete picker inside the STP source repo due to a stale plugin cache.
-
-### Added
-- `/stp:welcome` Phase 1: creates skill symlinks during first-time setup
-- `/stp:upgrade` Step 5.6: refreshes skill symlinks after pulling new code — picks up new skills automatically
-- Conflict detection: skips symlinks that would overwrite another plugin's skill (e.g., gstack's `review`)
-
-### Fixed
-- `marketplace.json` version synced to match `plugin.json` (was drifted at 0.4.1)
+### Removed
+- Skill symlink logic from installer, uninstaller, welcome, and upgrade commands
 
 ## [0.5.5] — 2026-04-12 — fix: slash commands now register in Claude Code
 

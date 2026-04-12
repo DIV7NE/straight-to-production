@@ -54,35 +54,6 @@ Report: "✓ Statusline registered — restart Claude Code to activate."
 
 If already registered, report: "✓ Statusline: registered"
 
-**Skill symlinks:** Register STP skills globally so `/stp:*` commands appear in the autocomplete picker across all projects:
-```bash
-# Ensure skills directory exists
-mkdir -p "$HOME/.claude/skills"
-
-# Parent symlink: ~/.claude/skills/stp → plugin skills directory
-ln -sfn "${CLAUDE_PLUGIN_ROOT}/skills" "$HOME/.claude/skills/stp"
-
-# Individual skill symlinks (gstack pattern)
-SKIP_COUNT=0; OK_COUNT=0
-for skill_dir in "${CLAUDE_PLUGIN_ROOT}/skills"/*/; do
-  [ -d "$skill_dir" ] || continue
-  skill=$(basename "$skill_dir")
-  target="$HOME/.claude/skills/$skill"
-  if [ -L "$target" ] && [ "$(readlink "$target")" != "stp/$skill" ]; then
-    echo "skip: $skill (owned by $(readlink "$target"))"
-    SKIP_COUNT=$((SKIP_COUNT + 1))
-  elif [ -d "$target" ] && [ ! -L "$target" ]; then
-    echo "skip: $skill (real directory exists)"
-    SKIP_COUNT=$((SKIP_COUNT + 1))
-  else
-    ln -sfn "stp/$skill" "$target"
-    OK_COUNT=$((OK_COUNT + 1))
-  fi
-done
-echo "Skills linked: $OK_COUNT ok, $SKIP_COUNT skipped"
-```
-Report: "✓ Skills: [N] commands linked to ~/.claude/skills/" (and note any skipped conflicts).
-
 Don't stop. Continue to Phase 2.
 
 ## Phase 2 — Companion Plugin Audit
