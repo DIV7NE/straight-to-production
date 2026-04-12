@@ -8,7 +8,7 @@
 
 <br />
 
-[![npm](https://img.shields.io/npm/v/stp-cc?style=for-the-badge&labelColor=0e1117&color=06b6d4)](https://www.npmjs.com/package/stp-cc)
+[![Version](https://img.shields.io/github/v/tag/DIV7NE/straight-to-production?label=version&style=for-the-badge&labelColor=0e1117&color=06b6d4)](https://github.com/DIV7NE/straight-to-production/releases)
 [![License](https://img.shields.io/badge/license-MIT-06b6d4?style=for-the-badge&labelColor=0e1117)](LICENSE)
 [![Claude](https://img.shields.io/badge/claude-opus%204.6-22d3ee?style=for-the-badge&labelColor=0e1117&logo=anthropic&logoColor=white)](https://claude.ai)
 [![Status](https://img.shields.io/badge/status-active-10b981?style=for-the-badge&labelColor=0e1117)]()
