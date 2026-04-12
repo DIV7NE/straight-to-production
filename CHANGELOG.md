@@ -5,6 +5,20 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.6] — 2026-04-12 — feat: global skill symlinks for cross-project discovery
+
+### Summary
+
+STP skills now register globally via symlinks in `~/.claude/skills/` (same pattern as gstack). Both `/stp:welcome` and `/stp:upgrade` create and refresh these symlinks automatically. Previously, skills only appeared in the autocomplete picker inside the STP source repo due to a stale plugin cache.
+
+### Added
+- `/stp:welcome` Phase 1: creates skill symlinks during first-time setup
+- `/stp:upgrade` Step 5.6: refreshes skill symlinks after pulling new code — picks up new skills automatically
+- Conflict detection: skips symlinks that would overwrite another plugin's skill (e.g., gstack's `review`)
+
+### Fixed
+- `marketplace.json` version synced to match `plugin.json` (was drifted at 0.4.1)
+
 ## [0.5.5] — 2026-04-12 — fix: slash commands now register in Claude Code
 
 ### Summary

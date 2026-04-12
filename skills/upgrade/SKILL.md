@@ -264,6 +264,38 @@ bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/setup-references.sh" "${CLAUDE_PLUGIN_
 
 This ensures new reference files added in later STP versions get deployed to existing projects. The script is idempotent — it overwrites existing files and creates new directories as needed.
 
+### Step 5.6: Refresh Skill Symlinks
+
+Re-create symlinks in `~/.claude/skills/` so STP commands appear in the autocomplete picker across all projects (same pattern as gstack):
+
+```bash
+mkdir -p "$HOME/.claude/skills"
+
+# Parent symlink: ~/.claude/skills/stp → plugin skills directory
+ln -sfn "${CLAUDE_PLUGIN_ROOT}/skills" "$HOME/.claude/skills/stp"
+
+# Individual skill symlinks
+SKIP_COUNT=0; OK_COUNT=0
+for skill_dir in "${CLAUDE_PLUGIN_ROOT}/skills"/*/; do
+  [ -d "$skill_dir" ] || continue
+  skill=$(basename "$skill_dir")
+  target="$HOME/.claude/skills/$skill"
+  if [ -L "$target" ] && [ "$(readlink "$target")" != "stp/$skill" ]; then
+    echo "skip: $skill (owned by $(readlink "$target"))"
+    SKIP_COUNT=$((SKIP_COUNT + 1))
+  elif [ -d "$target" ] && [ ! -L "$target" ]; then
+    echo "skip: $skill (real directory exists)"
+    SKIP_COUNT=$((SKIP_COUNT + 1))
+  else
+    ln -sfn "stp/$skill" "$target"
+    OK_COUNT=$((OK_COUNT + 1))
+  fi
+done
+echo "Skills linked: $OK_COUNT ok, $SKIP_COUNT skipped"
+```
+
+This is idempotent — existing correct symlinks are overwritten, conflicts with other plugins (e.g., gstack's `review`) are skipped. Add to the upgrade checklist: `[✓/✗] Skill symlinks ([N] linked, [N] skipped)`.
+
 ### Step 6: Verify Hooks Are Active
 
 STP hooks are defined in the plugin's `hooks.json` and loaded automatically by Claude Code from the plugin directory. No project-level copy needed. But verify they're functioning:
