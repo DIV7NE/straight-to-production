@@ -5,6 +5,16 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.10] — 2026-04-12 — deprecate npx stp-cc in favor of plugin system
+
+### Summary
+
+`npx stp-cc` now prints the correct install instructions instead of performing the broken file-copy install. The npm package is deprecated — STP installs through Claude Code's native plugin system.
+
+### Changed
+- `bin/cli.js`: replaced file-copy installer with deprecation notice + correct install commands
+- Install flow: `/plugin marketplace add DIV7NE/straight-to-production` → `/plugin install stp@stp`
+
 ## [0.5.9] — 2026-04-12 — fix: proper plugin system registration via marketplace
 
 ### Summary

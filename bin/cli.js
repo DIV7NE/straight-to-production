@@ -1,35 +1,37 @@
 #!/usr/bin/env node
 'use strict';
 
-const args = process.argv.slice(2);
+const pkg = require('../package.json');
 
-if (args.includes('--version') || args.includes('-v')) {
-  console.log(require('../package.json').version);
+const c = {
+  cyan:   (s) => `\x1b[36m${s}\x1b[0m`,
+  green:  (s) => `\x1b[32m${s}\x1b[0m`,
+  yellow: (s) => `\x1b[33m${s}\x1b[0m`,
+  bold:   (s) => `\x1b[1m${s}\x1b[0m`,
+  dim:    (s) => `\x1b[2m${s}\x1b[0m`,
+};
+
+if (process.argv.includes('--version') || process.argv.includes('-v')) {
+  console.log(pkg.version);
   process.exit(0);
 }
 
-if (args.includes('--help') || args.includes('-h')) {
-  const pkg = require('../package.json');
-  console.log(`
-  stp-cc v${pkg.version} — Straight To Production for Claude Code
-
-  Usage:
-    npx stp-cc              Install or upgrade STP
-    npx stp-cc --uninstall  Remove STP completely
-    npx stp-cc --version    Show version
-    npx stp-cc --help       Show this help
-
-  After install, start a Claude Code session and run:
-    /stp:new-project         Start a new project
-    /stp:onboard-existing    Onboard existing codebase
-
-  More info: https://github.com/DIV7NE/stp
-`);
-  process.exit(0);
-}
-
-if (args.includes('--uninstall') || args.includes('-u')) {
-  require('./uninstall').run();
-} else {
-  require('./install').run();
-}
+console.log('');
+console.log(c.cyan('╔═══════════════════════════════════════════════════════╗'));
+console.log(c.cyan('║') + c.bold('  STP — Straight To Production                        ') + c.cyan('║'));
+console.log(c.cyan('║') + c.dim(`  v${pkg.version}`) + ' '.repeat(50 - pkg.version.length) + c.cyan('║'));
+console.log(c.cyan('╠═══════════════════════════════════════════════════════╣'));
+console.log(c.cyan('║') + '                                                       ' + c.cyan('║'));
+console.log(c.cyan('║') + c.yellow('  ⚠  npx stp-cc is deprecated.                        ') + c.cyan('║'));
+console.log(c.cyan('║') + '                                                       ' + c.cyan('║'));
+console.log(c.cyan('║') + '  STP installs through Claude Code\'s plugin system.    ' + c.cyan('║'));
+console.log(c.cyan('║') + '  Open Claude Code and run these two commands:         ' + c.cyan('║'));
+console.log(c.cyan('║') + '                                                       ' + c.cyan('║'));
+console.log(c.cyan('║') + c.green('  /plugin marketplace add DIV7NE/straight-to-production') + c.cyan('║'));
+console.log(c.cyan('║') + c.green('  /plugin install stp@stp                              ') + c.cyan('║'));
+console.log(c.cyan('║') + '                                                       ' + c.cyan('║'));
+console.log(c.cyan('║') + '  That\'s it. Skills show as /stp:welcome, /stp:plan,   ' + c.cyan('║'));
+console.log(c.cyan('║') + '  /stp:work-quick, etc. Updates: re-run /plugin install' + c.cyan('║'));
+console.log(c.cyan('║') + '                                                       ' + c.cyan('║'));
+console.log(c.cyan('╚═══════════════════════════════════════════════════════╝'));
+console.log('');
