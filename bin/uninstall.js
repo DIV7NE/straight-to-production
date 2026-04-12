@@ -1,7 +1,8 @@
 'use strict';
 
 const fs = require('fs');
-const { PLUGIN_DIR, readManifest, deregisterStatusline } = require('./install');
+const path = require('path');
+const { PLUGIN_DIR, CLAUDE_DIR, readManifest, deregisterStatusline } = require('./install');
 
 const c = {
   cyan:   (s) => `\x1b[36m${s}\x1b[0m`,
@@ -34,6 +35,27 @@ function run() {
     process.exit(1);
   }
 
+  // Remove skill symlinks
+  const skillsDir = path.join(CLAUDE_DIR, 'skills');
+  let removedLinks = 0;
+  try {
+    for (const entry of fs.readdirSync(skillsDir)) {
+      const full = path.join(skillsDir, entry);
+      try {
+        if (fs.lstatSync(full).isSymbolicLink()) {
+          const dest = fs.readlinkSync(full);
+          if (dest.startsWith('stp/') || dest.startsWith('stp\\')) {
+            fs.unlinkSync(full);
+            removedLinks++;
+          }
+        }
+      } catch { /* skip */ }
+    }
+    // Remove parent symlink
+    const parentLink = path.join(skillsDir, 'stp');
+    if (fs.existsSync(parentLink)) { fs.unlinkSync(parentLink); removedLinks++; }
+  } catch { /* skills dir may not exist */ }
+
   // Deregister statusline from settings.json
   deregisterStatusline();
 
@@ -44,6 +66,7 @@ function run() {
   console.log(c.cyan('\u2551') + `  Removed ${fileCount} files from:` + ' '.repeat(Math.max(0, 14 - String(fileCount).length)) + c.cyan('\u2551'));
   console.log(c.cyan('\u2551') + c.dim(`  ${PLUGIN_DIR}`.slice(0, 43).padEnd(43)) + c.cyan('\u2551'));
   console.log(c.cyan('\u2551') + '  Statusline deregistered                  ' + c.cyan('\u2551'));
+  console.log(c.cyan('\u2551') + `  Skill symlinks removed (${removedLinks})` + ' '.repeat(Math.max(0, 19 - String(removedLinks).length)) + c.cyan('\u2551'));
   console.log(c.cyan('\u2551') + '                                           ' + c.cyan('\u2551'));
   console.log(c.cyan('\u2551') + '  Restart Claude Code to complete removal. ' + c.cyan('\u2551'));
   console.log(c.cyan('\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255D'));

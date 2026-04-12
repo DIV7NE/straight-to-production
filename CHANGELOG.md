@@ -5,6 +5,17 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.7] — 2026-04-12 — fix: npm install now creates skill symlinks automatically
+
+### Summary
+
+`npm i -g stp-cc` now handles everything in one shot — no separate `/stp:upgrade` needed. The installer creates skill symlinks in `~/.claude/skills/` (gstack pattern) and copies the correct `skills/` + `agents/` directories. Previously, `commands/` (deleted in v0.5.5) was still referenced and symlinks required a manual step.
+
+### Fixed
+- `bin/install.js`: replaced stale `commands` with `skills` + `agents` in COPY_ITEMS
+- `bin/install.js`: creates `~/.claude/skills/` symlinks automatically on install/upgrade
+- `bin/uninstall.js`: cleans up skill symlinks on uninstall
+
 ## [0.5.6] — 2026-04-12 — feat: global skill symlinks for cross-project discovery
 
 ### Summary

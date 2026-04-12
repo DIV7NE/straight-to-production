@@ -28,7 +28,8 @@ const BACKUP_ROOT = path.join(HOME, '.stp-local-patches');
 // Items to copy from the npm package into the plugin directory.
 // Order doesn't matter — each is copied recursively.
 const COPY_ITEMS = [
-  'commands',
+  'skills',
+  'agents',
   'hooks',
   'references',
   'templates',
@@ -196,6 +197,46 @@ function makeHooksExecutable(dir) {
   }
 }
 
+// ── Skill symlinks (gstack pattern) ─────────────────────────────────────────
+
+function createSkillSymlinks(pluginDir) {
+  const skillsDir = path.join(CLAUDE_DIR, 'skills');
+  const pluginSkillsDir = path.join(pluginDir, 'skills');
+
+  if (!fs.existsSync(pluginSkillsDir)) return { ok: 0, skipped: 0 };
+
+  fs.mkdirSync(skillsDir, { recursive: true });
+
+  // Parent symlink: ~/.claude/skills/stp → plugin skills directory
+  const parentLink = path.join(skillsDir, 'stp');
+  try { fs.unlinkSync(parentLink); } catch { /* doesn't exist yet */ }
+  fs.symlinkSync(pluginSkillsDir, parentLink);
+
+  // Individual skill symlinks (relative paths, same pattern as gstack)
+  let ok = 0, skipped = 0;
+  for (const entry of fs.readdirSync(pluginSkillsDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const skillTarget = path.join(skillsDir, entry.name);
+    const relLink = path.join('stp', entry.name);
+
+    // Check for conflicts with other plugins
+    try {
+      const stat = fs.lstatSync(skillTarget);
+      if (stat.isSymbolicLink()) {
+        const dest = fs.readlinkSync(skillTarget);
+        if (dest !== relLink) { skipped++; continue; } // another plugin owns it
+        fs.unlinkSync(skillTarget); // ours — refresh it
+      } else {
+        skipped++; continue; // real directory — don't touch
+      }
+    } catch { /* doesn't exist — will create */ }
+
+    try { fs.symlinkSync(relLink, skillTarget); ok++; } catch { skipped++; }
+  }
+
+  return { ok, skipped };
+}
+
 // ── Main install ─────────────────────────────────────────────────────────────
 
 function run() {
@@ -276,6 +317,7 @@ function run() {
 
   makeHooksExecutable(PLUGIN_DIR);
   registerStatusline(PLUGIN_DIR);
+  const symlinks = createSkillSymlinks(PLUGIN_DIR);
   const manifest = writeManifest(PLUGIN_DIR, PKG.version);
 
   // ── Report ─────────────────────────────────────────────────────────────
@@ -283,6 +325,7 @@ function run() {
   console.log(c.green('  \u2713 Plugin files installed') + c.dim(` (${fileCount} files)`));
   console.log(c.green('  \u2713 Hook scripts executable'));
   console.log(c.green('  \u2713 Statusline registered'));
+  console.log(c.green('  \u2713 Skill symlinks created') + c.dim(` (${symlinks.ok} linked${symlinks.skipped ? `, ${symlinks.skipped} skipped` : ''})`));
   console.log(c.green('  \u2713 Install manifest written') + c.dim(` (${manifest.file_count} tracked)`));
 
   if (backupPath) {
