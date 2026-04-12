@@ -1,6 +1,6 @@
 {
-  "name": "pilot-dev",
-  "description": "Development marketplace for STP plugin",
+  "name": "stp",
+  "description": "Straight To Production — your CTO in a plugin.",
   "owner": {
     "name": "visionch"
   },
