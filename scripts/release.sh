@@ -1,22 +1,21 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════════════════════
-# STP Release Script — One command: bump, commit, tag, push, npm publish, gh release
+# STP Release Script — One command: bump, commit, tag, push, gh release
 #
 # Usage:
-#   ./scripts/release.sh patch "add npm distribution"
+#   ./scripts/release.sh patch "fix whiteboard gate false positive"
 #   ./scripts/release.sh minor "new whiteboard command"
 #   ./scripts/release.sh major "breaking state file format change"
 #
 # What it does (in order):
 #   1. Pre-flight checks (clean tree, on main, tools available)
-#   2. Bumps version in plugin.json + package.json
+#   2. Bumps version in plugin.json + marketplace.json + package.json
 #   3. Generates CHANGELOG entry from git log since last tag
 #   4. Commits + tags
 #   5. Pushes to origin
-#   6. Publishes to npm
-#   7. Creates GitHub Release
+#   6. Creates GitHub Release
 #
-# First time? Run `npm login` once before your first release.
+# Users get updates via: /plugin install stp@stp
 # ═══════════════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
@@ -99,10 +98,8 @@ fi
 ok "Clean working tree"
 
 # Must have required tools
-command -v npm >/dev/null  || fail "npm not found"
 command -v gh >/dev/null   || fail "gh CLI not found (install: https://cli.github.com)"
-npm whoami &>/dev/null     || fail "Not logged into npm. Run: npm login"
-ok "Tools available (npm, gh, npm auth)"
+ok "Tools available (gh)"
 
 # ── Read current version ──────────────────────────────────────────────────────
 CURRENT=$(grep -m1 '"version"' "$PLUGIN_JSON" | sed 's/.*"\([0-9][0-9.]*\)".*/\1/')
@@ -168,6 +165,11 @@ info "Bumping versions..."
 sed -i "s/\"version\": \"${CURRENT}\"/\"version\": \"${NEW}\"/" "$PLUGIN_JSON"
 ok "plugin.json: ${CURRENT} → ${NEW}"
 
+# marketplace.json
+MARKETPLACE_JSON=".claude-plugin/marketplace.json"
+sed -i "s/\"version\": \"${CURRENT}\"/\"version\": \"${NEW}\"/" "$MARKETPLACE_JSON"
+ok "marketplace.json: ${CURRENT} → ${NEW}"
+
 # package.json
 sed -i "s/\"version\": \"${CURRENT}\"/\"version\": \"${NEW}\"/" "$PACKAGE_JSON"
 ok "package.json: ${CURRENT} → ${NEW}"
@@ -213,7 +215,7 @@ ok "CHANGELOG.md updated"
 # ── Step 3: Commit + tag ─────────────────────────────────────────────────────
 info "Committing..."
 
-git add "$PLUGIN_JSON" "$PACKAGE_JSON" "$CHANGELOG"
+git add "$PLUGIN_JSON" "$MARKETPLACE_JSON" "$PACKAGE_JSON" "$CHANGELOG"
 [[ -f "VERSION" ]] && git add VERSION
 
 # Also stage any other tracked changes (new files from this release cycle)
@@ -237,13 +239,7 @@ git push origin main
 git push origin "v${NEW}"
 ok "Pushed commits + tag"
 
-# ── Step 5: npm publish ──────────────────────────────────────────────────────
-info "Publishing to npm..."
-
-npm publish
-ok "Published stp-cc@${NEW} to npm"
-
-# ── Step 6: GitHub Release ───────────────────────────────────────────────────
+# ── Step 5: GitHub Release ───────────────────────────────────────────────────
 info "Creating GitHub Release..."
 
 gh release create "v${NEW}" \
