@@ -5,6 +5,20 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.9] — 2026-04-12 — fix: proper plugin system registration via marketplace
+
+### Summary
+
+The npm installer and manual file edits cannot replicate the opaque internal state that only `/plugin install` creates. STP now ships as a proper self-hosted marketplace (same pattern as `mksglu/context-mode`). Added the missing `"skills": "./skills/"` field to `plugin.json` — required for the plugin system to discover skills. Renamed marketplace from `pilot-dev` to `stp` so the install flow is `/plugin marketplace add DIV7NE/straight-to-production` → `/plugin install stp@stp`.
+
+### Fixed
+- `plugin.json`: added `"skills": "./skills/"` — the field context-mode has that STP was missing
+- `marketplace.json`: renamed from `pilot-dev` to `stp` for clean `stp@stp` install path
+
+### Changed
+- Install flow is now marketplace-based: `/plugin marketplace add` + `/plugin install stp@stp`
+- npm installer (`npx stp-cc`) is supplementary — the plugin system is the canonical install path
+
 ## [0.5.8] — 2026-04-12 — fix: remove skill symlinks, rely on plugin system
 
 ### Summary
