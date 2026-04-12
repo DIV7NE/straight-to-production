@@ -5,6 +5,25 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.11] — 2026-04-12 — session nudges + complete marketplace migration
+
+### Summary
+
+STP now fully operates through Claude Code's plugin marketplace. SessionStart hook detects first-ever installs and plugin version mismatches, nudging users to run `/stp:welcome` or `/stp:upgrade` as needed. All install references updated from `npx stp-cc` to `/plugin install stp@stp`. Release pipeline no longer publishes to npm.
+
+### Added
+- `check-project-sync.sh`: SessionStart hook detects first install (no `.stp/` dir) → prints `★ Run /stp:welcome`
+- `check-project-sync.sh`: detects plugin version > last-synced version → prints `⚠ Run /stp:upgrade`
+- `/stp:upgrade` Step 8c: writes `.stp/state/last-synced-version` marker after sync
+- `/stp:welcome` Phase 5: writes sync marker after setup
+
+### Changed
+- README.md: install/update/uninstall sections now use `/plugin` commands
+- `skills/upgrade/SKILL.md`: npm installs detected and redirected to plugin system
+- `hooks/scripts/check-upgrade.sh`: upgrade notification points to `/plugin install stp@stp`
+- `scripts/release.sh`: stripped npm publish, added marketplace.json bump
+- `.claude/commands/release.md`: stripped npm publish, updated completion report
+
 ## [0.5.10] — 2026-04-12 — deprecate npx stp-cc in favor of plugin system
 
 ### Summary
