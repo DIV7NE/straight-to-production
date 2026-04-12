@@ -27,8 +27,8 @@ if [ -f "$PLUGIN_DIR/.install-manifest.json" ]; then
   fi
 
   if [ "$LOCAL_VER" != "$REMOTE_VER" ]; then
-    echo "{\"ts\":$(date +%s)000,\"behind\":true,\"local_ver\":\"${LOCAL_VER}\",\"remote_ver\":\"${REMOTE_VER}\",\"behind_count\":1,\"source\":\"npm\",\"upgrade_cmd\":\"npx stp-cc@latest\"}" > "$CACHE_FILE"
-    echo "⬆ STP update available: v${LOCAL_VER} → v${REMOTE_VER}. Run /stp:upgrade or npx stp-cc@latest" >&2
+    echo "{\"ts\":$(date +%s)000,\"behind\":true,\"local_ver\":\"${LOCAL_VER}\",\"remote_ver\":\"${REMOTE_VER}\",\"behind_count\":1,\"source\":\"npm\",\"upgrade_cmd\":\"/plugin install stp@stp\"}" > "$CACHE_FILE"
+    echo "⬆ STP update available: v${LOCAL_VER} → v${REMOTE_VER}. Run: /plugin install stp@stp" >&2
   else
     echo "{\"ts\":$(date +%s)000,\"behind\":false,\"version\":\"${LOCAL_VER}\",\"source\":\"npm\"}" > "$CACHE_FILE"
   fi

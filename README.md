@@ -26,15 +26,16 @@
 
 ## Install
 
-```bash
-npx stp-cc
+Open Claude Code and run:
+
+```
+/plugin marketplace add DIV7NE/straight-to-production
+/plugin install stp@stp
 ```
 
-That's it. Copies the plugin into `~/.claude/plugins/stp/`, registers the statusline, checks your environment (Node, Python), and shows which MCP servers to install. Node 18+ required.
-
-Then start a Claude Code session and run:
+Then run the guided setup:
 ```
-/stp:welcome             # guided setup — checks plugins, picks profile, shows you around
+/stp:welcome             # checks plugins, picks profile, shows you around
 ```
 
 Or jump straight in:
@@ -55,24 +56,19 @@ First-time setup in 5 steps — takes about 2 minutes:
 
 ### Update
 
-```bash
-npx stp-cc@latest
+```
+/plugin install stp@stp
 ```
 
-Or from inside Claude Code:
-```
-/stp:upgrade
-```
-
-Both do the same thing. The installer detects your existing installation via its manifest, backs up any files you've locally modified to `~/.stp-local-patches/`, and overwrites with the new version. The statusline shows an update indicator at session start when a newer version is available on npm.
+Re-running the install command pulls the latest version from the marketplace.
 
 ### Uninstall
 
-```bash
-npx stp-cc --uninstall
+```
+/plugin uninstall stp@stp
 ```
 
-Removes all plugin files and deregisters the statusline. Your project files (`.stp/`, `CLAUDE.md`, etc.) are untouched.
+Removes the plugin. Your project files (`.stp/`, `CLAUDE.md`, etc.) are untouched.
 
 ---
 
@@ -152,7 +148,7 @@ STP:
 
 ```
 stp/
-├── bin/                # npm installer (npx stp-cc)
+├── bin/                # npm CLI (deprecated — prints plugin install instructions)
 │   ├── cli.js              # CLI entry point — install/uninstall/version/help
 │   ├── install.js           # Install + upgrade logic with SHA manifest
 │   └── uninstall.js         # Clean removal + statusline deregistration

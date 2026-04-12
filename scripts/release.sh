@@ -254,8 +254,9 @@ ${ENTRY}
 ---
 
 **Install / Update:**
-\`\`\`bash
-npx stp-cc@latest
+\`\`\`
+/plugin marketplace add DIV7NE/straight-to-production
+/plugin install stp@stp
 \`\`\`
 EOF
 )"
@@ -267,11 +268,9 @@ echo -e "${CYAN}╔════════════════════�
 echo -e "${CYAN}║${GREEN}  ✓ STP v${NEW} released ${RESET}${CYAN}║${RESET}"
 echo -e "${CYAN}╠───────────────────────────────────────────────╣${RESET}"
 echo -e "${CYAN}║${RESET}  git: v${CURRENT} → v${NEW} (${BUMP_TYPE})               ${CYAN}║${RESET}"
-echo -e "${CYAN}║${RESET}  npm: stp-cc@${NEW}                        ${CYAN}║${RESET}"
 echo -e "${CYAN}║${RESET}  gh:  github.com/DIV7NE/straight-to-production/releases      ${CYAN}║${RESET}"
 echo -e "${CYAN}╠───────────────────────────────────────────────╣${RESET}"
 echo -e "${CYAN}║${RESET}  Users update with:                         ${CYAN}║${RESET}"
-echo -e "${CYAN}║${RESET}    ${BOLD}npx stp-cc@latest${RESET}                        ${CYAN}║${RESET}"
-echo -e "${CYAN}║${RESET}    ${BOLD}/stp:upgrade${RESET}                              ${CYAN}║${RESET}"
+echo -e "${CYAN}║${RESET}    ${BOLD}/plugin install stp@stp${RESET}                   ${CYAN}║${RESET}"
 echo -e "${CYAN}╚═══════════════════════════════════════════════╝${RESET}"
 echo ""

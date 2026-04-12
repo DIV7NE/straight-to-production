@@ -34,12 +34,11 @@ PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT}"
 
 ```bash
 if [ -f "$PLUGIN_DIR/.install-manifest.json" ]; then
-  echo "install_type: npm"
-  # npm-managed install — delegate to npx
-  echo "Running npx stp-cc@latest..."
-  npx stp-cc@latest
-  # npx handles: file copy, manifest update, statusline registration, local patch backup
-  # After npx completes, skip to Step 3 (companion plugins) — Steps 2 and 5.5-6 are handled by the installer
+  echo "install_type: npm (deprecated)"
+  echo "This install used the old npx stp-cc method. Re-install via the plugin system:"
+  echo "  /plugin marketplace add DIV7NE/straight-to-production"
+  echo "  /plugin install stp@stp"
+  # Fall through to marketplace update logic below
 elif [ -L "$PLUGIN_DIR" ]; then
   echo "install_type: symlink (developer mode)"
   # Symlink to dev repo — pull from the actual repo
