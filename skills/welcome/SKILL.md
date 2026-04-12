@@ -335,6 +335,12 @@ Skip the new-project/onboard detection. Those commands are blocked on Pro plan. 
     questions, and scaffolds the foundation.
 ```
 
+**Write sync marker** (so SessionStart doesn't nag about /stp:upgrade):
+```bash
+mkdir -p .stp/state
+grep -m1 '"version"' "${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json" | sed 's/.*"\([0-9][0-9.]*\)".*/\1/' > .stp/state/last-synced-version
+```
+
 **Always end with:**
 ```
   ✓ STP is ready.

@@ -389,6 +389,17 @@ If they pick "Stay" or "Skip": no change, continue to Step 9.
 
 **If no profile.json exists** (fresh project or pre-profile STP): the new default (`balanced-profile`) will apply automatically. Note: `Profile: balanced-profile (new default applied)`.
 
+### Step 8c: Write Sync Marker
+
+Record the current plugin version so the SessionStart hook knows this project is in sync:
+
+```bash
+mkdir -p .stp/state
+grep -m1 '"version"' "${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json" | sed 's/.*"\([0-9][0-9.]*\)".*/\1/' > .stp/state/last-synced-version
+```
+
+This suppresses the "run /stp:upgrade" nudge at session start until the next plugin update.
+
 ### Step 9: Report (three blocks — upgrade summary + what's new + RESTART banner)
 
 Present the summary in **three separate echo -e blocks** so the restart banner is visually impossible to miss.
