@@ -116,7 +116,8 @@ If "Show install commands", print the relevant commands:
   Context7:      claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
   Tavily:        claude mcp add tavily -- npx -y tavily-mcp@latest
                  (requires TAVILY_API_KEY — get one at https://tavily.com)
-  Context Mode:  claude mcp add context-mode -- npx -y context-mode-mcp@latest
+  Context Mode:  /plugin marketplace add mksglu/context-mode
+                 /plugin install context-mode@context-mode
   ui-ux-pro-max: npm i -g uipro-cli && uipro init --ai claude
 
   After installing, restart Claude Code (/exit → claude) and run /stp:welcome again to verify.

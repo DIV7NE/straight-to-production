@@ -156,25 +156,25 @@ stp/
 │   ├── cli.js              # CLI entry point — install/uninstall/version/help
 │   ├── install.js           # Install + upgrade logic with SHA manifest
 │   └── uninstall.js         # Clean removal + statusline deregistration
-├── commands/           # 18 commands
-│   ├── welcome.md          # /stp:welcome — First-time guided setup
-│   ├── whiteboard.md       # /stp:whiteboard — Explore ideas + research (design brief output)
-│   ├── new-project.md      # /stp:new-project — Start a new project
-│   ├── plan.md             # /stp:plan — Design the architecture
-│   ├── work-adaptive.md    # /stp:work-adaptive — Impact scan → auto-routes to quick or full
-│   ├── work-full.md        # /stp:work-full — Full cycle (6 phase files loaded on demand)
-│   ├── work-quick.md       # /stp:work-quick — Quick build (4 step files loaded on demand)
-│   ├── research.md         # /stp:research — "I need to think first" (no code)
-│   ├── review.md           # /stp:review — "Grade my work" (7 criteria + 6-layer verification)
-│   ├── autopilot.md        # /stp:autopilot — "Build overnight" (AI decides)
-│   ├── debug.md            # /stp:debug — Systematic debugging (root cause + full doc cycle)
-│   ├── codebase-mapping.md # /stp:codebase-mapping — Export self-contained HTML codebase map
-│   ├── progress.md         # /stp:progress — Check project status
-│   ├── continue.md         # /stp:continue — Resume where you left off
-│   ├── pause.md            # /stp:pause — Save progress, take a break
-│   ├── onboard-existing.md # /stp:onboard-existing — Read-only exploration of existing project
-│   ├── upgrade.md          # /stp:upgrade — Update STP (auto-detects npm/git/marketplace)
-│   └── set-profile-model.md # /stp:set-profile-model — Switch between 4 model profiles
+├── skills/             # 18 slash commands (skills/*/SKILL.md)
+│   ├── welcome/            # /stp:welcome — First-time guided setup
+│   ├── whiteboard/         # /stp:whiteboard — Explore ideas + research (design brief output)
+│   ├── new-project/        # /stp:new-project — Start a new project
+│   ├── plan/               # /stp:plan — Design the architecture
+│   ├── work-adaptive/      # /stp:work-adaptive — Impact scan → auto-routes to quick or full
+│   ├── work-full/          # /stp:work-full — Full cycle (6 phase files loaded on demand)
+│   ├── work-quick/         # /stp:work-quick — Quick build (4 step files loaded on demand)
+│   ├── research/           # /stp:research — "I need to think first" (no code)
+│   ├── review/             # /stp:review — "Grade my work" (7 criteria + 6-layer verification)
+│   ├── autopilot/          # /stp:autopilot — "Build overnight" (AI decides)
+│   ├── debug/              # /stp:debug — Systematic debugging (root cause + full doc cycle)
+│   ├── codebase-mapping/   # /stp:codebase-mapping — Export self-contained HTML codebase map
+│   ├── progress/           # /stp:progress — Check project status
+│   ├── continue/           # /stp:continue — Resume where you left off
+│   ├── pause/              # /stp:pause — Save progress, take a break
+│   ├── onboard-existing/   # /stp:onboard-existing — Read-only exploration of existing project
+│   ├── upgrade/            # /stp:upgrade — Update STP (auto-detects npm/git/marketplace)
+│   └── set-profile-model/  # /stp:set-profile-model — Switch between 4 model profiles
 ├── agents/             # 5 sub-agents (Sonnet by default; profile-aware)
 │   ├── executor.md     # Builder — TDD in isolated worktrees
 │   ├── qa.md           # QA tester — tests running app against PRD
@@ -263,7 +263,7 @@ STP checks for these during setup (`/stp:new-project`, `/stp:onboard-existing`) 
 |------------|---------|---------|
 | **[Context7](https://github.com/upstash/context7)** | Live documentation — query current API docs, verify patterns against latest library versions. Prevents building on stale training data. | `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest` |
 | **[Tavily](https://github.com/tavily-ai/tavily-mcp)** | Deep web research — best practices, industry standards, security advisories, competitive analysis. | `claude mcp add tavily -- npx -y tavily-mcp@latest` + set `TAVILY_API_KEY` |
-| **[Context Mode](https://github.com/mksglu/context-mode)** | Context window protection — runs commands in sandbox, prevents context flooding, enables longer sessions before compaction. | `claude mcp add context-mode -- npx -y context-mode-mcp@latest` |
+| **[Context Mode](https://github.com/mksglu/context-mode)** | Context window protection — runs commands in sandbox, prevents context flooding, enables longer sessions before compaction. | `/plugin marketplace add mksglu/context-mode` then `/plugin install context-mode@context-mode` |
 
 When any STP command detects UI/UX work, it:
 1. Generates a design system via ui-ux-pro-max

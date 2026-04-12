@@ -93,7 +93,7 @@ BASENAME=$(basename "$FILE_PATH")
   echo "╠══════════════════════════════════════════════════════════════════════╣"
   echo "║ Creating a new UI file requires the design-system consultation step ║"
   echo "║ to run first. Markdown instructions were not enough (v0.3.1          ║"
-  echo "║ post-mortem: ui-ux-pro-max gate was MANDATORY in commands/work-*.md  ║"
+  echo "║ post-mortem: ui-ux-pro-max gate was MANDATORY in skills/work-*/SKILL.md  ║"
   echo "║ but Claude routed around it and shipped an AI-slop landing page).    ║"
   echo "║                                                                      ║"
   echo "║ TO UNBLOCK (in order):                                               ║"

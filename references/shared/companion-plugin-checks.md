@@ -24,5 +24,6 @@ npm i -g uipro-cli && uipro init --ai claude
 # MCP servers (show to user — they run these)
 # Context7:     claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
 # Tavily:       claude mcp add tavily -- npx -y tavily-mcp@latest  (requires TAVILY_API_KEY)
-# Context Mode: claude mcp add context-mode -- npx -y context-mode-mcp@latest
+# Context Mode: /plugin marketplace add mksglu/context-mode
+#                /plugin install context-mode@context-mode
 ```

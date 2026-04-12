@@ -5,6 +5,20 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.5] — 2026-04-12 — fix: slash commands now register in Claude Code
+
+### Summary
+
+Slash commands (`/stp:debug`, `/stp:work-full`, etc.) were invisible because Claude Code discovers skills from `skills/*/SKILL.md`, not `commands/*.md`. Restructured all 18 commands to the correct layout. Also fixed the Context Mode install instructions — the old MCP command didn't work; replaced with the correct marketplace plugin flow.
+
+### Fixed
+- `commands/*.md` → `skills/*/SKILL.md` — all 18 slash commands now register in the command picker
+- Context Mode install command updated in 4 files: was `claude mcp add context-mode -- npx -y context-mode-mcp@latest`, now `/plugin marketplace add mksglu/context-mode` + `/plugin install context-mode@context-mode`
+
+### Changed
+- `README.md` — directory tree updated to reflect `skills/` structure
+- `hooks/scripts/ui-gate.sh` — cosmetic path reference updated
+
 ## [0.5.4] — 2026-04-11 — fix: hide internal phase/step files from slash command picker
 
 ### Summary

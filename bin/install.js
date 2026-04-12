@@ -314,7 +314,8 @@ function run() {
     console.log('');
     console.log(c.dim('    claude mcp add context7 -- npx -y @upstash/context7-mcp@latest'));
     console.log(c.dim('    claude mcp add tavily -- npx -y tavily-mcp@latest'));
-    console.log(c.dim('    claude mcp add context-mode -- npx -y context-mode-mcp@latest'));
+    console.log(c.dim('    /plugin marketplace add mksglu/context-mode'));
+    console.log(c.dim('    /plugin install context-mode@context-mode'));
     console.log('');
     console.log('  ' + c.dim('Tavily requires TAVILY_API_KEY \u2014 get one at https://tavily.com'));
 
