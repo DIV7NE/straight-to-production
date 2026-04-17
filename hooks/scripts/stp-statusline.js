@@ -41,8 +41,15 @@ process.stdin.on('end', () => {
       }
     } catch (e) {} // no cache = no indicator
 
-    // Model (dim) + effort level
-    const effortColors = { low: '\x1b[2m', medium: '\x1b[33m', high: '\x1b[32m', max: '\x1b[35m' };
+    // Model (dim) + effort level.
+    // Opus 4.7 uses `xhigh` as the default alongside legacy `max`.
+    const effortColors = {
+      low: '\x1b[2m',
+      medium: '\x1b[33m',
+      high: '\x1b[32m',
+      xhigh: '\x1b[35m',
+      max: '\x1b[1;35m', // only used for genuinely novel architectural work
+    };
     const effortTag = effort ? ` ${effortColors[effort] || '\x1b[2m'}${effort}\x1b[0m` : '';
     parts.push(`\x1b[2m${model}\x1b[0m${effortTag}`);
 
@@ -52,21 +59,57 @@ process.stdin.on('end', () => {
       parts.push(`\x1b[34mv${ver}\x1b[0m`);
     } catch (e) {}
 
-    // Active profile tag (only show if not the default balanced-profile)
-    // Color code: balanced = no tag (silent default), intended = cyan, budget = orange, sonnet-main = magenta
+    // Active profile tag (silent for the default balanced profile; color-coded otherwise)
+    //   balanced     → no tag (default, no clutter)
+    //   opus-cto     → cyan (1M context, max power)
+    //   sonnet-turbo → green (Sonnet 4.6 @ xhigh)
+    //   opus-budget  → orange (haiku critic)
+    //   sonnet-cheap → magenta (Sonnet 200K primary)
+    //   pro-plan     → red (no sub-agents, tight budget)
+    //   legacy names (intended-profile / budget-profile / sonnet-main) also tolerated
     try {
       const profileRaw = fs.readFileSync('.stp/state/profile.json', 'utf8');
       const profileData = JSON.parse(profileRaw);
-      const profile = profileData.profile || 'balanced-profile';
-      if (profile === 'intended-profile') {
-        parts.push('\x1b[36mintended\x1b[0m'); // cyan
-      } else if (profile === 'budget-profile') {
-        parts.push('\x1b[38;5;208mbudget\x1b[0m'); // orange
-      } else if (profile === 'sonnet-main') {
-        parts.push('\x1b[35msonnet-main\x1b[0m'); // magenta
+      const profile = profileData.profile || 'balanced';
+      const PROFILE_TAGS = {
+        'opus-cto': '\x1b[36mopus-cto\x1b[0m',
+        'intended-profile': '\x1b[36mopus-cto\x1b[0m',      // legacy alias
+        'sonnet-turbo': '\x1b[32msonnet-turbo\x1b[0m',
+        'opus-budget': '\x1b[38;5;208mopus-budget\x1b[0m',
+        'budget-profile': '\x1b[38;5;208mopus-budget\x1b[0m', // legacy alias
+        'sonnet-cheap': '\x1b[35msonnet-cheap\x1b[0m',
+        'sonnet-main': '\x1b[35msonnet-cheap\x1b[0m',         // legacy alias
+        'pro-plan': '\x1b[31mpro-plan\x1b[0m',
+        '20-pro-plan': '\x1b[31mpro-plan\x1b[0m',             // legacy alias
+      };
+      if (PROFILE_TAGS[profile]) parts.push(PROFILE_TAGS[profile]);
+      // 'balanced' / 'balanced-profile' → no tag (default)
+    } catch (e) {} // no profile.json = balanced, no tag
+
+    // Pace tag (only show if not the default 'batched')
+    //   batched    → no tag
+    //   deep       → cyan (curiosity mode, section-by-section)
+    //   fast       → yellow (single-approval run-through)
+    //   autonomous → red (unattended — warn user it's on)
+    try {
+      const paceRaw = fs.readFileSync('.stp/state/pace.json', 'utf8');
+      const pace = (JSON.parse(paceRaw).pace || 'batched');
+      const PACE_TAGS = {
+        'deep': '\x1b[36m◆deep\x1b[0m',
+        'fast': '\x1b[33m▸fast\x1b[0m',
+        'autonomous': '\x1b[31m●auto\x1b[0m',
+      };
+      if (PACE_TAGS[pace]) parts.push(PACE_TAGS[pace]);
+    } catch (e) {}
+
+    // Stack tag (only show if non-generic + detected)
+    try {
+      const stackRaw = fs.readFileSync('.stp/state/stack.json', 'utf8');
+      const stack = (JSON.parse(stackRaw).stack || 'generic');
+      if (stack && stack !== 'generic') {
+        parts.push(`\x1b[2m${stack}\x1b[0m`);
       }
-      // balanced-profile = no tag (it's the default, no need to clutter)
-    } catch (e) {} // no profile.json = balanced-profile, no tag
+    } catch (e) {}
 
     // Active feature + progress OR plan progress
     const featureFile = '.stp/state/current-feature.md';
@@ -160,7 +203,23 @@ process.stdin.on('end', () => {
         label = `${usedOfLimit}% used`;
       }
 
-      parts.push(`${fillColor}${bar}\x1b[0m ${label}`);
+      // Context-threshold nudges — mirrors the 0-40 / 40-70 / 70-90 / 90%+ table in
+      // references/session-management.md. Appended to the bar label so Claude sees it
+      // on every tool call without the user having to prompt.
+      //   0-40%  → silent
+      //   40-70% → gentle cyan tip (optional compaction)
+      //   70-90% → yellow warning (pause now)
+      //   90%+   → red blinking (autocompact imminent)
+      let nudge = '';
+      if (used >= 90) {
+        nudge = ' \x1b[5;31m⚠ /stp:session pause NOW\x1b[0m';
+      } else if (used >= 70) {
+        nudge = ' \x1b[33m→ /stp:session pause\x1b[0m';
+      } else if (used >= 40) {
+        nudge = ' \x1b[36m→ /compact if tool-heavy\x1b[0m';
+      }
+
+      parts.push(`${fillColor}${bar}\x1b[0m ${label}${nudge}`);
     }
 
     // Fallback: just show directory if nothing else

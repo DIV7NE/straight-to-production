@@ -5,16 +5,167 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] — 2026-04-17 — v1: universal, stack-aware, pace-aware
+
+### Summary
+
+STP v1.0 is a ground-up rework. The goal: make STP genuinely universal across any development domain (web, CRM, C++, C#, Rust, game cheats, embedded, mods, data/ML) instead of being a Next.js/React harness with token accommodations for other stacks. It ships three big shifts: **stack detection** that rewires every hook to match the project's toolchain, a **pace dial** that turns the AskUserQuestion-driven curiosity into a first-class setting (deep / batched / fast / autonomous), and **Opus 4.7 idiom adoption** everywhere agents are spawned. The 18 skill dirs collapse into 6 skills with subcommands. Two new profiles land: `sonnet-turbo` for cost-sensitive fast iteration, `pro-plan` for Pro-tier subscribers with message-rate limits.
+
+Hard cutover — no command aliases, no profile aliases beyond the SessionStart migration. Pre-v1 users get auto-migrated once at session start by `hooks/scripts/migrate-v1.sh`.
+
+### Added
+
+**Skills (6, replacing 18 command dirs):**
+- `/stp:setup` — lifecycle: `welcome | new | onboard | model | pace | upgrade`
+- `/stp:think` — design mode: default brainstorming, `--plan`, `--research`, `--whiteboard`
+- `/stp:build` — execution: default auto-route, `--full`, `--quick`, `--auto`
+- `/stp:debug` — root cause + defense-in-depth (unchanged intent, Opus 4.7 idioms added)
+- `/stp:review` — Critic with INVERSION framing
+- `/stp:session` — lifecycle: `pause | continue | progress`
+
+**Model profiles (2 new, 6 total):**
+- `sonnet-turbo` — Sonnet 4.6 @ xhigh as main and sub-agents. ~25% the cost of opus-cto for most work. Chosen when the user is on a Pro plan or wants fast iteration without Opus latency.
+- `pro-plan` — Sonnet 4.6 @ high, NO sub-agents, deterministic verification only. Hard caps: 30 messages/feature, 80 messages/5h. Built for Claude Pro subscribers hitting 20-message limits.
+
+**Pace dial (`.stp/state/pace.json`):**
+- `deep` — one question per decision, 200–300 word design sections, AskUserQuestion after each. Maximum curiosity — preserves the section-by-section brainstorming feel.
+- `batched` (default) — up to 4 questions per AskUserQuestion call, phase-transition gates.
+- `fast` — full plan in one message, single approval gate.
+- `autonomous` — zero questions after initial spec confirmation.
+- Auto-escalation: auth/payments/security auto-floors at `batched`. Novel architecture auto-escalates to `deep`. Deleting >50 lines or touching >5 files auto-floors at `batched`.
+
+**Stack detection (`.stp/state/stack.json`, 14 stacks):**
+- `hooks/scripts/detect-stack.sh` — runs on SessionStart (if stack.json missing or >24h stale)
+- Stacks: web, node, python, go, rust, csharp, java, cpp, game, cheat-pentest, embedded, mod, data-ml, generic
+- Each stack.json carries: `stack` name, `ui` boolean, `typecheck_cmd`, `test_cmd`, `build_cmd`, `entrypoints`
+- Stack reference files: `references/stacks/*.md` (14 files) — toolchain, project layout, test/build conventions
+
+**Opus 4.7 idioms (`references/opus-4.7-idioms.md`):**
+- `<use_parallel_tool_calls>` XML block required in every sub-agent spawn prompt
+- Context-limit prompt required ("don't stop early due to token budget") — counters Opus 4.7's more literal self-truncation
+- Critic INVERSION framing required ("report every issue, downstream ranks severity")
+- Tool-trigger normalization — uniform phrasing across skills so literal matching fires reliably
+- Explicit scope boundaries — each rule carries applicability so Opus 4.7 doesn't over-apply
+
+**Session management (`references/session-management.md`):**
+- `/rewind` (Esc Esc) vs `/compact` vs `/clear` decision table
+- Context % threshold nudges: 0-40% silent, 40-70% optional compaction, 70-90% pause now, 90%+ imminent autocompact
+- 1M context guidance for `opus-cto` profile
+
+**Statusline updates (`hooks/scripts/stp-statusline.js`):**
+- `xhigh` (magenta) and `max` (bold magenta) effort level colors for Opus 4.7
+- Profile tags: `opus-cto` (cyan), `sonnet-turbo` (green), `opus-budget` (orange), `sonnet-cheap` (magenta), `pro-plan` (red), `balanced` (silent default)
+- Pace tags: `◆deep` (cyan), `▸fast` (yellow), `●auto` (blinking red), `batched` (silent default)
+- Stack tag (dim, only shown when non-generic)
+- Context-threshold nudges appended to context bar label — surfaces the session-management guidance to Claude on every tool call
+
+**Migration (`hooks/scripts/migrate-v1.sh`):**
+- Runs once at SessionStart after upgrade to v1.0
+- Renames legacy profile names: `intended` → `opus-cto`, `balanced` → `balanced` (unchanged), `budget` → `opus-budget`, `sonnet-main` → `sonnet-cheap`, `20-pro-plan` → `pro-plan`
+- Idempotent — safe to run on every session
+
+**Agent regeneration (`hooks/scripts/regenerate-agents.sh`):**
+- Templates at `references/agents/*.md.template` with `${STP_MODEL_<AGENT>}` placeholders
+- Runs after every profile switch (`/stp:setup model`)
+- Substitutes resolved models into `agents/*.md` from the active profile
+
+### Changed
+
+**Hooks are now stack-aware:**
+- `ui-gate.sh` — exits early if `stack.ui == false` (C++ daemons, Rust libs, CLI tools no longer get blocked by frontend rules)
+- `anti-slop-scan.sh` — same stack-aware skip; AI-slop patterns were tuned for frontend code
+- `stop-verify.sh` — `run_type_check()` and `run_tests()` now prefer `stack.typecheck_cmd` / `stack.test_cmd` from stack.json. Falls back to language detection only if stack.json missing.
+
+**SessionStart hook chain rewritten:**
+```
+rm -f .stp/state/ui-gate-passed 2>/dev/null;
+bash migrate-layout.sh && bash migrate-v1.sh && bash detect-stack.sh &&
+bash session-restore.sh && bash check-project-sync.sh && bash check-upgrade.sh &
+```
+Timeout raised 15→20 seconds to accommodate detect-stack.
+
+**Profile resolver (`references/model-profiles.cjs`):**
+- Added `sonnet-turbo` profile entry
+- `pro-plan` renamed from `20-pro-plan` (resolver accepts both)
+- `resolve-all` output unchanged (KEY=VALUE lines) — existing skills read it the same way
+
+**CLAUDE.md:**
+- New sections: `## Pace-Aware Execution`, `## Stack-Aware Execution`, `## Opus 4.7 Idioms (MANDATORY)`
+- Updated Task Routing table to use `/stp:build --quick` / `/stp:build --full`
+- Updated Skills section (6 skills with subcommand syntax, not 18 commands)
+- Updated Effort Levels — xhigh is now the default for Opus 4.7; `max` reserved for genuinely novel architecture
+- Updated Hooks index with stack-aware annotations
+- All marker blocks (`<!-- STP:section:start -->` / `end`) preserved so upgrade hook can diff sections
+
+**Skills reuse existing reference files:**
+- Every skill's "shared opening" reads `.stp/state/pace.json`, `.stp/state/stack.json`, and resolves profile via the .cjs resolver — in parallel
+- Every skill that spawns an agent reads `references/opus-4.7-idioms.md` first
+
+**`references/profiles.md` full rewrite:**
+- 6 profiles (was 4)
+- New discipline matrix with `main_effort` column
+- Legacy profile name aliases table for migration reference
+- Command references updated to v1 syntax (`/stp:setup model`, `/stp:think --plan`, `/stp:build --quick`)
+
+### Removed
+
+**Skill directories (16 of 18 dropped — consolidated into the 6 new skills):**
+- `welcome`, `new-project`, `onboard-existing`, `set-profile-model`, `upgrade` → `/stp:setup` subcommands
+- `whiteboard`, `plan`, `research` → `/stp:think` modes
+- `work-quick`, `work-full`, `work-adaptive`, `autopilot` → `/stp:build` flags
+- `progress`, `continue`, `pause` → `/stp:session` subcommands
+- `codebase-mapping` → absorbed into `/stp:setup onboard`
+
+**Dead hook scripts:**
+- `stp-statusline.sh` (bash fallback — Node.js statusline is universal)
+- Old profile-switch helpers that pre-dated the .cjs resolver
+
+**Dead reference dirs:**
+- `references/phases/` (work-full internal step files — now inline in `/stp:build`)
+- `references/steps/` (work-quick internal step files — now inline in `/stp:build`)
+
+**Old profile names (hard cutover, migrated once):**
+- `intended-profile` → `opus-cto`
+- `budget-profile` → `opus-budget`
+- `sonnet-main` → `sonnet-cheap`
+- `20-pro-plan` → `pro-plan`
+
+### Constraints introduced (v1.0 System Constraints)
+
+- **SHALL:** Every STP skill reads `.stp/state/pace.json` and `.stp/state/stack.json` in its shared opening.
+- **SHALL:** Every sub-agent spawn prompt includes the `<use_parallel_tool_calls>` XML block and the context-limit line from `references/opus-4.7-idioms.md`.
+- **SHALL:** Every Critic invocation uses the INVERSION framing ("report every issue, downstream ranks severity").
+- **SHALL:** Hooks check `.stp/state/stack.json` before enforcing UI-specific or frontend-tuned rules.
+- **SHALL:** Every `Agent()` spawn carries an explicit `model=` parameter (never inherit Opus implicitly).
+- **MUST NOT:** Ship new command aliases for v0 names. Hard cutover — legacy names are migrated once by `migrate-v1.sh`, then removed.
+
+### Dependencies created
+
+- All 6 skills depend on `references/model-profiles.cjs resolve-all` output
+- All 6 skills depend on `.stp/state/pace.json` (written by `/stp:setup welcome` or `/stp:setup pace`)
+- All hooks depend on `.stp/state/stack.json` (written by `detect-stack.sh` at SessionStart)
+- `regenerate-agents.sh` depends on `references/agents/*.md.template` existing
+- `migrate-v1.sh` depends on prior `.stp/state/profile.json` shape
+
+### Breaking changes
+
+- **All 18 v0 commands removed.** Must use v1 skills (`/stp:setup`, `/stp:think`, `/stp:build`, `/stp:debug`, `/stp:review`, `/stp:session`).
+- **Profile names renamed.** Migrated automatically by `migrate-v1.sh` once at SessionStart after upgrade.
+- **Default effort is `xhigh` (Opus 4.7), not `high` (Opus 4.6).** Effort levels per skill updated in CLAUDE.md.
+- **Hook SessionStart chain timeout raised** — hook runner must support 20-second chains (all recent Claude Code versions do).
+
+See `MIGRATION-v1.md` for the full pre-v1 → v1 migration path.
+
 ## [0.5.11] — 2026-04-12 — session nudges + complete marketplace migration
 
 ### Summary
 
-STP now fully operates through Claude Code's plugin marketplace. SessionStart hook detects first-ever installs and plugin version mismatches, nudging users to run `/stp:welcome` or `/stp:upgrade` as needed. All install references updated from `npx stp-cc` to `/plugin install stp@stp`. Release pipeline no longer publishes to npm.
+STP now fully operates through Claude Code's plugin marketplace. SessionStart hook detects first-ever installs and plugin version mismatches, nudging users to run `/stp:welcome` or `/stp:setup upgrade` as needed. All install references updated from `npx stp-cc` to `/plugin install stp@stp`. Release pipeline no longer publishes to npm.
 
 ### Added
 - `check-project-sync.sh`: SessionStart hook detects first install (no `.stp/` dir) → prints `★ Run /stp:welcome`
-- `check-project-sync.sh`: detects plugin version > last-synced version → prints `⚠ Run /stp:upgrade`
-- `/stp:upgrade` Step 8c: writes `.stp/state/last-synced-version` marker after sync
+- `check-project-sync.sh`: detects plugin version > last-synced version → prints `⚠ Run /stp:setup upgrade`
+- `/stp:setup upgrade` Step 8c: writes `.stp/state/last-synced-version` marker after sync
 - `/stp:welcome` Phase 5: writes sync marker after setup
 
 ### Changed
@@ -52,7 +203,7 @@ The npm installer and manual file edits cannot replicate the opaque internal sta
 
 ### Summary
 
-Reverts the symlink approach from v0.5.6-0.5.7. Symlinks in `~/.claude/skills/` registered skills as bare names (`/welcome`, `/upgrade`) instead of with the `stp:` prefix (`/stp:welcome`, `/stp:upgrade`), polluting the command picker. The actual fix was updating `installed_plugins.json` to point to the live source directory instead of a stale v0.2.0 cache — the plugin system handles the `stp:` prefix correctly.
+Reverts the symlink approach from v0.5.6-0.5.7. Symlinks in `~/.claude/skills/` registered skills as bare names (`/welcome`, `/upgrade`) instead of with the `stp:` prefix (`/stp:welcome`, `/stp:setup upgrade`), polluting the command picker. The actual fix was updating `installed_plugins.json` to point to the live source directory instead of a stale v0.2.0 cache — the plugin system handles the `stp:` prefix correctly.
 
 ### Fixed
 - Removed symlink creation from `bin/install.js`, `bin/uninstall.js`, `welcome/SKILL.md`, `upgrade/SKILL.md`
@@ -65,7 +216,7 @@ Reverts the symlink approach from v0.5.6-0.5.7. Symlinks in `~/.claude/skills/` 
 
 ### Summary
 
-Slash commands (`/stp:debug`, `/stp:work-full`, etc.) were invisible because Claude Code discovers skills from `skills/*/SKILL.md`, not `commands/*.md`. Restructured all 18 commands to the correct layout. Also fixed the Context Mode install instructions — the old MCP command didn't work; replaced with the correct marketplace plugin flow.
+Slash commands (`/stp:debug`, `/stp:build --full`, etc.) were invisible because Claude Code discovers skills from `skills/*/SKILL.md`, not `commands/*.md`. Restructured all 18 commands to the correct layout. Also fixed the Context Mode install instructions — the old MCP command didn't work; replaced with the correct marketplace plugin flow.
 
 ### Fixed
 - `commands/*.md` → `skills/*/SKILL.md` — all 18 slash commands now register in the command picker
@@ -79,7 +230,7 @@ Slash commands (`/stp:debug`, `/stp:work-full`, etc.) were invisible because Cla
 
 ### Summary
 
-`work-full` and `work-quick` phase/step files were showing up as user-facing slash commands (`/stp:work-full:phase5-plan` etc.) because Claude Code registers every `.md` file in `commands/` subdirectories. Moved to `references/` where they're implementation details, not commands.
+`work-full` and `work-quick` phase/step files were showing up as user-facing slash commands (`/stp:build --full:phase5-plan` etc.) because Claude Code registers every `.md` file in `commands/` subdirectories. Moved to `references/` where they're implementation details, not commands.
 
 ### Fixed
 - `commands/work-full/` → `references/work-full-phases/` — phases no longer appear in the command picker
@@ -100,7 +251,7 @@ Slash commands (`/stp:debug`, `/stp:work-full`, etc.) were invisible because Cla
 
 ### Summary
 
-Two fixes from the 0.5.1 release: the `/stp:set-profile-model` command was missing `20-pro-plan` from its comparison banner and picker, and `/stp:work-quick`'s planning step had no awareness of the Pro plan's message constraints.
+Two fixes from the 0.5.1 release: the `/stp:setup model` command was missing `20-pro-plan` from its comparison banner and picker, and `/stp:build --quick`'s planning step had no awareness of the Pro plan's message constraints.
 
 ### Fixed
 - `set-profile-model`: added `20-pro-plan` to comparison banner (echo block), profile picker `AskUserQuestion`, and argument-hint
@@ -128,7 +279,7 @@ New profile targeting the $20/month Claude Pro plan, where the hard constraint i
 
 ### Summary
 
-The `/stp:upgrade` command was incorrectly picking up GSD local patches from the user's global CLAUDE.md and surfacing them as STP upgrade actions. Removed the naive "Local Patches" grep — npm installs now handle patch backup automatically via the SHA manifest.
+The `/stp:setup upgrade` command was incorrectly picking up GSD local patches from the user's global CLAUDE.md and surfacing them as STP upgrade actions. Removed the naive "Local Patches" grep — npm installs now handle patch backup automatically via the SHA manifest.
 
 ### Fixed
 - Upgrade Step 7: no longer greps global CLAUDE.md for "Local Patches" (was showing GSD paths)
@@ -142,7 +293,7 @@ Users now get a visible stderr notification at session start when an STP update 
 
 ### Fixed
 - Statusline script: timeout and stdin error now output "STP" fallback instead of silent exit
-- Upgrade check: prints `⬆ STP update available: vX → vY. Run /stp:upgrade` to stderr (always visible)
+- Upgrade check: prints `⬆ STP update available: vX → vY. Run /stp:setup upgrade` to stderr (always visible)
 
 ### Added
 - Welcome Phase 1: auto-checks and registers statusline in `~/.claude/settings.json` if missing
@@ -213,7 +364,7 @@ STP is now installable via `npx stp-cc`. Users can install, update, and uninstal
 - Statusline upgrade indicator (magenta pulse when update available on npm/git)
 - sonnet-main profile (Sonnet 200K primary, no Opus needed)
 - Subagent cost discipline: `model="sonnet"` enforced on all Agent() calls
-- Profile migration step in `/stp:upgrade` for pre-v0.4.0 projects
+- Profile migration step in `/stp:setup upgrade` for pre-v0.4.0 projects
 - `scripts/release.sh` for one-command releases
 - Gate audit reference (`references/gate-audit.md`)
 - Extracted shared references (`references/shared/`)
@@ -227,7 +378,7 @@ STP is now installable via `npx stp-cc`. Users can install, update, and uninstal
 - cli-output-format.md: 380 → 79 lines
 - set-profile-model: full quality/cost/tradeoff comparison guide
 - check-upgrade.sh: auto-detects npm vs git install for version checks
-- `/stp:upgrade`: auto-detects npm/git/marketplace install type
+- `/stp:setup upgrade`: auto-detects npm/git/marketplace install type
 
 ### Fixed
 - 4 missing STP section markers in CLAUDE.md (upgrade-compat)
@@ -237,13 +388,13 @@ STP is now installable via `npx stp-cc`. Users can install, update, and uninstal
 
 ### Summary
 
-Two cost-cutting changes informed by external research. Wave-based parallel builds in `/stp:work-full` and `/stp:work-quick` now spawn one-shot subagents via parallel `Agent()` tool calls instead of `TeamCreate` + `SendMessage` Agent Teams. Research (alexop.dev, laozhang.ai citing Anthropic docs) puts the cost delta at ~3–4× — Agent Teams cost ~5–7× a single session because each teammate holds its own full context window plus coordination overhead, while one-shot subagents cost ~1.5–2×. STP's wave members are intentionally independent (no shared files, no mid-build negotiation), so the Teams pattern was unjustified overhead.
+Two cost-cutting changes informed by external research. Wave-based parallel builds in `/stp:build --full` and `/stp:build --quick` now spawn one-shot subagents via parallel `Agent()` tool calls instead of `TeamCreate` + `SendMessage` Agent Teams. Research (alexop.dev, laozhang.ai citing Anthropic docs) puts the cost delta at ~3–4× — Agent Teams cost ~5–7× a single session because each teammate holds its own full context window plus coordination overhead, while one-shot subagents cost ~1.5–2×. STP's wave members are intentionally independent (no shared files, no mid-build negotiation), so the Teams pattern was unjustified overhead.
 
 CLAUDE.md compressed from 44.6k to 34.7k chars to clear Claude Code's "Large CLAUDE.md will impact performance (40k threshold)" warning. Strategy preserves all `MANDATORY`/`ENFORCED`/`CRITICAL`/`EXTREMELY-IMPORTANT` signal words (per Anthropic memory docs research — GitHub issue #32543 confirms stripping these degrades adherence after context compaction). Verbose sections compressed to pipe-delimited indexes (Vercel AGENTS.md pattern: 40KB → 8KB → 100% pass rate vs 53% baseline).
 
 ### Added
 
-- **`## Agent Teams vs Subagents` section in CLAUDE.md** — codifies the cost research with a decision matrix mapping every STP flow (`/stp:work-full`, `/stp:work-quick`, `/stp:research`, `/stp:debug`, `/stp:autopilot`) to the right execution mode. Default rule: subagents for everything except `/stp:autopilot` (where shared task queue + overnight self-assignment justifies the Teams cost).
+- **`## Agent Teams vs Subagents` section in CLAUDE.md** — codifies the cost research with a decision matrix mapping every STP flow (`/stp:build --full`, `/stp:build --quick`, `/stp:think --research`, `/stp:debug`, `/stp:build --auto`) to the right execution mode. Default rule: subagents for everything except `/stp:build --auto` (where shared task queue + overnight self-assignment justifies the Teams cost).
 
 ### Changed
 
@@ -257,7 +408,7 @@ CLAUDE.md compressed from 44.6k to 34.7k chars to clear Claude Code's "Large CLA
 
 ### Fixed
 
-- **Marker contract preserved** — kept `<!-- STP:stp-dirmap:start/end -->` markers around the new compressed Directory Map pointer so `/stp:upgrade`'s section-injection logic continues to work for users on prior versions.
+- **Marker contract preserved** — kept `<!-- STP:stp-dirmap:start/end -->` markers around the new compressed Directory Map pointer so `/stp:setup upgrade`'s section-injection logic continues to work for users on prior versions.
 
 ### Token math
 
@@ -270,7 +421,7 @@ For a typical 50-turn session with Claude Code's automatic prompt caching:
 
 ### Summary
 
-STP now supports three optimization profiles that control which Claude model runs each sub-agent. Pick `intended-profile` (Opus 1M main session + Sonnet sub-agents — byte-identical to pre-0.3.8 behavior), `balanced-profile` (Opus plans + Sonnet executes/verifies + mandatory researcher/explorer sub-agents), or `budget-profile` (Sonnet writes + Haiku critic with Sonnet escalation, strict context discipline). The default stays on `intended-profile` for zero behavior change on upgraded projects. Switch with `/stp:set-profile-model intended|balanced|budget`.
+STP now supports three optimization profiles that control which Claude model runs each sub-agent. Pick `intended-profile` (Opus 1M main session + Sonnet sub-agents — byte-identical to pre-0.3.8 behavior), `balanced-profile` (Opus plans + Sonnet executes/verifies + mandatory researcher/explorer sub-agents), or `budget-profile` (Sonnet writes + Haiku critic with Sonnet escalation, strict context discipline). The default stays on `intended-profile` for zero behavior change on upgraded projects. Switch with `/stp:setup model intended|balanced|budget`.
 
 The architecture is inspired by [GSD's `/gsd:set-profile`](https://github.com/gsd-build/get-shit-done) which is the most reliable model-profile system in the Claude Code ecosystem. Single source of truth lives in `references/model-profiles.cjs` — a Node.js file with the canonical agent × profile → model mapping table, plus a CLI that STP commands and hooks call to resolve models at spawn time. Adding a new profile is one column in that file; no other changes needed anywhere in STP.
 
@@ -297,8 +448,8 @@ Re-read four sources to validate the approach for Sonnet 200K and Haiku verifica
 
 **New command:**
 - `commands/set-profile-model.md` — tiny (80 lines), supports three UX modes:
-  1. Argument shortcut: `/stp:set-profile-model balanced` — skips picker, just calls cjs CLI
-  2. Interactive picker: `/stp:set-profile-model` (no args) — calls AskUserQuestion with the 3 profile options
+  1. Argument shortcut: `/stp:setup model balanced` — skips picker, just calls cjs CLI
+  2. Interactive picker: `/stp:setup model` (no args) — calls AskUserQuestion with the 3 profile options
   3. Optional walkthrough — after setting, asks if user wants explanation of the new context discipline rules
 
 **New sub-agents** (mandatory in balanced/budget profiles, inline in intended):
@@ -346,7 +497,7 @@ Re-read four sources to validate the approach for Sonnet 200K and Haiku verifica
 
 ### Key Design Decisions
 
-1. **Default to `intended-profile`** — zero behavior change for existing users on upgrade. Profile becomes opt-in via `/stp:set-profile-model`.
+1. **Default to `intended-profile`** — zero behavior change for existing users on upgrade. Profile becomes opt-in via `/stp:setup model`.
 2. **`inherit` sentinel for opus-tier agents** — instead of hard-coding `model="opus"`, we return `"inherit"` and command code OMITS the `model=` parameter from the spawn call. This is the GSD insight that makes profiles work cleanly across all runtimes.
 3. **`inline` sentinel for intended-profile researcher/explorer** — Opus 1M can absorb research/exploration directly in the main session, no sub-agent needed. The `inline` value tells commands to skip the spawn entirely.
 4. **Critic split with automatic escalation** — budget-profile spawns Haiku first; commands check the report and auto-respawn with Sonnet on ≥2 critical findings. Average critic cost stays low while preserving the deep-reasoning safety net.
@@ -356,7 +507,7 @@ Re-read four sources to validate the approach for Sonnet 200K and Haiku verifica
 ### Spec Delta
 
 - **Added:**
-  - New command: `/stp:set-profile-model` (entry point, picker + arg + walkthrough modes)
+  - New command: `/stp:setup model` (entry point, picker + arg + walkthrough modes)
   - New canonical resolver: `references/model-profiles.cjs` (data + CLI)
   - New sub-agents: `stp-researcher`, `stp-explorer` (context isolation)
   - New hook: `context-budget-warn.sh` (warns at 60%/80% capacity for non-intended profiles)
@@ -397,7 +548,7 @@ Re-read four sources to validate the approach for Sonnet 200K and Haiku verifica
 - `CHANGELOG.md` — this entry
 - `CLAUDE.md` — new Profile-Aware Execution section + commands listing + effort levels + inherit sentinel limitation note + rewritten Architecture section (each sub-agent documented with its per-profile model + Haiku escalation)
 - `README.md` — directory tree updated (16→17 commands, 3→5 sub-agents) + flat command listing includes new command
-- `commands/upgrade.md` — added stp-profile-aware to STP-OWNED sections sync table (so /stp:upgrade syncs the new section)
+- `commands/upgrade.md` — added stp-profile-aware to STP-OWNED sections sync table (so /stp:setup upgrade syncs the new section)
 - `commands/work-full.md` — Profile Resolution preamble + 3 spawn refactors + critic escalation logic (using v0.3.7-fixed grep -c pattern) + Phase 2 explorer routing + Phase 4 researcher routing
 - `commands/work-quick.md` — Profile Resolution preamble + 2 spawn refactors + researcher routing in research step
 - `commands/plan.md` — profile-aware critic spawn
@@ -427,14 +578,14 @@ All 9 pass. Errors are handled. Sentinels (`inherit`, `inline`) resolve correctl
 - **You can't change the running session's model** — profile takes effect on the NEXT command, not the current one. This is a Claude Code limitation, not fixable at the plugin level.
 - **Hooks load at session startup** — after upgrading from 0.3.7 to 0.3.8, you must exit Claude Code and restart it to pick up the new context-budget-warn hook. `/clear` alone does NOT reload hooks.
 - **Sentinel-based spawns require command discipline** — commands must check the resolved value and conditionally include/omit the `model=` parameter. The cjs resolver tells you what to do, but the command file is responsible for actually doing it. The CLAUDE.md `## Profile-Aware Execution` section documents the pattern.
-- **Critic escalation is opt-in per command** — `/stp:work-full` includes the bash escalation logic; other commands (`/stp:review`, `/stp:plan`) don't auto-escalate. This is intentional — escalation only matters for builds, not for read-only reviews.
+- **Critic escalation is opt-in per command** — `/stp:build --full` includes the bash escalation logic; other commands (`/stp:review`, `/stp:think --plan`) don't auto-escalate. This is intentional — escalation only matters for builds, not for read-only reviews.
 
 ### Migration Notes
 
-**For users staying on intended-profile (default):** No action required. Everything works exactly as before. Optional: run `/stp:set-profile-model intended` to confirm the default.
+**For users staying on intended-profile (default):** No action required. Everything works exactly as before. Optional: run `/stp:setup model intended` to confirm the default.
 
 **For users switching to balanced or budget:**
-1. Run `/stp:set-profile-model balanced` (or `budget`)
+1. Run `/stp:setup model balanced` (or `budget`)
 2. Confirm via the picker or `--raw` flag
 3. Exit Claude Code and restart with the appropriate model (Opus for planning commands, Sonnet for execution commands)
 4. Read the optional walkthrough after switching for the discipline rules
@@ -502,9 +653,9 @@ Reproduction script (`/tmp/repro-stop-verify-bug.sh`) confirmed the `0\n0` corru
 
 ### Migration Notes
 Sessions running cached versions older than 0.3.7 may already be stuck in this Stop loop. Three options:
-1. `/stp:upgrade` — pulls 0.3.7, restarts hooks (still requires Claude Code restart for new hooks to load)
+1. `/stp:setup upgrade` — pulls 0.3.7, restarts hooks (still requires Claude Code restart for new hooks to load)
 2. Hot-patch the cached file: copy `${REPO}/hooks/scripts/stop-verify.sh` over `~/.claude/plugins/cache/<marketplace>/stp/<old>/hooks/scripts/stop-verify.sh` and exit/restart Claude Code
-3. `/stp:pause` — the hook's own escape hatch is still respected
+3. `/stp:session pause` — the hook's own escape hatch is still respected
 
 **IMPORTANT:** Hooks load at session start, not hot-reload. Even after the file is replaced, the running session keeps whatever it loaded at launch. Restart Claude Code to pick up the fix.
 
@@ -520,18 +671,18 @@ The `http://localhost:3333` whiteboard URL was getting lost in the middle of age
 - `commands/whiteboard.md`, `commands/plan.md`, `commands/work-quick.md`, `commands/work-full.md` — replaced the old one-line "Whiteboard is live at..." statement with a call to the shared banner helper, with explicit instructions that it MUST be the last thing printed before control is returned or any follow-up question.
 
 ### Notes
-- `/stp:new-project`, `/stp:onboard-existing`, and `/stp:upgrade` don't start the whiteboard, so no integration needed there.
+- `/stp:setup new`, `/stp:setup onboard`, and `/stp:setup upgrade` don't start the whiteboard, so no integration needed there.
 - Hooks/commands only reload on Claude Code restart — exit and relaunch to pick this up.
 
 ## [0.3.5] — 2026-04-09 — fix: plugin CLAUDE.md section markers — v0.3.3/0.3.4 content can now sync into projects
 
 ### Summary
 
-Every project onboarded with `/stp:new-project` — and every existing project that runs `/stp:upgrade` — reads its CLAUDE.md from the plugin's canonical CLAUDE.md via a section-sync mechanism. Sections are wrapped in `<!-- STP:stp-*:start -->` / `<!-- STP:stp-*:end -->` HTML comment markers; the upgrade engine replaces the content between matching marker pairs when the plugin ships new content.
+Every project onboarded with `/stp:setup new` — and every existing project that runs `/stp:setup upgrade` — reads its CLAUDE.md from the plugin's canonical CLAUDE.md via a section-sync mechanism. Sections are wrapped in `<!-- STP:stp-*:start -->` / `<!-- STP:stp-*:end -->` HTML comment markers; the upgrade engine replaces the content between matching marker pairs when the plugin ships new content.
 
 **The problem:** `commands/new-project.md` documented nine marker pairs (`stp-header`, `stp-confirmation-gate`, `stp-philosophy`, `stp-plugins`, `stp-rules`, `stp-dirmap`, `stp-hooks`, `stp-effort`, `stp-output-format`) — but only **two** of those markers actually existed in plugin CLAUDE.md (`stp-confirmation-gate` and `stp-output-format`). The other seven sections were living in plugin CLAUDE.md without markers, so the sync engine could not find them and could not propagate their content.
 
-**The consequence:** every project created or upgraded since v0.3.3 — when the filename contract and 16-gate hooks taxonomy were added to plugin CLAUDE.md — received a project CLAUDE.md missing those new rules. Projects stayed on whatever content their CLAUDE.md had when they were first created (or last touched a marker that happened to exist). Specifically, this meant v0.3.3's filename contract (blocking `.stp/explore-data.json`), v0.3.3's hot-reload warning, and v0.3.3's 16-gate hooks taxonomy never reached any real project that used `/stp:upgrade`.
+**The consequence:** every project created or upgraded since v0.3.3 — when the filename contract and 16-gate hooks taxonomy were added to plugin CLAUDE.md — received a project CLAUDE.md missing those new rules. Projects stayed on whatever content their CLAUDE.md had when they were first created (or last touched a marker that happened to exist). Specifically, this meant v0.3.3's filename contract (blocking `.stp/explore-data.json`), v0.3.3's hot-reload warning, and v0.3.3's 16-gate hooks taxonomy never reached any real project that used `/stp:setup upgrade`.
 
 **The fix:** wrap the seven missing sections in proper marker pairs inside plugin CLAUDE.md. Zero content changes. Zero command-file changes. The sync engine already worked — it just had nothing to sync.
 
@@ -548,7 +699,7 @@ Every project onboarded with `/stp:new-project` — and every existing project t
 
   All 9 marker pairs now present and matched (the 2 existing `stp-confirmation-gate` and `stp-output-format` are unchanged).
 
-- **`CLAUDE.md` `stp-rules` — exception clause for /clear after /stp:upgrade** — the existing "/clear suggested before every inter-command transition" rule now has an explicit exception: *"after `/stp:upgrade` when hook files changed, the recommendation is `/exit → run claude again → (optional) /clear` — because `/clear` alone does NOT reload hooks."* This keeps the two rules consistent and points readers at the Hooks section for the full explanation. Because this rule lives inside `stp-rules` which is now wrapped, the exception clause will also sync into projects on upgrade.
+- **`CLAUDE.md` `stp-rules` — exception clause for /clear after /stp:setup upgrade** — the existing "/clear suggested before every inter-command transition" rule now has an explicit exception: *"after `/stp:setup upgrade` when hook files changed, the recommendation is `/exit → run claude again → (optional) /clear` — because `/clear` alone does NOT reload hooks."* This keeps the two rules consistent and points readers at the Hooks section for the full explanation. Because this rule lives inside `stp-rules` which is now wrapped, the exception clause will also sync into projects on upgrade.
 
 ### Changed
 
@@ -556,7 +707,7 @@ Every project onboarded with `/stp:new-project` — and every existing project t
 
 ### Fixed
 
-- **v0.3.3 content never reached onboarded projects** — projects that ran `/stp:upgrade` between v0.3.3 and v0.3.4 saw the upgrade complete successfully but the new content (filename contract, hot-reload warning, 16-gate taxonomy) was not added to their CLAUDE.md. After v0.3.5, the next `/stp:upgrade` run on those projects will replace the contents of `stp-rules` and `stp-hooks` (and the 5 other newly-marked blocks) with the latest content from the plugin.
+- **v0.3.3 content never reached onboarded projects** — projects that ran `/stp:setup upgrade` between v0.3.3 and v0.3.4 saw the upgrade complete successfully but the new content (filename contract, hot-reload warning, 16-gate taxonomy) was not added to their CLAUDE.md. After v0.3.5, the next `/stp:setup upgrade` run on those projects will replace the contents of `stp-rules` and `stp-hooks` (and the 5 other newly-marked blocks) with the latest content from the plugin.
 - **`commands/new-project.md` template referenced nonexistent markers** — the template at line 151-159 listed 9 marker pairs as the canonical structure for a project CLAUDE.md. Only 2 of them actually existed in the plugin. New projects created after v0.3.5 will now find all 9 markers in the plugin source and can inject the real content.
 
 ### Spec Delta
@@ -572,7 +723,7 @@ Every project onboarded with `/stp:new-project` — and every existing project t
 - **Constraints introduced:**
   - Plugin CLAUDE.md MUST maintain at least 9 matched marker pairs: the 9 listed in `commands/new-project.md:151-159`. A CI check (not yet wired) should validate this.
   - Any new marker added to the plugin CLAUDE.md MUST also be documented in `commands/new-project.md`'s template block — the two files are coupled and must stay in sync.
-  - CHANGELOG.md entries for any v0.3.6+ release that adds content to plugin CLAUDE.md MUST indicate which marker block received the content (so downstream projects know what their next `/stp:upgrade` will refresh).
+  - CHANGELOG.md entries for any v0.3.6+ release that adds content to plugin CLAUDE.md MUST indicate which marker block received the content (so downstream projects know what their next `/stp:setup upgrade` will refresh).
 
 - **Dependencies created:**
   - `commands/new-project.md` Step 6 (project CLAUDE.md generation) now depends on the 9 markers being present in plugin CLAUDE.md. If future refactors remove a marker, the template's corresponding line must also be removed.
@@ -581,7 +732,7 @@ Every project onboarded with `/stp:new-project` — and every existing project t
 ### Deliberately NOT done
 
 - **Marker validation CI check** — a 5-line script that confirms all 9 markers are present in plugin CLAUDE.md and that each marker pair is balanced. Useful for catching regressions, but this release already ships the fix; the CI check is a preventive follow-up, not part of the immediate patch.
-- **Auto-migration of existing project CLAUDE.md files** — users who currently have a project CLAUDE.md without the 7 new markers will still only have those 2 markers. The `/stp:upgrade` Step 4 "legacy project CLAUDE.md" path handles this: if a marker is missing in the project, the upgrade appends it with the new content. This means the first `/stp:upgrade` after v0.3.5 on an existing project will ADD the 7 missing sections (not replace them). Users who manually edited those sections will see an append, not an overwrite — which is the safer default.
+- **Auto-migration of existing project CLAUDE.md files** — users who currently have a project CLAUDE.md without the 7 new markers will still only have those 2 markers. The `/stp:setup upgrade` Step 4 "legacy project CLAUDE.md" path handles this: if a marker is missing in the project, the upgrade appends it with the new content. This means the first `/stp:setup upgrade` after v0.3.5 on an existing project will ADD the 7 missing sections (not replace them). Users who manually edited those sections will see an append, not an overwrite — which is the safer default.
 
 ### Test coverage
 
@@ -597,11 +748,11 @@ Validated via bash script:
 
 ---
 
-## [0.3.4] — 2026-04-09 — feat: `/stp:upgrade` surfaces restart-required banner + CHANGELOG-driven "what's new"
+## [0.3.4] — 2026-04-09 — feat: `/stp:setup upgrade` surfaces restart-required banner + CHANGELOG-driven "what's new"
 
 ### Summary
 
-v0.3.3 fixed the whiteboard-gate hallucination bug and added the hot-reload warning to CLAUDE.md, but the warning only helps users who happen to be reading CLAUDE.md. The `/stp:upgrade` command itself still ended with the old `► Next: /clear to load the new version` hint — which is **wrong**: `/clear` clears conversation context but does NOT reload hooks. After `/stp:upgrade`, users were following the displayed instruction, running `/clear`, and then wondering why the new hooks weren't firing. This is exactly the failure mode that caused the v0.3.2 post-mortem Bug 1 to hit a second time.
+v0.3.3 fixed the whiteboard-gate hallucination bug and added the hot-reload warning to CLAUDE.md, but the warning only helps users who happen to be reading CLAUDE.md. The `/stp:setup upgrade` command itself still ended with the old `► Next: /clear to load the new version` hint — which is **wrong**: `/clear` clears conversation context but does NOT reload hooks. After `/stp:setup upgrade`, users were following the displayed instruction, running `/clear`, and then wondering why the new hooks weren't firing. This is exactly the failure mode that caused the v0.3.2 post-mortem Bug 1 to hit a second time.
 
 v0.3.4 pushes the restart-required directive into the command output itself, where the user cannot miss it, and extracts the new version's CHANGELOG entry dynamically so every upgrade ends with a faithful "what's new" summary instead of a 2-3-sentence placeholder.
 
@@ -629,7 +780,7 @@ v0.3.4 pushes the restart-required directive into the command output itself, whe
 
 ### Fixed
 
-- **v0.3.3 upgrade UX gap** — v0.3.3 added the hot-reload warning to `CLAUDE.md` but the `/stp:upgrade` command itself still ended with `/clear` as the next step. Users reading the command output followed it literally, ran `/clear`, and then hit stale hooks without knowing why. This release closes that gap by making the upgrade command's output itself carry the restart instruction.
+- **v0.3.3 upgrade UX gap** — v0.3.3 added the hot-reload warning to `CLAUDE.md` but the `/stp:setup upgrade` command itself still ended with `/clear` as the next step. Users reading the command output followed it literally, ran `/clear`, and then hit stale hooks without knowing why. This release closes that gap by making the upgrade command's output itself carry the restart instruction.
 
 ### Spec Delta
 
@@ -640,11 +791,11 @@ v0.3.4 pushes the restart-required directive into the command output itself, whe
   - Three-block completion output structure (checklist → what's new → restart)
 
 - **Changed:**
-  - `/stp:upgrade` completion semantics — was "show checklist, say /clear". Now "show checklist, show faithful CHANGELOG extract, show restart banner". The command is now self-sufficient for teaching the user the post-upgrade workflow.
+  - `/stp:setup upgrade` completion semantics — was "show checklist, say /clear". Now "show checklist, show faithful CHANGELOG extract, show restart banner". The command is now self-sufficient for teaching the user the post-upgrade workflow.
   - The `► Next:` line convention after plugin upgrades — always includes exit+relaunch, never just `/clear` alone.
 
 - **Constraints introduced:**
-  - After `/stp:upgrade`, the completion output MUST include a restart banner (MANDATORY or Recommended variant, depending on hook changes). The banner MUST reference `/exit` and relaunching `claude`, not just `/clear`.
+  - After `/stp:setup upgrade`, the completion output MUST include a restart banner (MANDATORY or Recommended variant, depending on hook changes). The banner MUST reference `/exit` and relaunching `claude`, not just `/clear`.
   - "What's new" in the upgrade completion MUST be extracted from the real CHANGELOG.md for the new version, not paraphrased from memory.
   - Any command file that recommends `/clear` as a post-plugin-upgrade action MUST also include exit+relaunch, or the recommendation is actively misleading.
 
@@ -670,11 +821,11 @@ Manual verification of the bash snippets added to Step 1:
 
 ### Summary
 
-**v0.3.2 post-mortem** — the v0.3.2 enforcement layer shipped with three bugs that together recreated the v0.3.1 failure mode in a fresh form. A user ran `/stp:work-quick` and `/stp:whiteboard` back-to-back and hit all three:
+**v0.3.2 post-mortem** — the v0.3.2 enforcement layer shipped with three bugs that together recreated the v0.3.1 failure mode in a fresh form. A user ran `/stp:build --quick` and `/stp:think --whiteboard` back-to-back and hit all three:
 
-**Bug 1 — Session 1 stale hooks.** Plugin cache `0.3.2` was only created 43 minutes after I committed v0.3.2 to source. Any Claude Code session started in that window loaded the pre-v0.3.2 hooks.json (no PreToolUse entries). The user's `/stp:work-quick` session had no ui-gate loaded, so it built the exact same AI-slop landing page that motivated the v0.3.2 release. **Root cause:** Claude Code loads hooks at session startup and does not hot-reload when source changes. This is a Claude Code limitation, not fixable in the plugin — but it was undocumented.
+**Bug 1 — Session 1 stale hooks.** Plugin cache `0.3.2` was only created 43 minutes after I committed v0.3.2 to source. Any Claude Code session started in that window loaded the pre-v0.3.2 hooks.json (no PreToolUse entries). The user's `/stp:build --quick` session had no ui-gate loaded, so it built the exact same AI-slop landing page that motivated the v0.3.2 release. **Root cause:** Claude Code loads hooks at session startup and does not hot-reload when source changes. This is a Claude Code limitation, not fixable in the plugin — but it was undocumented.
 
-**Bug 2 — Whiteboard-gate matched only the canonical filename.** In Session 2, the user ran `/stp:whiteboard`. Claude wrote the data to `.stp/explore-data.json` (a pre-0.3.1 legacy name) instead of `.stp/whiteboard-data.json`. The whiteboard-gate hook checked only the canonical name — the wrong filename passed through as "not my problem" and exited 0. Data landed in a file the server does not watch. localhost:3333 stayed on `{"status": "Waiting..."}` for the entire session. The user was correct to say "it never deployed."
+**Bug 2 — Whiteboard-gate matched only the canonical filename.** In Session 2, the user ran `/stp:think --whiteboard`. Claude wrote the data to `.stp/explore-data.json` (a pre-0.3.1 legacy name) instead of `.stp/whiteboard-data.json`. The whiteboard-gate hook checked only the canonical name — the wrong filename passed through as "not my problem" and exited 0. Data landed in a file the server does not watch. localhost:3333 stayed on `{"status": "Waiting..."}` for the entire session. The user was correct to say "it never deployed."
 
 **Bug 3 — CHANGELOG.md teaching the wrong filename.** The v0.3.1 post-mortem CHANGELOG mentioned the legacy filename three times while explaining the old bug. With no counter-balancing filename contract in CLAUDE.md, Claude's context-read treated the legacy name as a valid alternative. The v0.3.2 CHANGELOG also inherited the references. **The documentation of a fixed bug was actively training the agent to reproduce it.**
 
@@ -683,7 +834,7 @@ Fixing this requires defense-in-depth across three layers: the hook must catch h
 ### Added
 
 - **`CLAUDE.md` `## Key Rules` — Filename Contract** — new always-loaded rule pinning the whiteboard data file to the canonical `.stp/whiteboard-data.json` and explicitly naming four forbidden aliases (`.stp/explore-data.json`, `.stp/whiteboard.json`, `.stp/board-data.json`, `.stp/design-data.json`). The rule includes a loud "STOP" directive if the agent catches itself about to write a forbidden name and cites the post-mortem reason. Since CLAUDE.md is loaded on every session start, this becomes a hard context-level constraint that sits above training-data hallucination.
-- **`CLAUDE.md` `## Hooks` — hot-reload warning** — explicit prose at the top of the section: *"Hooks load at Claude Code SESSION STARTUP, not hot-reload. After `/stp:upgrade` or any plugin update that adds or modifies hooks, you MUST exit Claude Code and restart it to pick up the new hooks. A running session keeps whatever hooks.json it loaded at launch."* Closes Bug 1 at the documentation layer (can't fix Claude Code itself, but users can now diagnose the "my hooks aren't firing" symptom).
+- **`CLAUDE.md` `## Hooks` — hot-reload warning** — explicit prose at the top of the section: *"Hooks load at Claude Code SESSION STARTUP, not hot-reload. After `/stp:setup upgrade` or any plugin update that adds or modifies hooks, you MUST exit Claude Code and restart it to pick up the new hooks. A running session keeps whatever hooks.json it loaded at launch."* Closes Bug 1 at the documentation layer (can't fix Claude Code itself, but users can now diagnose the "my hooks aren't firing" symptom).
 - **`CLAUDE.md` `## Hooks` — complete taxonomy refresh** — the section was stale since before v0.3.2, still listing "10 enforcement gates." It now documents all 19 hooks across 5 events (PreToolUse ×2, PostToolUse ×2, Stop ×13, SessionStart ×1, PreCompact ×1) with a note on the 3-retry technical safety valve and the workflow-vs-technical block distinction.
 - **`hooks/scripts/whiteboard-gate.sh` — forbidden-filename detection (4 variants)** — the hook now matches `.stp/explore-data.json`, `.stp/whiteboard.json`, `.stp/board-data.json`, and `.stp/design-data.json` in addition to the canonical name. Wrong filename → BLOCK with exit 2 and a correction message telling Claude exactly what path to use, including the historical context (why the wrong name exists, why it's forbidden, how to unblock). Canonical filename → existing auto-start-server behavior unchanged.
 
@@ -701,7 +852,7 @@ Fixing this requires defense-in-depth across three layers: the hook must catch h
 
 - **Added:**
   - Filename contract in CLAUDE.md `## Key Rules` — canonical path + 4 forbidden aliases
-  - Hot-reload warning in CLAUDE.md `## Hooks` — documents the "restart Claude Code after /stp:upgrade" requirement
+  - Hot-reload warning in CLAUDE.md `## Hooks` — documents the "restart Claude Code after /stp:setup upgrade" requirement
   - Updated `## Hooks` taxonomy listing all 19 hooks across 5 lifecycle events
   - Forbidden-name detection in `whiteboard-gate.sh` (4 new regex branches)
   - Correction-message BLOCK response with historical context and remediation steps
@@ -715,7 +866,7 @@ Fixing this requires defense-in-depth across three layers: the hook must catch h
   - Writes to `.stp/explore-data.json`, `.stp/whiteboard.json`, `.stp/board-data.json`, `.stp/design-data.json` MUST be blocked and corrected to `.stp/whiteboard-data.json`.
   - CHANGELOG entries documenting bugs involving forbidden strings MUST use defused references ("pre-<version> legacy name") rather than quoting the forbidden string verbatim.
   - CLAUDE.md MUST carry the whiteboard filename contract as an always-loaded rule.
-  - After any `/stp:upgrade` that modifies hooks, the upgrade's completion message MUST instruct the user to restart Claude Code (follow-up task — not wired in this release).
+  - After any `/stp:setup upgrade` that modifies hooks, the upgrade's completion message MUST instruct the user to restart Claude Code (follow-up task — not wired in this release).
 
 - **Dependencies created:**
   - CLAUDE.md `## Key Rules` filename contract references `hooks/scripts/whiteboard-gate.sh` by path — future refactors of the hook must keep it at that location or update the citation.
@@ -737,7 +888,7 @@ Fixing this requires defense-in-depth across three layers: the hook must catch h
 ## [0.3.2] — 2026-04-08 — feat: enforcement layer — markdown "MANDATORY" becomes hook-enforced
 
 ### Summary
-STP's workflow rules were written as **suggestions in markdown** ("MUST", "MANDATORY", "this is required"). Claude routinely routed around them. The v0.3.1 post-mortem was a landing page shipped with every AI-slop tell the design system explicitly forbade: gradient headlines, "Now in public beta" eyebrow pills, 3 boxed benefit cards, sparkles brand mark, template copy, center-everything layout. The `/ui-ux-pro-max` skill never fired. Step 1b of `/stp:work-quick` was labelled MANDATORY — and was pure markdown.
+STP's workflow rules were written as **suggestions in markdown** ("MUST", "MANDATORY", "this is required"). Claude routinely routed around them. The v0.3.1 post-mortem was a landing page shipped with every AI-slop tell the design system explicitly forbade: gradient headlines, "Now in public beta" eyebrow pills, 3 boxed benefit cards, sparkles brand mark, template copy, center-everything layout. The `/ui-ux-pro-max` skill never fired. Step 1b of `/stp:build --quick` was labelled MANDATORY — and was pure markdown.
 
 This release converts the most load-bearing "MANDATORY" rules into hooks. Per Shrivu Shankar's [Claude Code enterprise guide](https://blog.sshh.io/p/how-i-use-every-claude-code-feature): *"Hooks are the deterministic 'must-do' rules that complement the 'should-do' suggestions in CLAUDE.md."* Per [Knostic's openclaw-shield writeup](https://www.knostic.ai/blog/why-we-built-openclaw-shield-securing-ai-agents-from-themselves): *"prompt injection is a weak guardrail. A tool-based gate where the model gets a real DENIED response is far more effective."*
 
@@ -780,7 +931,7 @@ Three new hooks, three new stop-verify gates, two markdown bug fixes, 49/49 test
 - **Constraints introduced:**
   - New UI file writes (`.html`, `.tsx`, `.jsx`, `.vue`, `.svelte`, `.astro`, `.css`) MUST be preceded by a design-system consultation that touches `.stp/state/ui-gate-passed`. Overwrites of existing files are exempt.
   - Writes to `.stp/whiteboard-data.json` MUST have the whiteboard server running (auto-started if missing).
-  - Features built under a `PLAN.md` (i.e., `/stp:work-full` territory) MUST run `/stp:review` before Claude can stop. The Critic can no longer be silently skipped.
+  - Features built under a `PLAN.md` (i.e., `/stp:build --full` territory) MUST run `/stp:review` before Claude can stop. The Critic can no longer be silently skipped.
   - UI features (identified by the presence of the `ui-gate-passed` marker) MUST have a QA report before Claude can stop. agent-browser QA can no longer be silently skipped.
   - All completed features SHOULD emit a `### Spec Delta` block in CHANGELOG.md and touch ARCHITECTURE.md (Gate 11 warns but does not block).
 
@@ -792,7 +943,7 @@ Three new hooks, three new stop-verify gates, two markdown bug fixes, 49/49 test
 
 ### Deliberately NOT done
 
-- **Pre-work `AskUserQuestion` gate** (audit gap #2) — deferred. Risk of false-triggering on `/stp:continue`, `/stp:resume`, `/stp:autopilot` flows without careful session-scoped carve-outs. Will revisit once the session-ID primitive is more accessible from hooks.
+- **Pre-work `AskUserQuestion` gate** (audit gap #2) — deferred. Risk of false-triggering on `/stp:session continue`, `/stp:resume`, `/stp:build --auto` flows without careful session-scoped carve-outs. Will revisit once the session-ID primitive is more accessible from hooks.
 - **Context7/Tavily research gate** (audit gap #3) — deferred. Research is judgment; sometimes legitimately cached from earlier in the session. Transcript parsing is brittle and false positives would train the agent to ignore warnings. Stays as documentation-only.
 - **/clear between commands** (audit gap #8) — purely cosmetic, already handled by completion-box templates. No hook needed.
 
@@ -823,7 +974,7 @@ Three new hooks, three new stop-verify gates, two markdown bug fixes, 49/49 test
 
 ### Summary
 Three structural bugs ganged up to make the visual whiteboard unreliable for
-any user invoking `/stp:whiteboard`:
+any user invoking `/stp:think --whiteboard`:
 
 1. **Filename contract was split.** The server (`whiteboard/serve.py`) watched
    `.stp/whiteboard-data.json` while four command files told the orchestrator
@@ -838,11 +989,11 @@ any user invoking `/stp:whiteboard`:
    AskUserQuestion gate or after a write. There was zero unconditional start
    anywhere. The agent could (and did) reach the "write the design system
    JSON" step with no server running — the user opened localhost:3333 and
-   saw nothing. The command is literally named `/stp:whiteboard`; a whiteboard
+   saw nothing. The command is literally named `/stp:think --whiteboard`; a whiteboard
    the user can't see is a broken command.
 
-3. **No `/clear` in handoffs.** Completion boxes recommended `/stp:work-quick`,
-   `/stp:plan`, etc. as next steps but never told the user to `/clear` first.
+3. **No `/clear` in handoffs.** Completion boxes recommended `/stp:build --quick`,
+   `/stp:think --plan`, etc. as next steps but never told the user to `/clear` first.
    Each STP phase fills context with research and verification noise; the
    next phase reads its inputs from disk, so failing to clear strictly hurts.
 
@@ -868,10 +1019,10 @@ any user invoking `/stp:whiteboard`:
 - `commands/whiteboard.md` — replaced the optional "## Visual Whiteboard"
   offer with a mandatory "## Start the Whiteboard Server (MANDATORY — your
   FIRST action, before anything else)" block. Server starts unconditionally
-  at the top of every `/stp:whiteboard` invocation. No AskUserQuestion gate,
+  at the top of every `/stp:think --whiteboard` invocation. No AskUserQuestion gate,
   no "if they accept" branch.
 - `commands/plan.md` — same pattern. Server starts at the top of every
-  `/stp:plan` invocation.
+  `/stp:think --plan` invocation.
 - `commands/work-full.md` — UI/UX branch (line 263) reordered: server starts
   BEFORE the design system is generated, never after. Step numbering
   adjusted (4 → 5 for the persist step).
@@ -879,17 +1030,17 @@ any user invoking `/stp:whiteboard`:
 
 **/clear in next-step handoffs:**
 - `commands/whiteboard.md` — final completion box now recommends
-  "1. /clear, 2. then ONE of: /stp:work-full | /stp:work-quick | /stp:work-adaptive"
-- `commands/plan.md` — `► Next: /clear, then /stp:work-quick [FIRST FEATURE]`
-- `commands/new-project.md` — `► Next: /clear, then /stp:plan`
-- `commands/review.md` — `► Next: /clear, then /stp:work-quick [NEXT FEATURE]`
+  "1. /clear, 2. then ONE of: /stp:build --full | /stp:build --quick | /stp:build"
+- `commands/plan.md` — `► Next: /clear, then /stp:build --quick [FIRST FEATURE]`
+- `commands/new-project.md` — `► Next: /clear, then /stp:think --plan`
+- `commands/review.md` — `► Next: /clear, then /stp:build --quick [NEXT FEATURE]`
 - `commands/work-quick.md` — both completion boxes (next feature, next
   milestone) prepend `/clear, then`
 
 **Project conventions added (so this can't regress):**
 - `CLAUDE.md` — two new entries in `## Key Rules`:
-  1. Whiteboard server start is mandatory + first for `/stp:whiteboard` and
-     `/stp:plan`; never gated behind AskUserQuestion or "if they accept".
+  1. Whiteboard server start is mandatory + first for `/stp:think --whiteboard` and
+     `/stp:think --plan`; never gated behind AskUserQuestion or "if they accept".
   2. `/clear` must be suggested before every inter-command transition in
      completion boxes.
 
@@ -916,7 +1067,7 @@ any user invoking `/stp:whiteboard`:
   - Graceful 404 fallback policy in `serve.py` (unknown paths redirect to
     `/` instead of emitting Python's default 404 HTML).
   - Mandatory unconditional whiteboard server start as the first action of
-    `/stp:whiteboard` and `/stp:plan`.
+    `/stp:think --whiteboard` and `/stp:think --plan`.
   - `/clear` recommendation before every inter-command transition in
     completion boxes across new-project, plan, whiteboard, work-quick,
     review.
@@ -926,16 +1077,16 @@ any user invoking `/stp:whiteboard`:
     (was ambiguously a different legacy name in some pre-0.3.1 command docs —
     that legacy name is now FORBIDDEN and blocked by the v0.3.3 whiteboard-gate
     hook; do NOT reference it).
-  - The whiteboard offer is no longer modeled as opt-in for `/stp:whiteboard`
-    and `/stp:plan` — it is the literal first action.
-  - In `/stp:work-quick` and `/stp:work-full` UI/UX branches, the server
+  - The whiteboard offer is no longer modeled as opt-in for `/stp:think --whiteboard`
+    and `/stp:think --plan` — it is the literal first action.
+  - In `/stp:build --quick` and `/stp:build --full` UI/UX branches, the server
     starts BEFORE design system generation, not after.
 - **Constraints introduced:**
   - Any future command that writes live whiteboard data MUST use
     `.stp/whiteboard-data.json`. Single source of truth between producer
     (command agent) and consumer (`whiteboard/serve.py`).
   - The whiteboard server MUST start as the first action of any command
-    whose primary purpose is whiteboarding (`/stp:whiteboard`, `/stp:plan`).
+    whose primary purpose is whiteboarding (`/stp:think --whiteboard`, `/stp:think --plan`).
     No AskUserQuestion gate, no conditional offer.
   - Any command's completion box that recommends a follow-up `/stp:*`
     command MUST prepend `/clear, then` to the recommendation.
@@ -953,7 +1104,7 @@ file, the consumer thinks no file exists, and neither complains.
 that crosses a process boundary (writer vs. reader) in an agent pipeline.
 
 **Lesson 2 — Match command name to mandatory action.** If a command's name
-declares its primary purpose (`/stp:whiteboard`, `/stp:debug`, `/stp:plan`),
+declares its primary purpose (`/stp:think --whiteboard`, `/stp:debug`, `/stp:think --plan`),
 that purpose's enabling action must be unconditional and first. Modeling it
 as an "if they accept" offer creates a class of failure where the agent can
 reach the work step without the prerequisite running. The user already

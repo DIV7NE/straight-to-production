@@ -1,292 +1,291 @@
-# STP Optimization Profiles
+# STP Optimization Profiles (v1.0)
 
-STP supports three optimization profiles that change which Claude models run the sub-agents. **Default: `balanced-profile`** — best cost/quality ratio for most users. Switch with `/stp:set-profile-model`.
+STP supports **six profiles** that control which Claude models run which roles (main session + sub-agents) and how aggressively discipline (/clear, context limits, mandatory delegation) is enforced. **Default: `balanced`** — best cost/quality ratio for most users. Switch with `/stp:setup model`.
 
-> **Architecture:** Inspired by [GSD's `set-profile` design](https://github.com/gsd-build/get-shit-done) which works reliably. The single source of truth is `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs` — a Node.js file with the canonical agent × profile → model mapping table, plus a CLI that STP commands and hooks call to resolve models at spawn time. Adding a new profile is one column in that file; no other changes needed.
+> **Architecture.** The single source of truth is `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs` — a Node.js file holding the canonical `agent × profile → model` table + a CLI that every skill and hook calls to resolve models at spawn time. Adding a profile is one column in that file; no other changes needed.
 
 **Sentinel values you'll see in the tables below:**
-- `inherit` — sub-agent omits `model=` parameter; uses parent session model (Opus on Opus, Sonnet on Sonnet)
-- `inline` — no sub-agent spawned; main session does the work directly
+- `inherit` — sub-agent omits `model=`; uses the parent session model (Opus on Opus sessions, Sonnet on Sonnet sessions).
+- `inline` — no sub-agent spawned; the main session does the work directly.
 
-## Quick Comparison
+## Quick comparison
 
-| Sub-agent | intended-profile | balanced-profile | budget-profile | sonnet-main | 20-pro-plan |
-|---|---|---|---|---|---|
-| **stp-executor** (builds features) | `sonnet` | `sonnet` | `sonnet` | `sonnet` | `inline` |
-| **stp-qa** (independent tester) | `sonnet` | `sonnet` | `sonnet` | `haiku` | `inline` |
-| **stp-critic** (Double-Check Protocol) | `sonnet` | `sonnet` | `haiku` (→ sonnet escalation on ≥2 issues) | `haiku` (→ sonnet escalation) | `inline` |
-| **stp-critic-escalation** (Sonnet fallback) | `sonnet` | `sonnet` | `sonnet` | `sonnet` | `inline` |
-| **stp-researcher** (Context7/Tavily/Web) | `inline` | `sonnet` | `sonnet` | `sonnet` | `inline` |
-| **stp-explorer** (codebase Glob/Grep) | `inline` | `sonnet` | `sonnet` | `sonnet` | `inline` |
+| Sub-agent | opus-cto | balanced | sonnet-turbo | opus-budget | sonnet-cheap | pro-plan |
+|---|---|---|---|---|---|---|
+| **stp-executor** | `sonnet` | `sonnet` | `sonnet` | `sonnet` | `sonnet` | `inline` |
+| **stp-qa** | `sonnet` | `sonnet` | `sonnet` | `sonnet` | `haiku` | `inline` |
+| **stp-critic** | `sonnet` | `sonnet` | `sonnet` | `haiku` → `sonnet` on ≥2 issues | `haiku` → `sonnet` on ≥2 | `inline` |
+| **stp-critic-escalation** | `sonnet` | `sonnet` | `sonnet` | `sonnet` | `sonnet` | `inline` |
+| **stp-researcher** | `inline` | `sonnet` | `sonnet` | `sonnet` | `sonnet` | `inline` |
+| **stp-explorer** | `inline` | `sonnet` | `sonnet` | `sonnet` | `sonnet` | `inline` |
 
-> **Why intended-profile uses `sonnet` (not `inherit`):** STP's original architecture deliberately uses Sonnet sub-agents even when the main session is Opus. This is the cost optimization at the heart of STP's design — Opus thinks (architecture, planning, review), Sonnet builds (cheap, equally capable for code writing per the SWE-bench numbers). The `inherit` sentinel is reserved for future profiles or non-Anthropic runtimes (Codex, OpenCode, Gemini CLI) where matching the main session model is the desired behavior.
+> **Why opus-cto uses `sonnet` (not `inherit`) for sub-agents.** Opus plans + Sonnet executes is the cost optimization at the heart of STP. Opus thinks (architecture, review), Sonnet builds (cheap, equally capable for code writing per Anthropic's SWE-bench data). `inherit` is reserved for future non-Anthropic runtimes (Codex, OpenCode, Gemini CLI) where matching the main-session model is desired.
 
-| Discipline | intended-profile | balanced-profile | budget-profile | sonnet-main | 20-pro-plan |
-|---|---|---|---|---|---|
-| **/clear between phases** | recommended | mandatory | enforced (hook warns at 60%) | enforced | enforced |
-| **Context Mode MCP** | recommended | mandatory | hard-block on >50 line ops | hard-block | hard-block |
-| **Researcher mandatory** | false | true | true | true | false (inline) |
-| **Explorer mandatory** | false | true | true | true | false (inline) |
-| **Sub-agents** | yes | yes | yes | yes | **DISABLED** |
-| **Max main session** | unlimited | ~120K | ~100K | ~80K | ~60K |
-| **Max msgs/feature** | — | — | — | — | **≤30** |
-| **Max msgs/5h window** | — | — | — | — | **≤80** |
-| **Verification** | 6-layer | 6-layer | 6-layer | 6-layer | deterministic only |
-| **Allowed commands** | all | all | all | all | work-quick, debug, progress, continue, pause |
-| **Cost vs intended** | baseline (100%) | ~35-50% | ~20% | ~15% | **$20/mo flat** |
-| **Quality vs intended** | 100% | ~95% | ~85-90% (compensated by stricter Layers 1-4) | ~80-85% | ~70-75% |
+## Discipline matrix
 
-**Reading the table:**
-- `inherit` means the sub-agent uses the parent session's model. On an Opus 1M session, `inherit` is Opus. On a Sonnet 200K session, `inherit` is Sonnet. Works on Codex/OpenCode/Gemini CLI too.
-- `inline` means no sub-agent is spawned at all — the main session does the work directly. Used in `intended-profile` for researcher/explorer because Opus 1M can absorb research/exploration inline without context pressure.
+| Discipline | opus-cto | balanced | sonnet-turbo | opus-budget | sonnet-cheap | pro-plan |
+|---|---|---|---|---|---|---|
+| **Main effort** | `xhigh` | `xhigh` | `xhigh` | `high` | `high` | `high` |
+| **/clear between phases** | recommended | mandatory | mandatory | enforced at 60% | enforced | enforced |
+| **Context Mode MCP** | recommended | mandatory | mandatory | hard-block >50 lines | hard-block | hard-block |
+| **Researcher mandatory** | false (inline) | true | true | true | true | false (inline) |
+| **Explorer mandatory** | false (inline) | true | true | true | true | false (inline) |
+| **Sub-agents enabled** | yes | yes | yes | yes | yes | **DISABLED** |
+| **Max main session** | ~1M | ~120K | ~150K | ~100K | ~80K | ~60K |
+| **Max msgs / feature** | — | — | — | — | — | **≤30** |
+| **Max msgs / 5h window** | — | — | — | — | — | **≤80** |
+| **Verification** | 6-layer | 6-layer | 6-layer | 6-layer | 6-layer | deterministic only |
+| **Allowed skills** | all | all | all | all | all | build --quick, debug, session |
+| **Cost vs opus-cto** | 100% (baseline) | ~35-50% | ~25% | ~20% | ~15% | **$20/mo flat** |
+| **Quality vs opus-cto** | 100% | ~95% | ~90% (tight context) | ~85-90% | ~80-85% | ~70-75% |
 
-## Which Profile Should I Use?
+## Which profile should I pick?
 
-**Pick `balanced-profile` (DEFAULT) if:**
-- You have Opus access and want the best cost/quality ratio
-- You're doing any standard development work — features, fixes, refactors
-- You're comfortable with /clear between phases and trust sub-agent delegation
-- You want ~50% cost savings with minimal quality drop on routine builds
+**Pick `balanced` (DEFAULT) if:**
+- You have Opus access + want the best cost/quality ratio.
+- You're doing standard development work — features, fixes, refactors.
+- You're comfortable with `/clear` between phases and filesystem-handoff discipline.
+- You want ~50% cost savings vs opus-cto with negligible quality drop on routine builds.
 
-**Pick `intended-profile` if:**
-- You have Claude Code with Opus 4.6 [1M] access AND cost is not a constraint
-- You want Opus to handle research/exploration inline (no delegation overhead)
-- You're building high-stakes production software where the absolute highest quality bar matters
-- You want the original STP architecture as documented in the [Anthropic harness research](https://www.anthropic.com/engineering/harness-design-long-running-apps)
+**Pick `opus-cto` if:**
+- You have Opus 4.7 access AND cost is not a constraint.
+- You're building high-stakes production software where maximum quality matters.
+- You want research/exploration inline (no delegation overhead) thanks to Opus 1M context.
 
-**Pick `budget-profile` if:**
-- You only have Sonnet/Haiku access (Pro tier or self-hosted)
-- Cost is the primary constraint
-- You're willing to trade some architectural depth for ~80% cost savings
-- You can tolerate a slightly looser Critic in exchange for tighter deterministic verification (Layers 1-4 catch more)
-- You're OK with the strictest context discipline (mandatory researcher/explorer, hard-block on large outputs)
+**Pick `sonnet-turbo` if:**
+- You want fast iteration without Opus latency, but still want structured subagents.
+- You're OK with Sonnet 4.6 as main session (no 1M context — standard 200K).
+- Cost matters but not as much as on opus-budget.
+- Good for feature work where deep architectural reasoning isn't critical.
 
-**Pick `sonnet-main` if:**
-- You're running Claude Code with Sonnet 4.6 as the primary model (no Opus access)
-- You want STP's full workflow on a 200K context budget
-- You accept Haiku for QA + Critic (with Sonnet escalation on critical findings)
-- You need the absolute lowest cost — ~85% cheaper than intended-profile
-- You're OK with enforced /clear between phases and 80K main session cap
+**Pick `opus-budget` if:**
+- You have Opus access but want critic cost optimized (Haiku first-pass, Sonnet escalation on ≥2 issues).
+- You're willing to accept a slightly looser critic in exchange for ~60% critic-phase savings.
+- You follow strict discipline — mandatory researcher/explorer, hard-block on large outputs.
 
-**Pick `20-pro-plan` if:**
-- You're on the **$20/month Claude Pro plan** (the cheapest paid tier)
-- Your hard constraint is **message count** (~45-100 msgs per 5-hour window), not token cost
-- You can only do **1-2 features per session** and need every message to count
-- You're OK with **no AI verification** (critic, QA) — deterministic tests/types/lint only
-- You accept that only `/stp:work-quick` and `/stp:debug` are available (no work-full, plan, autopilot, whiteboard)
-- You understand this is a **constrained but functional** STP experience — real production code, just fewer guardrails
+**Pick `sonnet-cheap` if:**
+- You're running Claude Code with Sonnet 4.6 as primary (no Opus access).
+- You want STP's full workflow on a 200K context budget.
+- You accept Haiku for QA + first-pass critic (with Sonnet escalation on critical findings).
+- Lowest non-Pro cost — ~85% cheaper than opus-cto.
 
-## Profile Details
+**Pick `pro-plan` if:**
+- You're on the **$20/month Claude Pro plan** (the cheapest paid tier).
+- Your hard constraint is **message count** (~45-100 msgs per 5-hour window).
+- You can do **1-2 features per session** and need every message to count.
+- You're OK with **no AI verification** (critic, QA) — deterministic tests/types/lint only.
+- You accept only `/stp:build --quick`, `/stp:debug`, and `/stp:session` (no build --full, think --plan, setup new, etc.).
 
-### intended-profile
+## Profile details
 
-> The original STP architecture. Built around Opus 4.6 [1M] context window, validated by Anthropic Labs' research on long-running agent harnesses.
+### opus-cto
 
-**Main session model**: Opus 4.6 [1M] for every command. The main session can hold the entire research, planning, build, and review history without needing aggressive offloading. /clear is recommended between phases but not required.
+> The original STP architecture. Built around Opus 4.7's 1M context window and validated by Anthropic's harness research.
 
-**Sub-agent strategy**: Spawn Sonnet executors for parallel feature work (worktree isolation), Sonnet QA for independent testing, Sonnet Critic for the Double-Check Protocol. Researcher and explorer work happens inline in the main Opus session — no dedicated sub-agents for those roles.
+**Main session**: Opus 4.7 [1M] at `xhigh` effort. The main session holds research + planning + build + review history without aggressive offloading. `/clear` between phases is recommended but not required.
 
-**Context engineering**: Light-touch. Context Mode MCP is recommended for very large outputs (codebase analysis, test runs) but not strictly required. The 1M window absorbs the cost of holding raw output for most operations.
+**Sub-agents**: Sonnet 4.6 executors in worktrees, Sonnet QA, Sonnet critic. Researcher + explorer stay **inline** in the Opus 1M session — no dedicated sub-agents for those roles.
 
-**Cost profile**: Highest. Every main-session token is Opus-priced. Worth it when quality matters and the build is complex.
+**Context engineering**: Light-touch. Context Mode MCP recommended for very large outputs but not strictly required. The 1M window absorbs most operations.
 
-### balanced-profile
+**Cost profile**: Highest. Every main-session token is Opus-priced. Worth it when quality matters.
 
-> The GSD-style split. Opus does the thinking (planning, research, design), Sonnet does the doing (execution, building, verification).
+### balanced
 
-**Main session model**:
-- **Planning commands** (`/stp:plan`, `/stp:research`, `/stp:whiteboard`, `/stp:new-project`, `/stp:onboard-existing`) → Opus 4.6 [1M]
-- **Execution commands** (`/stp:work-full`, `/stp:work-quick`, `/stp:debug`, `/stp:autopilot`) → Sonnet 4.6 [200K]
+> Opus thinks, Sonnet executes. The default and safest starting point.
 
-This is the trickiest part of the profile. Because you can't switch a running session's model mid-conversation, the rule is: **start a new Claude Code session with the right model for the command you're about to run.** The statusline shows which profile is active and which model the next command expects.
+**Main session**:
+- **Planning skills** (`/stp:think`, `/stp:setup new`, `/stp:setup onboard`) → Opus 4.7 [1M]
+- **Execution skills** (`/stp:build`, `/stp:debug`) → Sonnet 4.6 [200K]
+- **Utility skills** (`/stp:session`, `/stp:setup model`, `/stp:setup pace`) → whatever's currently loaded
 
-**Sub-agent strategy**: All sub-agents are Sonnet 4.6. The new `stp-researcher` and `stp-explorer` sub-agents fire whenever the main session needs to gather research or explore the codebase — this keeps the main 200K session lean.
+This is the trickiest part of the profile: you can't switch a running session's model mid-conversation, so **start a new Claude Code session with the right model for the skill you're about to run.** The statusline shows profile + model.
 
-**Context engineering**: Mandatory. /clear between phases is required (the Sonnet main session compacts faster than Opus). Context Mode MCP must be used for any operation that produces >50 lines of output. Sub-agent prompts capped at 2K tokens, reports capped at 30 lines structured.
+**Sub-agents**: All Sonnet 4.6 in worktrees. `stp-researcher` + `stp-explorer` fire whenever the main session needs external research or multi-file exploration — keeps the 200K execution session lean.
 
-**Why this works**: The Anthropic harness research shows that fresh sub-agents with structured filesystem handoffs are equivalent to (and sometimes better than) a single long-running session. Sonnet 200K is sufficient when each sub-agent task is tightly scoped and decomposition is rigorous.
+**Context engineering**: Mandatory. `/clear` between phases is required (Sonnet 200K compacts faster than Opus 1M). Context Mode MCP for any operation >50 lines output. Sub-agent prompts capped at 2K tokens, reports capped at 30 lines.
 
-**Cost profile**: ~50% cheaper than intended on a typical build. Bigger savings on long-running execution phases.
+**Why this works**: Anthropic's harness research shows fresh sub-agents with filesystem handoffs often match or beat a single long-running session. Sonnet 200K is sufficient when each sub-agent task is tightly scoped.
 
-**Quality drop**: ~5-10% on architecture-heavy work where Opus's deeper reasoning would catch more edge cases. Negligible on routine CRUD/UI/test builds.
+**Cost profile**: ~50% cheaper than opus-cto. Bigger savings on long execution phases.
 
-### budget-profile
+**Quality drop**: ~5% on architecture-heavy work; negligible on routine CRUD/UI/test builds.
 
-> The lean profile. Sonnet for planning AND execution. Haiku for first-pass verification, with Sonnet escalation when Haiku flags 2+ issues.
+### sonnet-turbo
 
-**Main session model**: Sonnet 4.6 [200K] for every command. No model switching.
+> Sonnet 4.6 @ xhigh effort as main session. Same sub-agent strategy as balanced, but no Opus anywhere.
 
-**Sub-agent strategy**:
-- Executors: Sonnet 4.6
-- QA: Sonnet 4.6
-- Critic: Haiku 4.5 (fast pattern scanner) → escalates to Sonnet when Haiku flags ≥2 issues
-- Researcher: Sonnet 4.6 — **mandatory** for any research call (Context7, Tavily, web search)
-- Explorer: Sonnet 4.6 — **mandatory** for any codebase exploration (Glob/Grep across multiple files)
+**Main session**: Sonnet 4.6 [200K] at `xhigh` effort. Faster iteration than Opus; cheaper; still structured.
 
-**Context engineering**: Hardcore. The main session is treated as a thin coordinator that holds only decisions and pointers. Concrete rules:
+**Sub-agents**: Same as balanced — all Sonnet, researcher + explorer mandatory.
 
-1. `/clear` between phases is **enforced** (warning hook fires at 60% main-session capacity)
-2. Context Mode MCP is **hard-blocked** on operations >50 lines (use `ctx_execute_file` or a sub-agent)
-3. Every sub-agent prompt capped at **2K tokens**, report capped at **20 lines** (tighter than balanced)
-4. Researcher/explorer mandatory — main session may NOT do research or codebase exploration directly
+**Context engineering**: Same as balanced (mandatory /clear, mandatory Context Mode MCP for large ops).
+
+**Cost profile**: ~25% of opus-cto. Faster than opus-cto for routine work because Sonnet's latency is lower.
+
+**Quality drop**: ~10%. Architectural reasoning is weaker than Opus, but Sonnet 4.6 @ xhigh + the 6-layer verification stack catches most of it. Not recommended for net-new system design; fine for feature work, fixes, refactors.
+
+**When to pick sonnet-turbo over balanced**: You don't have Opus quota / don't want the mental overhead of swapping main-session models between planning and execution. One model, one session.
+
+### opus-budget
+
+> Opus plans, Sonnet executes, Haiku first-pass critic.
+
+**Main session**: Same as balanced (Opus for planning, Sonnet for execution).
+
+**Sub-agents**: Same as balanced EXCEPT the critic:
+- **Pass 1 — Haiku 4.5**: pattern-based structural scan (file:line evidence for secrets, schema drift, accessibility, hollow tests, anti-slop). Cheap, fast.
+- **Pass 2 — Sonnet 4.6 escalation**: triggers ONLY when Haiku finds ≥2 critical issues or any FAIL. Runs the full Double-Check Protocol with behavioral verification.
+
+**Context engineering**: Hardcore. Main session treated as a thin coordinator holding only decisions + pointers:
+1. `/clear` between phases **enforced** (warning hook fires at 60% capacity)
+2. Context Mode MCP **hard-blocked** for operations >50 lines
+3. Sub-agent prompts capped at 2K tokens, reports capped at **20 lines** (tighter than balanced)
+4. Researcher / explorer **mandatory** — main session may NOT do research or multi-file exploration directly
 5. Anti-slop scan threshold tightened: 1 hit → BLOCK (vs WARN in other profiles)
 
-**Critic split (Haiku fast pass + Sonnet escalation)**:
-- **Pass 1 — Haiku 4.5**: Pattern-based structural scan. file:line evidence for hardcoded secrets, schema drift, accessibility violations, hollow tests, anti-slop indicators. Cheap, fast, catches surface issues.
-- **Pass 2 — Sonnet 4.6 escalation**: Triggers ONLY when Haiku finds ≥2 critical issues or any FAIL. Runs the full Double-Check Protocol with behavioral verification. This keeps the average critic cost low (most builds don't escalate) while preserving the deep-reasoning safety net for problem builds.
+**Compensation strategy**: Because the critic is weaker on deep reasoning, opus-budget leans harder on Layers 1-4 of the verification stack (executable specs, deterministic analysis, mutation challenge, property tests). The critic stops being the last safety net and becomes one of five deterministic checks.
 
-**Compensation strategy**: Because the Critic is weaker on deep reasoning, budget-profile leans HARDER on Layers 1-4 of the verification stack:
-- **Layer 1 (executable specs)**: All acceptance criteria MUST become BDD tests before any code is written. No exceptions.
-- **Layer 2 (deterministic analysis)**: Hollow test detection, ghost coverage, placeholder scanning all run on every commit (tighter than other profiles).
-- **Layer 3 (mutation challenge)**: Mandatory mutation-test pass on any new logic. AI tests have a 57% kill rate on average — mutation testing exposes the false-confident ones.
-- **Layer 4 (property-based tests)**: Required for any function with >2 input dimensions. Catches edge cases the LLM never considered.
+**Cost profile**: ~20% of opus-cto.
 
-The verification stack as a whole compensates for Haiku's reasoning gap. The Critic stops being the safety net of last resort and becomes one of five deterministic checks.
+**Quality drop**: ~10-15% raw model intelligence, pulled back to ~5-8% real-world by tighter discipline + Sonnet escalation.
 
-**Cost profile**: ~20% of intended-profile cost. Best for prototyping, learning STP, or running on a tight budget.
+### sonnet-cheap
 
-**Quality drop**: ~10-15% on the rawest measure (model intelligence) but the strict context discipline + tighter Layers 1-4 + Sonnet escalation pull most of that back. Real-world quality drop on shipped code is closer to 5-8% if the discipline is followed.
+> No Opus anywhere. Sonnet main session, Haiku QA + first-pass critic, Sonnet escalation for critical findings.
 
-### sonnet-main
+**Main session**: Sonnet 4.6 [200K] at `high` effort. For users running Claude Code with Sonnet (no Opus access).
 
-> The no-Opus profile. Main session runs on Sonnet 200K. Haiku handles QA and first-pass critic. Sonnet escalation for critical findings.
-
-**Main session model**: Sonnet 4.6 [200K] — this is for users running Claude Code with Sonnet, not Opus.
-
-**Sub-agent strategy**:
-- Executors: Sonnet 4.6 (worktree isolation, same as all profiles)
+**Sub-agents**:
+- Executor: Sonnet 4.6
 - QA: **Haiku 4.5** — standard test assertions don't need Sonnet-level reasoning
-- Critic: **Haiku 4.5** → escalates to Sonnet when ≥2 critical issues found
-- Researcher: Sonnet 4.6 — **mandatory** (main session can't afford inline research at 200K)
-- Explorer: Sonnet 4.6 — **mandatory**
+- Critic: **Haiku 4.5** → escalates to Sonnet on ≥2 critical findings
+- Researcher: Sonnet 4.6 (mandatory — main session can't afford inline research at 200K)
+- Explorer: Sonnet 4.6 (mandatory)
 
-**Context engineering**: Same as budget-profile but with tighter main session cap (80K vs 100K). The reasoning: Sonnet 200K is the hard ceiling, and with CLAUDE.md + command file + state files, the usable planning context is ~80K before risk of coherence degradation.
+**Context engineering**: Same as opus-budget but tighter main-session cap (80K vs 100K). Reasoning: Sonnet 200K is the hard ceiling; after CLAUDE.md + skill files + state files, usable planning context is ~80K before coherence risk.
 
-**When to use this over budget-profile**: Budget-profile assumes an Opus main session that delegates cheap work to Sonnet/Haiku. Sonnet-main assumes the main session IS Sonnet. The discipline rules are identical, but sonnet-main drops QA to Haiku (saving tokens on test assertion verification that doesn't need Sonnet intelligence).
+**When to use sonnet-cheap over opus-budget**: You don't have Opus access at all. Otherwise opus-budget is strictly better (Opus planning pays for itself).
 
-**Cost profile**: ~15% of intended-profile cost. The cheapest STP profile that still runs the full verification stack.
+**Cost profile**: ~15% of opus-cto.
 
-**Quality drop**: ~15-20% on model intelligence, compensated by Layers 1-4 + Sonnet escalation. Adequate for feature work, fixes, and refactors. Not recommended for complex multi-system architecture planning (use balanced-profile for that).
+**Quality drop**: ~15-20% raw, compensated to ~8-10% real-world by Layers 1-4 + Sonnet escalation. Adequate for feature work, fixes, refactors. Not recommended for complex multi-system architecture planning.
 
-### 20-pro-plan
+### pro-plan
 
-> The $20/month profile. ZERO sub-agents. All work happens inline in the main session. Designed around the Pro plan's hard constraint: ~45-100 messages per 5-hour window, shared across all Claude surfaces.
+> ZERO sub-agents. All work inline in the main session. Designed around the Pro plan's hard constraint: ~45-100 messages per 5-hour window, shared across all Claude surfaces.
 
-**Main session model**: Whatever the Pro plan gives you (currently Sonnet 4.6 200K, with some Opus access that burns messages faster). Use Sonnet for all STP work — Opus messages count heavier against the rate limit.
+**Main session**: Whatever the Pro plan gives you (currently Sonnet 4.6 200K with limited Opus access). Use Sonnet for all STP work — Opus messages count heavier against rate limits.
 
-**Sub-agent strategy**: **None.** Every Agent() spawn burns 5-20+ messages from the shared pool. A single `/stp:work-full` run with executor + QA + critic could exhaust an entire 5-hour window. All agents are set to `inline` — the main session does everything directly.
+**Sub-agents**: **None.** Every `Agent()` spawn burns 5-20+ messages from the shared pool. A single `/stp:build --full` with executor + QA + critic could exhaust a 5-hour window. All agents set to `inline`.
 
-**Verification**: **Deterministic only.** No AI critic pass, no AI QA pass. Rely entirely on:
-- Type checking (tsc --noEmit)
-- Test suite (vitest/jest/pytest)
-- Linting (eslint/biome)
-- The stop hooks still fire (type-errors, test-failures, secrets, placeholders, hollow-tests)
+**Verification**: **Deterministic only.** No AI critic, no AI QA. Rely entirely on:
+- Type checking (`tsc --noEmit`, `mypy`, `cargo check`, etc.)
+- Test suite (vitest/jest/pytest/cargo test/etc.)
+- Linting (eslint/biome/ruff/clippy/etc.)
+- Stop hooks still fire (type-errors, test-failures, secrets, placeholders, hollow-tests)
 
-The AI verification layers (critic, QA, mutation challenge) are skipped because each costs 5-15 messages.
+**Allowed skills**: Only lightweight ones that don't spawn sub-agents:
+- `/stp:build --quick` — primary build skill. Inline research → inline build → deterministic verify.
+- `/stp:debug` — root cause analysis, all inline.
+- `/stp:session` — pause / continue / progress (nearly free).
+- `/stp:setup model`, `/stp:setup pace`, `/stp:setup upgrade` — utility.
 
-**Allowed commands**: Only lightweight STP commands that don't spawn sub-agents:
-- `/stp:work-quick` — the primary build command. Inline research → inline build → deterministic verify
-- `/stp:debug` — root cause analysis, all inline
-- `/stp:progress`, `/stp:continue`, `/stp:pause` — session management (read-only, nearly free)
-- `/stp:set-profile-model`, `/stp:upgrade` — utility
-
-**Blocked commands** (too message-heavy for Pro plan):
-- `/stp:work-full` — spawns executor + QA + critic = 30-60+ messages
-- `/stp:autopilot` — designed for unlimited usage, antithetical to Pro plan
-- `/stp:plan` — research-heavy, burns 15-25 messages on architecture alone
+**Blocked skills** (too message-heavy):
+- `/stp:build --full` — spawns executor + QA + critic = 30-60+ messages
+- `/stp:build --auto` — designed for unlimited usage
+- `/stp:think --plan` — research-heavy
 - `/stp:review` — spawns critic sub-agent
-- `/stp:whiteboard` — research + exploration + server management
-- `/stp:new-project` — full project setup, 40+ messages
-- `/stp:onboard-existing` — deep codebase analysis, 30+ messages
+- `/stp:think --whiteboard` — research + exploration + server management
+- `/stp:setup new`, `/stp:setup onboard` — 30-40+ messages
 
 **Message budget discipline**:
-- **≤30 messages per feature** — plan your work before starting, don't explore aimlessly
-- **≤80 messages per 5-hour window** — leaves ~20 messages for non-STP Claude usage
-- **Every /clear saves messages** — smaller context = shorter responses = fewer tokens per message
-- **Read before you grep** — if you know the file, Read it directly instead of searching
-- **Batch questions** — ask multiple things in one message instead of separate turns
+- **≤30 messages per feature** — plan before starting, don't explore aimlessly.
+- **≤80 messages per 5-hour window** — leave ~20 for non-STP Claude usage.
+- **Every `/clear` saves messages** — smaller context = shorter responses = fewer tokens per message.
+- **Read before you grep** — if you know the file, Read it directly.
+- **Batch questions** — ask multiple things in one turn.
 
-**Context engineering**: Strictest of all profiles.
-1. `/clear` between EVERY task (not just phases — every discrete piece of work)
-2. Context Mode MCP hard-block on any operation >50 lines
-3. 60K main session cap (aggressive — compaction risk above this with Pro plan response limits)
-4. No research sub-agents, no explorer sub-agents — but also minimize inline research. Know your stack; don't explore unless stuck.
-5. Prefer targeted `Read file:line` over broad `Grep` searches
+**Context engineering**: Strictest. `/clear` between EVERY task. 60K main-session cap. No research sub-agents.
 
-**Cost profile**: $20/month flat. No usage-based billing. The constraint is throughput, not cost.
+**Cost profile**: $20/month flat. Constraint is throughput, not cost.
 
-**Quality drop**: ~25-30% compared to intended-profile. No AI-powered code review, no independent QA tester, no mutation testing. You get: STP's production philosophy (no mocks, no placeholders, real tests), the stop hooks (17 gates still fire), and deterministic verification. It's a significant quality reduction but still far better than unstructured development.
+**Quality drop**: ~25-30% vs opus-cto. No AI code review, no AI QA, no mutation testing. You get: STP's production philosophy (no mocks, no placeholders, real tests), all stop hooks, deterministic verification. Significant reduction but still far better than unstructured development.
 
-**Who this is for**: Solo developers learning STP, side projects, prototyping before committing to a paid tier, students, or anyone who wants production-quality discipline on a $20/month budget. The philosophy stays; the AI verification layers don't.
+## Research / exploration decision (200K-main profiles)
 
-## Research/Exploration Decision (200K profiles)
-
-**The single biggest risk in 200K profiles** is the main session running out of context during research or codebase exploration. STP solves this with two new dedicated sub-agents:
+The single biggest risk in 200K profiles is the main session running out of context during research or codebase exploration. STP solves this with two dedicated sub-agents.
 
 ### stp-researcher
 
-**Purpose**: External research isolation. Lives in a fresh Sonnet 200K context per call. Returns a tight ≤30 line summary so the main session never holds raw research dumps.
+**Purpose**: External research isolation. Lives in a fresh Sonnet context per call. Returns a tight ≤30 line summary so the main session never holds raw research dumps.
 
 **When to fire**:
-- Any Context7 query (library documentation lookup)
-- Any Tavily research query (best practices, comparisons, tutorials)
+- Any Context7 query
+- Any Tavily research query
 - Any WebSearch / WebFetch call
 - Any reading of multi-page external documentation
 
-**Prompt budget**: ≤2K tokens
-**Report budget**: ≤30 lines structured (key findings, citations, TL;DR)
-**Mandatory in**: balanced-profile, budget-profile
-**Optional in**: intended-profile (Opus 1M handles inline)
+**Prompt budget**: ≤2K tokens | **Report budget**: ≤30 lines structured (findings, citations, TL;DR)
+
+**Mandatory in**: balanced, sonnet-turbo, opus-budget, sonnet-cheap
+**Optional in**: opus-cto (Opus 1M handles inline), pro-plan (inline by necessity)
 
 ### stp-explorer
 
-**Purpose**: Codebase exploration isolation. Lives in a fresh Sonnet 200K context per call. Reads files, runs Glob/Grep, builds a structural map, and returns a tight summary.
+**Purpose**: Codebase exploration isolation. Fresh Sonnet context per call. Runs Glob → Grep → Read, builds a structural map, returns a tight summary.
 
 **When to fire**:
-- Any operation that touches >5 files at once
+- Any operation touching >5 files
 - Any Glob result with >20 matches
 - Any Grep with >50 matches
-- Any "find where X is used" task that requires reading multiple files
+- Any "find where X is used" that requires reading multiple files
 
-**Prompt budget**: ≤2K tokens
-**Report budget**: ≤30 lines structured (file:line map, key relationships, dependency chain)
-**Mandatory in**: balanced-profile, budget-profile
-**Optional in**: intended-profile (Opus 1M handles inline)
+**Prompt budget**: ≤2K tokens | **Report budget**: ≤30 lines structured (file:line map, relationships, dependency chain)
 
-### Why this works (the math)
+**Mandatory in**: balanced, sonnet-turbo, opus-budget, sonnet-cheap
+**Optional in**: opus-cto, pro-plan
 
-Without isolation: a single research call that loads the Next.js docs (~50KB markdown) + a codebase exploration that reads 10 files (~30KB) + the build planning (~20KB) = 100KB consumed in the main session BEFORE any actual building. A Sonnet 200K window has ~120KB of *usable* context after system prompts and tool definitions. You hit compaction before you write the first line of code.
+### Why isolation works (the math)
 
-With isolation: the same research lives in a fresh 200K window that gets garbage-collected after returning a 1KB summary. The main session sees only the summary. Net main-session usage: ~3KB instead of 100KB. **33x reduction**, room for the entire build.
+Without isolation: a research call loading Next.js docs (~50KB) + 10-file exploration (~30KB) + build planning (~20KB) = 100KB consumed BEFORE writing any code. A Sonnet 200K window has ~120KB usable after system prompts + tool definitions. You hit compaction before the first line.
 
-This matches the 4x context-token reduction claim from the [Meta-Harness paper](https://arxiv.org/abs/2603.28052) — STP's discipline pushes it further because we explicitly isolate by function (research vs explore vs build vs verify), not just by task chunk.
+With isolation: the research lives in a fresh 200K window that's garbage-collected after returning a 1KB summary. Main session sees only the summary. Net usage: ~3KB vs 100KB. **33× reduction**, room for the full build.
 
-## What Doesn't Change Across Profiles
+## What doesn't change across profiles
 
-Regardless of which profile is active, these always run:
+Regardless of active profile, these always run:
 
-- All 16 hook gates (PreToolUse, PostToolUse, Stop, SessionStart, PreCompact)
-- The 6-layer verification stack (executable specs, deterministic analysis, mutation challenge, property tests, cross-family AI review, production verification)
+- All 19 hook gates (PreToolUse, PostToolUse, Stop, SessionStart, PreCompact)
+- The 6-layer verification stack (where applicable — pro-plan drops Layer 5)
 - The Pre-Work Confirmation Gate (AskUserQuestion before any write/edit)
 - The Spec Delta merge-back system
-- The Given/When/Then RFC 2119 spec format
-- The whiteboard server for `/stp:whiteboard` and `/stp:plan`
+- The Given/When/Then + RFC 2119 spec format
+- The whiteboard server for `/stp:think --whiteboard`
 - Project Conventions enforcement
 - The CLI output format (cyan banners, dim cyan evidence boxes, etc.)
 
 The profile system changes **which models run where**, not **what gets enforced**.
 
-## See Also
+## Legacy profile aliases (pre-v1)
 
-- `/stp:set-profile-model` — switch profiles
-- `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs` — single source of truth (MODEL_PROFILES table + CLI: `set`/`current`/`resolve`/`resolve-all`/`table`/`discipline`/`all-tables`/`list`/`help`)
-- `agents/researcher.md` — researcher sub-agent definition
-- `agents/explorer.md` — explorer sub-agent definition
-- `agents/critic.md` — critic with Haiku/Sonnet escalation logic
-- `hooks/scripts/context-budget-warn.sh` — Stop hook that warns when main session approaches profile cap
+For backward-compat, migrate-v1.sh rewrites old profile names on session start. The CLI resolver also accepts either form:
+
+| Legacy name | v1 name |
+|---|---|
+| `intended-profile` | `opus-cto` |
+| `balanced-profile` | `balanced` |
+| `budget-profile` | `opus-budget` |
+| `sonnet-main` | `sonnet-cheap` |
+| `20-pro-plan` | `pro-plan` |
+
+## See also
+
+- `/stp:setup model` — switch profiles
+- `/stp:setup pace` — switch curiosity dial (deep / batched / fast / autonomous)
+- `${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs` — single source of truth + CLI (`set` / `current` / `resolve` / `resolve-all` / `table` / `discipline` / `all-tables` / `list` / `help`)
+- `${CLAUDE_PLUGIN_ROOT}/references/pace-picker.md` — pace semantics
+- `${CLAUDE_PLUGIN_ROOT}/references/opus-4.7-idioms.md` — Opus 4.7 prompting idioms (parallel tool calls, context limit, INVERSION)
+- `agents/researcher.md`, `agents/explorer.md`, `agents/critic.md` — generated from templates at profile-switch time
 - [Anthropic harness research](https://www.anthropic.com/engineering/harness-design-long-running-apps)
-- [Meta-Harness paper (arXiv 2603.28052)](https://arxiv.org/abs/2603.28052)
 - [Phil Schmid: Agent Harness 2026](https://www.philschmid.de/agent-harness-2026)
-- [Vercel: AGENTS.md outperforms skills](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals)
-- [GSD: get-shit-done](https://github.com/gsd-build/get-shit-done) — the inspiration for the cjs resolver pattern
-- [Vercel: AGENTS.md outperforms skills](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals)

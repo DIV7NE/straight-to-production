@@ -1,6 +1,6 @@
 # Companion Plugin & MCP Detection
 
-Run these checks to detect installed companion tools. Used by `/stp:new-project`, `/stp:onboard-existing`, `/stp:upgrade`.
+Run these checks to detect installed companion tools. Used by `/stp:setup new`, `/stp:setup onboard`, `/stp:setup upgrade`.
 
 ## Plugin checks
 ```bash

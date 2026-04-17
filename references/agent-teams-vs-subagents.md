@@ -17,13 +17,13 @@ Cost is context-window-based (not idle/time). A 3-agent team for ~1 hour ≈ a f
 
 | STP flow | Use | Why |
 |---|---|---|
-| `/stp:work-full` build → QA → Critic | **Subagents** | Sequential, each reads prior output from disk via `.stp/state/` — zero cross-talk needed |
-| `/stp:work-full` parallel waves (independent features) | **Subagents** | Wave members are intentionally independent; worktree isolation assumes no mid-build negotiation |
-| `/stp:research` + `stp-researcher` + `stp-explorer` | **Subagents** | Pure context isolation, return ≤30-line summary — Teams would just inflate cost |
+| `/stp:build --full` build → QA → Critic | **Subagents** | Sequential, each reads prior output from disk via `.stp/state/` — zero cross-talk needed |
+| `/stp:build --full` parallel waves (independent features) | **Subagents** | Wave members are intentionally independent; worktree isolation assumes no mid-build negotiation |
+| `/stp:think --research` + `stp-researcher` + `stp-explorer` | **Subagents** | Pure context isolation, return ≤30-line summary — Teams would just inflate cost |
 | `/stp:debug` (tracer + challenger + tester loop) | **Subagents** | Filesystem evidence board works fine; Teams only help if workers must argue in-context |
-| `/stp:autopilot` long unattended queue | **Agent Teams justify themselves** | Shared task queue + overnight self-assignment is the canonical Teams use case |
+| `/stp:build --auto` long unattended queue | **Agent Teams justify themselves** | Shared task queue + overnight self-assignment is the canonical Teams use case |
 | Frontend ↔ backend negotiating API contracts mid-build | **Agent Teams** | STP doesn't currently do this — if a future flow needs it, use Teams |
 
-**Decision rule:** default to subagents. Only reach for Agent Teams when workers must communicate with *each other*, not just report upward — and even then, only in `/stp:autopilot` or explicitly coordination-heavy flows. STP's existing filesystem handoff pattern (`.stp/docs/`, `.stp/state/`) is strictly cheaper and safer for everything else.
+**Decision rule:** default to subagents. Only reach for Agent Teams when workers must communicate with *each other*, not just report upward — and even then, only in `/stp:build --auto` or explicitly coordination-heavy flows. STP's existing filesystem handoff pattern (`.stp/docs/`, `.stp/state/`) is strictly cheaper and safer for everything else.
 
 **Caveat:** the 5–7× figure comes from community sources citing Anthropic docs, not a raw Anthropic whitepaper. Directionally solid, exact multiplier varies with team size and model mix.

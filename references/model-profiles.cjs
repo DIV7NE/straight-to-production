@@ -1,33 +1,55 @@
 #!/usr/bin/env node
 /**
- * STP Model Profiles — Single Source of Truth
+ * STP Model Profiles — Single Source of Truth (v1.0)
  *
- * Inspired by GSD's `get-shit-done/bin/lib/model-profiles.cjs` (which works reliably).
- *
- * This file is the canonical mapping of STP sub-agents to Claude models for each
- * optimization profile. STP commands and hooks call this file as a CLI to:
+ * Canonical mapping of STP sub-agents to Claude models for each optimization
+ * profile. STP commands + hooks call this file as a CLI to:
  *   - Set the active profile        : node model-profiles.cjs set <profile>
  *   - Read the current profile      : node model-profiles.cjs current
  *   - Resolve a model for an agent  : node model-profiles.cjs resolve <agent>
- *   - Print the full mapping table  : node model-profiles.cjs table [profile]
+ *   - Print all agent mappings      : node model-profiles.cjs resolve-all
+ *   - Print the mapping table       : node model-profiles.cjs table [profile]
  *
- * The active profile is stored in `.stp/state/profile.json` as a minimal JSON file:
- *   {"profile": "balanced-profile", "set_at": "2026-04-09T01:03:09Z"}
+ * Active profile stored in `.stp/state/profile.json`.
  *
- * **Critical insight from GSD:** When a profile says an agent should use the
- * parent session's model (e.g. "use opus when running on opus, sonnet on sonnet"),
- * the resolved value is the literal string `"inherit"`. STP commands MUST interpret
- * `"inherit"` as: omit the `model=` parameter from the Agent() spawn call entirely,
- * which causes Claude Code to inherit the parent session's model.
+ * PROFILE SYSTEM (v1.0 — renamed, plus new sonnet-turbo):
  *
- * Current STP profiles (intended/balanced/budget) do NOT use the inherit sentinel
- * because STP intentionally spawns Sonnet sub-agents even when the main session is
- * Opus, for cost reasons. The inherit sentinel and code path are retained for:
- *   - Future STP profiles where an agent should match the parent session's model
- *   - Non-Anthropic runtimes (Codex, OpenCode, Gemini CLI) where hardcoding Anthropic
- *     model IDs would break the spawn — inherit causes the runtime's default to be used
+ *   opus-cto       — Opus 4.7 [1M ctx] main + Sonnet sub-agents. Loose discipline.
+ *                    For solo devs who want maximum power. Most expensive.
+ *                    (Renamed from: intended-profile)
  *
- * See the `*** KNOWN LIMITATION ***` block below for caveats about STP agent frontmatters.
+ *   balanced       — DEFAULT. Opus 4.7 main plans + Sonnet sub-agents execute.
+ *                    Mandatory context discipline. Daily-driver profile.
+ *                    (Renamed from: balanced-profile)
+ *
+ *   sonnet-turbo   — Sonnet 4.6 [200K] main @ xhigh + adaptive thinking.
+ *                    All sub-agents = sonnet. NEW in v1.0. For users who don't
+ *                    need Opus's planning depth but want quality execution with
+ *                    lower cost + faster turnaround.
+ *
+ *   opus-budget    — Opus 4.7 main + Sonnet executor + Haiku critic (escalates
+ *                    to Sonnet). Strict context discipline. Cheaper Opus route.
+ *                    (Renamed from: budget-profile)
+ *
+ *   sonnet-cheap   — Sonnet 4.6 [200K] main + Sonnet executor + Haiku critic/QA
+ *                    (Sonnet escalation). Cheapest profile that still uses sub-agents.
+ *                    (Renamed from: sonnet-main)
+ *
+ *   pro-plan       — $20/mo Claude Pro plan. ZERO sub-agents — all work inline.
+ *                    Constraint = message count, not tokens. ≤30 msgs/feature,
+ *                    deterministic verification only (no AI critic/QA).
+ *                    (Renamed from: 20-pro-plan)
+ *
+ * SENTINELS:
+ *   "inherit" — omit the model param from Agent() spawn; use parent session model.
+ *               Works correctly in v1.0 because `regenerate-agents.sh` strips the
+ *               `model:` line from agents/*.md when the profile resolves to `inherit`.
+ *
+ *   "inline"  — do NOT spawn a sub-agent; main session handles this work directly.
+ *               In v1.0 `regenerate-agents.sh` removes the agent file entirely when
+ *               the profile resolves to `inline`, so accidental spawns error out.
+ *
+ *   "sonnet" / "opus" / "haiku" — pass this exact value as the spawn model parameter.
  */
 
 'use strict';
@@ -38,129 +60,103 @@ const path = require('path');
 // ─────────────────────────────────────────────────────────────────────────
 // Canonical mapping: per-agent × per-profile → model
 // ─────────────────────────────────────────────────────────────────────────
-//
-// Profile semantics:
-//   intended-profile  — Original STP architecture, "as is — we do nothing".
-//                       Main session = Opus 4.6 [1M] (chosen by user when launching Claude Code).
-//                       Sub-agents = sonnet (cheap builders, matches the original hardcoded
-//                       behavior from STP v0.3.7 and earlier). Researcher/explorer happen
-//                       INLINE in main session (Opus 1M absorbs them without context pressure).
-//
-//   balanced-profile  — Opus for planning, Sonnet for execution + verification.
-//                       All sub-agents = sonnet (consistent regardless of main session).
-//                       Mandatory researcher/explorer sub-agents to keep main session lean.
-//
-//   budget-profile    — Sonnet for everything except Critic (Haiku, with escalation).
-//                       All write/test agents = sonnet.
-//                       Critic = haiku for first pass; commands escalate to sonnet on ≥2 issues.
-//                       Strict context discipline: mandatory researcher/explorer.
-//
-//   20-pro-plan          — $20/month Claude Pro plan. ZERO sub-agents. All work inline.
-//                       The constraint is message count (~45-100 msgs/5h window), not tokens.
-//                       Every sub-agent spawn burns 5-20+ messages from the shared pool.
-//                       All agents set to "inline" — main session does everything directly.
-//                       Only /stp:work-quick and /stp:debug are recommended (work-full is
-//                       too message-heavy). Deterministic verification only (no AI critic/QA).
-//                       Hard target: ≤30 messages per feature.
-//
-// Sentinel values:
-//   "inherit" — omit the model parameter from Agent() spawn; use parent session's model.
-//               Reserved for future profiles or non-Anthropic runtimes (Codex, OpenCode,
-//               Gemini CLI). NOT used by intended/balanced/budget — STP intentionally uses
-//               Sonnet sub-agents even when main is Opus, for cost reasons.
-//
-//               *** KNOWN LIMITATION ***
-//               STP's agent files (executor.md, qa.md, critic.md, researcher.md, explorer.md)
-//               all have `model: sonnet` in their frontmatter as a defensive default. The
-//               Claude Code Agent tool's model resolution chain is:
-//                 1. Spawn-time model param (highest precedence)
-//                 2. Agent file frontmatter `model:` field
-//                 3. Parent session model (lowest precedence)
-//               When the spawn omits the model param (the inherit sentinel path), the agent
-//               frontmatter takes over — so the spawn ACTUALLY runs on Sonnet, not the
-//               parent session model. The "inherit" semantic is therefore a NO-OP in STP today.
-//               This is fine because no current profile uses inherit. To make it actually
-//               inherit, you'd need to remove the `model:` line from the relevant agent files.
-//
-//   "inline"  — do NOT spawn a sub-agent at all; main session handles this work directly.
-//               Used by intended-profile for researcher/explorer.
-//   "sonnet" / "opus" / "haiku" — pass this exact value as the spawn model parameter.
 
 const MODEL_PROFILES = {
-  // ┌─────────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┐
-  // │ Agent                   │ intended-profile    │ balanced-profile    │ budget-profile      │ sonnet-main         │ 20-pro-plan            │
-  // ├─────────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┤
-  'stp-executor':             { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet', '20-pro-plan': 'inline' },
-  'stp-qa':                   { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'haiku',  '20-pro-plan': 'inline' },
-  'stp-critic':               { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'haiku',  'sonnet-main': 'haiku',  '20-pro-plan': 'inline' },
-  'stp-critic-escalation':    { 'intended-profile': 'sonnet',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet', '20-pro-plan': 'inline' },
-  'stp-researcher':           { 'intended-profile': 'inline',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet', '20-pro-plan': 'inline' },
-  'stp-explorer':             { 'intended-profile': 'inline',  'balanced-profile': 'sonnet', 'budget-profile': 'sonnet', 'sonnet-main': 'sonnet', '20-pro-plan': 'inline' },
-  // └─────────────────────────┴─────────────────────┴─────────────────────┴─────────────────────┴─────────────────────┴─────────────────────┘
+  // ┌─────────────────────────┬──────────┬──────────┬──────────────┬─────────────┬──────────────┬──────────┐
+  // │ Agent                   │ opus-cto │ balanced │ sonnet-turbo │ opus-budget │ sonnet-cheap │ pro-plan │
+  // ├─────────────────────────┼──────────┼──────────┼──────────────┼─────────────┼──────────────┼──────────┤
+  'stp-executor':             { 'opus-cto': 'sonnet', 'balanced': 'sonnet', 'sonnet-turbo': 'sonnet', 'opus-budget': 'sonnet', 'sonnet-cheap': 'sonnet', 'pro-plan': 'inline' },
+  'stp-qa':                   { 'opus-cto': 'sonnet', 'balanced': 'sonnet', 'sonnet-turbo': 'sonnet', 'opus-budget': 'sonnet', 'sonnet-cheap': 'haiku',  'pro-plan': 'inline' },
+  'stp-critic':               { 'opus-cto': 'sonnet', 'balanced': 'sonnet', 'sonnet-turbo': 'sonnet', 'opus-budget': 'haiku',  'sonnet-cheap': 'haiku',  'pro-plan': 'inline' },
+  'stp-critic-escalation':    { 'opus-cto': 'sonnet', 'balanced': 'sonnet', 'sonnet-turbo': 'sonnet', 'opus-budget': 'sonnet', 'sonnet-cheap': 'sonnet', 'pro-plan': 'inline' },
+  'stp-researcher':           { 'opus-cto': 'inline', 'balanced': 'sonnet', 'sonnet-turbo': 'sonnet', 'opus-budget': 'sonnet', 'sonnet-cheap': 'sonnet', 'pro-plan': 'inline' },
+  'stp-explorer':             { 'opus-cto': 'inline', 'balanced': 'sonnet', 'sonnet-turbo': 'sonnet', 'opus-budget': 'sonnet', 'sonnet-cheap': 'sonnet', 'pro-plan': 'inline' },
+  // └─────────────────────────┴──────────┴──────────┴──────────────┴─────────────┴──────────────┴──────────┘
 };
 
 // Discipline rules (independent of model selection — affects how commands behave)
 const PROFILE_DISCIPLINE = {
-  'intended-profile': {
+  'opus-cto': {
     clear_between_phases: 'recommended',
     context_mode_required: 'recommended',
     researcher_mandatory: false,
     explorer_mandatory: false,
     max_main_session_kb: null,
-    description: 'Original STP architecture. Opus 4.6 [1M] main + Sonnet sub-agents. Light context discipline.',
+    main_effort: 'xhigh',
+    description: 'Opus 4.7 [1M ctx] main + Sonnet sub-agents. Loose discipline — 1M absorbs research inline.',
   },
-  'balanced-profile': {
+  'balanced': {
     clear_between_phases: 'mandatory',
     context_mode_required: 'mandatory',
     researcher_mandatory: true,
     explorer_mandatory: true,
     max_main_session_kb: 120,
-    description: 'Opus plans, Sonnet executes. All sub-agents = sonnet. Mandatory context discipline.',
+    main_effort: 'xhigh',
+    description: 'DEFAULT. Opus 4.7 plans, Sonnet executes. Mandatory context discipline.',
   },
-  'budget-profile': {
+  'sonnet-turbo': {
+    clear_between_phases: 'mandatory',
+    context_mode_required: 'mandatory',
+    researcher_mandatory: true,
+    explorer_mandatory: true,
+    max_main_session_kb: 100,
+    main_effort: 'xhigh',
+    description: 'Sonnet 4.6 [200K] main @ xhigh + adaptive thinking. All sub-agents = sonnet. Fast + cheaper than Opus.',
+  },
+  'opus-budget': {
     clear_between_phases: 'enforced',
     context_mode_required: 'hard-block',
     researcher_mandatory: true,
     explorer_mandatory: true,
     max_main_session_kb: 100,
-    description: 'Sonnet writes, Haiku verifies (with Sonnet escalation). Hardcore context discipline.',
+    main_effort: 'xhigh',
+    description: 'Opus 4.7 main + Sonnet executor + Haiku critic (Sonnet escalation). Hardcore context discipline.',
   },
-  'sonnet-main': {
+  'sonnet-cheap': {
     clear_between_phases: 'enforced',
     context_mode_required: 'hard-block',
     researcher_mandatory: true,
     explorer_mandatory: true,
     max_main_session_kb: 80,
-    description: 'Sonnet 200K main session. Haiku QA/critic (Sonnet escalation). Strict context discipline.',
+    main_effort: 'xhigh',
+    description: 'Sonnet 4.6 main + Sonnet executor + Haiku critic/QA (Sonnet escalation). Cheapest profile with sub-agents.',
   },
-  '20-pro-plan': {
+  'pro-plan': {
     clear_between_phases: 'enforced',
     context_mode_required: 'hard-block',
     researcher_mandatory: false,
     explorer_mandatory: false,
     max_main_session_kb: 60,
+    main_effort: 'high',
     max_messages_per_feature: 30,
     max_messages_per_5h: 80,
     no_subagents: true,
-    allowed_commands: ['work-quick', 'debug', 'progress', 'continue', 'pause', 'set-profile-model', 'upgrade'],
-    blocked_commands: ['work-full', 'autopilot', 'plan', 'review', 'whiteboard', 'new-project', 'onboard-existing'],
+    allowed_commands: ['build', 'debug', 'session', 'setup'],
+    blocked_commands: ['think', 'review'],
     verification: 'deterministic-only',
     description: '$20/mo Pro plan. ZERO sub-agents — all work inline. ≤30 msgs/feature, deterministic verification only.',
   },
 };
 
-// Derive valid profile names from the table (so adding a profile = add a column, no other changes)
+// Derive valid profile names from the table
 const VALID_PROFILES = Object.keys(MODEL_PROFILES['stp-executor']);
-const DEFAULT_PROFILE = 'balanced-profile';
+const DEFAULT_PROFILE = 'balanced';
+
+// Legacy profile name aliases (for one-session backward-compat with state files
+// written by STP v0.x). migrate-v1.sh rewrites these to canonical names; this map
+// is a safety net for any state file migrate-v1 missed.
+const LEGACY_ALIASES = {
+  'intended-profile': 'opus-cto',
+  'balanced-profile': 'balanced',
+  'budget-profile':   'opus-budget',
+  'sonnet-main':      'sonnet-cheap',
+  '20-pro-plan':      'pro-plan',
+};
 
 // ─────────────────────────────────────────────────────────────────────────
 // Core resolver functions
 // ─────────────────────────────────────────────────────────────────────────
 
-/**
- * Returns a mapping from agent → resolved model for the given profile.
- * Returns 'inherit' for parent-session inheritance, 'inline' for no-sub-agent.
- */
 function getAgentToModelMap(profile) {
   const normalized = normalizeProfile(profile);
   const map = {};
@@ -170,9 +166,6 @@ function getAgentToModelMap(profile) {
   return map;
 }
 
-/**
- * Resolves the model for a specific agent under the given profile.
- */
 function resolveAgentModel(agent, profile) {
   const normalized = normalizeProfile(profile);
   if (!MODEL_PROFILES[agent]) {
@@ -181,34 +174,26 @@ function resolveAgentModel(agent, profile) {
   return MODEL_PROFILES[agent][normalized];
 }
 
-/**
- * Returns the discipline rules for the given profile.
- */
 function getDiscipline(profile) {
   const normalized = normalizeProfile(profile);
   return PROFILE_DISCIPLINE[normalized];
 }
 
-/**
- * Normalizes a profile name. Accepts shortcuts:
- *   "intended"  → "intended-profile"
- *   "balanced"  → "balanced-profile"
- *   "budget"    → "budget-profile"
- *   "INTENDED"  → "intended-profile" (case-insensitive)
- */
 function normalizeProfile(profile) {
   if (!profile || typeof profile !== 'string') return DEFAULT_PROFILE;
   const trimmed = profile.trim().toLowerCase();
+
+  // Direct match
   if (VALID_PROFILES.includes(trimmed)) return trimmed;
-  const withSuffix = trimmed.endsWith('-profile') ? trimmed : `${trimmed}-profile`;
-  if (VALID_PROFILES.includes(withSuffix)) return withSuffix;
+
+  // Legacy alias (pre-v1.0 state files)
+  if (LEGACY_ALIASES[trimmed]) return LEGACY_ALIASES[trimmed];
+
+  // Try adding -profile suffix (for people who type "balanced" expecting "balanced-profile")
+  // — but v1.0 removed suffixes, so this path only matches legacy aliases above.
   throw new Error(`Unknown profile: "${profile}". Valid: ${VALID_PROFILES.join(', ')}`);
 }
 
-/**
- * Reads the active profile from .stp/state/profile.json.
- * Defaults to intended-profile if file is missing or malformed.
- */
 function readActiveProfile(projectRoot) {
   const root = projectRoot || process.cwd();
   const profileFile = path.join(root, '.stp', 'state', 'profile.json');
@@ -220,9 +205,6 @@ function readActiveProfile(projectRoot) {
   }
 }
 
-/**
- * Writes the active profile to .stp/state/profile.json.
- */
 function writeActiveProfile(profile, projectRoot) {
   const root = projectRoot || process.cwd();
   const stateDir = path.join(root, '.stp', 'state');
@@ -231,7 +213,6 @@ function writeActiveProfile(profile, projectRoot) {
 
   fs.mkdirSync(stateDir, { recursive: true });
 
-  // Backup existing if present and malformed
   if (fs.existsSync(profileFile)) {
     try {
       JSON.parse(fs.readFileSync(profileFile, 'utf8'));
@@ -245,7 +226,7 @@ function writeActiveProfile(profile, projectRoot) {
     version: 1,
     profile: normalized,
     set_at: new Date().toISOString(),
-    set_by: 'stp:set-profile-model',
+    set_by: 'stp:setup model',
   };
   fs.writeFileSync(profileFile, JSON.stringify(payload, null, 2) + '\n', 'utf8');
   return normalized;
@@ -277,6 +258,7 @@ function formatTable(profile) {
   out += `    Context Mode MCP      : ${disc.context_mode_required}\n`;
   out += `    Researcher mandatory  : ${disc.researcher_mandatory}\n`;
   out += `    Explorer mandatory    : ${disc.explorer_mandatory}\n`;
+  out += `    Main effort level     : ${disc.main_effort}\n`;
   out += `    Max main session KB   : ${disc.max_main_session_kb === null ? 'unlimited' : disc.max_main_session_kb}\n`;
   if (disc.no_subagents) {
     out += `    Sub-agents            : DISABLED (all work inline)\n`;
@@ -318,21 +300,20 @@ function main(argv) {
     case 'set':
     case 'set-profile':
     case 'config-set-model-profile': {
-      // Filter out --raw and other flags
       const positional = args.filter((a) => !a.startsWith('--'));
       const target = positional[0];
       if (!target) {
-        process.stderr.write(`error: missing profile name\nusage: model-profiles.cjs set <intended|balanced|budget>\nvalid: ${VALID_PROFILES.join(', ')}\n`);
+        process.stderr.write(`error: missing profile name\nusage: model-profiles.cjs set <${VALID_PROFILES.join('|')}>\n`);
         process.exit(1);
       }
       try {
         const written = writeActiveProfile(target, projectRoot);
         if (args.includes('--raw')) {
-          // Match GSD's --raw flag: minimal output for command-context display
           process.stdout.write(formatBanner(written, 'set'));
           process.stdout.write(formatTable(written));
           process.stdout.write(`\n  Saved to: .stp/state/profile.json\n`);
-          process.stdout.write(`  Active for: every /stp:* command from now on\n\n`);
+          process.stdout.write(`  Active for: every /stp:* command from now on\n`);
+          process.stdout.write(`  Next step: run 'bash hooks/scripts/regenerate-agents.sh' to update agents/*.md\n\n`);
         } else {
           process.stdout.write(written + '\n');
         }
@@ -373,7 +354,7 @@ function main(argv) {
       const map = getAgentToModelMap(profile);
       process.stdout.write(`STP_PROFILE=${profile}\n`);
       for (const [agent, model] of Object.entries(map)) {
-        // Convert agent name to env var: stp-executor → STP_MODEL_EXECUTOR
+        // stp-executor → STP_MODEL_EXECUTOR; stp-critic-escalation → STP_MODEL_CRITIC_ESCALATION
         const envName = 'STP_MODEL_' + agent.replace(/^stp-/, '').replace(/-/g, '_').toUpperCase();
         process.stdout.write(`${envName}=${model}\n`);
       }
@@ -382,6 +363,7 @@ function main(argv) {
       process.stdout.write(`STP_CONTEXT_MODE_LEVEL=${disc.context_mode_required}\n`);
       process.stdout.write(`STP_RESEARCHER_MANDATORY=${disc.researcher_mandatory}\n`);
       process.stdout.write(`STP_EXPLORER_MANDATORY=${disc.explorer_mandatory}\n`);
+      process.stdout.write(`STP_MAIN_EFFORT=${disc.main_effort}\n`);
       process.stdout.write(`STP_MAX_MAIN_KB=${disc.max_main_session_kb === null ? '' : disc.max_main_session_kb}\n`);
       if (disc.no_subagents) process.stdout.write(`STP_NO_SUBAGENTS=true\n`);
       if (disc.max_messages_per_feature) process.stdout.write(`STP_MAX_MSGS_PER_FEATURE=${disc.max_messages_per_feature}\n`);
@@ -406,7 +388,6 @@ function main(argv) {
     }
 
     case 'all-tables': {
-      // Print all 3 profile tables for comparison
       for (const p of VALID_PROFILES) {
         process.stdout.write(formatTable(p));
       }
@@ -446,7 +427,7 @@ COMMANDS:
 
   table [profile]       Print the agent → model table for a profile (default: active)
 
-  all-tables            Print all 3 profile tables side by side
+  all-tables            Print all profile tables side by side
 
   list                  Print valid profile names, one per line
 
@@ -464,7 +445,7 @@ EXAMPLES:
   node model-profiles.cjs current
   node model-profiles.cjs resolve stp-executor
   node model-profiles.cjs resolve-all
-  node model-profiles.cjs table budget-profile
+  node model-profiles.cjs table sonnet-turbo
 `);
       break;
     }
@@ -485,6 +466,7 @@ module.exports = {
   PROFILE_DISCIPLINE,
   VALID_PROFILES,
   DEFAULT_PROFILE,
+  LEGACY_ALIASES,
   getAgentToModelMap,
   resolveAgentModel,
   getDiscipline,

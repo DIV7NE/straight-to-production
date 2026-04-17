@@ -24,8 +24,8 @@ Model baseline: Opus 4.6 [1M], Sonnet 4.6 [200K]
 | 11 | stop:type-errors | Stop | Model produces code with type errors | **YES** — deterministic, no model can bypass | Keep |
 | 12 | stop:test-failures | Stop | Model claims tests pass when they don't | **YES** — deterministic | Keep |
 | 13 | stop:schema-drift | Stop | Model changes ORM without migration | **YES** — catches real production bugs | Keep |
-| 14 | stop:scope-reduction | Stop | Model drops PRD requirements from plan | **MAYBE** — useful during planning, noisy during quick fixes | Consider: disable for /stp:work-quick |
-| 15 | stop:spec-delta | Stop | Model doesn't update CHANGELOG/ARCHITECTURE after features | **MAYBE** — good discipline but adds ceremony | Consider: downgrade to WARN for work-quick |
+| 14 | stop:scope-reduction | Stop | Model drops PRD requirements from plan | **MAYBE** — useful during planning, noisy during quick fixes | Consider: disable for /stp:build --quick |
+| 15 | stop:spec-delta | Stop | Model doesn't update CHANGELOG/ARCHITECTURE after features | **MAYBE** — good discipline but adds ceremony | Consider: downgrade to WARN for /stp:build --quick |
 | 16 | stop:critic-required | Stop | Model ships without Critic review | **YES** — core quality gate | Keep |
 | 17 | stop:qa-required | Stop | Model ships UI without QA testing | **YES** — for UI features | Keep |
 | 18 | SessionStart | SessionStart | Context needs cleanup between sessions | **YES** — infrastructure | Keep |

@@ -1,6 +1,6 @@
 #!/bin/bash
 # STP: Check if project needs syncing after a plugin update.
-# Also detects first-ever install (no .stp/ dir) and nudges /stp:welcome.
+# Also detects first-ever install (no .stp/ dir) and nudges /stp:setup welcome.
 
 PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
 
@@ -10,7 +10,7 @@ PLUGIN_VER=$(grep -m1 '"version"' "$PLUGIN_DIR/.claude-plugin/plugin.json" 2>/de
 
 # First-ever install: no .stp/ directory anywhere
 if [ ! -d ".stp" ]; then
-  echo "★ STP v${PLUGIN_VER} installed! Run /stp:welcome for guided setup, or /stp:new-project to start building." >&2
+  echo "★ STP v${PLUGIN_VER} installed! Run /stp:setup welcome for guided setup, or /stp:setup new to start building." >&2
   exit 0
 fi
 
@@ -23,4 +23,4 @@ SYNCED_VER=""
 [ "$PLUGIN_VER" = "$SYNCED_VER" ] && exit 0
 
 # Version mismatch — nudge the user
-echo "⚠ STP plugin updated to v${PLUGIN_VER}$([ -n "$SYNCED_VER" ] && echo " (project last synced at v${SYNCED_VER})"). Run /stp:upgrade to sync project files." >&2
+echo "⚠ STP plugin updated to v${PLUGIN_VER}$([ -n "$SYNCED_VER" ] && echo " (project last synced at v${SYNCED_VER})"). Run /stp:setup upgrade to sync project files." >&2

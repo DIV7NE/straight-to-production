@@ -30,7 +30,7 @@ cat > "$STATE_FILE" << STATEEOF
     "uncommitted_files": $UNCOMMITTED
   },
   "active_feature": "$ACTIVE_FEATURE",
-  "recovery": "Run /stp:continue to resume automatically. It reads state.json, current-feature.md, and PLAN.md to pick up where you left off."
+  "recovery": "Run /stp:session continue to resume automatically. It reads state.json, current-feature.md, and PLAN.md to pick up where you left off."
 }
 STATEEOF
 

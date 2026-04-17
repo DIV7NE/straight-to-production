@@ -4,21 +4,21 @@
 
 ### Your CTO in a plugin.
 
-**Picks the stack, walks you through the tradeoffs, builds the thing, and teaches you what it did along the way.**
+**Universal across web / CRM / C++ / C# / Rust / game cheats / embedded / mods. Opus 4.7 plans, Sonnet 4.6 executes. Stack-aware, pace-aware, production-grade.**
 
 <br />
 
 [![Version](https://img.shields.io/github/v/tag/DIV7NE/straight-to-production?label=version&style=for-the-badge&labelColor=0e1117&color=06b6d4)](https://github.com/DIV7NE/straight-to-production/releases)
 [![License](https://img.shields.io/badge/license-MIT-06b6d4?style=for-the-badge&labelColor=0e1117)](LICENSE)
-[![Claude](https://img.shields.io/badge/claude-opus%204.6-22d3ee?style=for-the-badge&labelColor=0e1117&logo=anthropic&logoColor=white)](https://claude.ai)
-[![Status](https://img.shields.io/badge/status-active-10b981?style=for-the-badge&labelColor=0e1117)]()
+[![Claude](https://img.shields.io/badge/claude-opus%204.7-22d3ee?style=for-the-badge&labelColor=0e1117&logo=anthropic&logoColor=white)](https://claude.ai)
+[![Status](https://img.shields.io/badge/status-v1.0-10b981?style=for-the-badge&labelColor=0e1117)]()
 
-[![Commands](https://img.shields.io/badge/commands-18-06b6d4?style=flat-square&labelColor=0e1117)]()
+[![Skills](https://img.shields.io/badge/skills-6-06b6d4?style=flat-square&labelColor=0e1117)]()
+[![Profiles](https://img.shields.io/badge/model%20profiles-6-06b6d4?style=flat-square&labelColor=0e1117)]()
+[![Pace modes](https://img.shields.io/badge/pace%20modes-4-06b6d4?style=flat-square&labelColor=0e1117)]()
+[![Stacks](https://img.shields.io/badge/stacks-14-06b6d4?style=flat-square&labelColor=0e1117)]()
 [![Hook gates](https://img.shields.io/badge/hook%20gates-19-06b6d4?style=flat-square&labelColor=0e1117)]()
-[![Verification layers](https://img.shields.io/badge/verification%20layers-6-06b6d4?style=flat-square&labelColor=0e1117)]()
-[![Reference standards](https://img.shields.io/badge/reference%20standards-33-06b6d4?style=flat-square&labelColor=0e1117)]()
-[![Stack templates](https://img.shields.io/badge/stack%20templates-18-06b6d4?style=flat-square&labelColor=0e1117)]()
-[![Learning loops](https://img.shields.io/badge/learning%20loops-4-22d3ee?style=flat-square&labelColor=0e1117)]()
+[![Verification](https://img.shields.io/badge/verification%20layers-6-22d3ee?style=flat-square&labelColor=0e1117)]()
 
 </div>
 
@@ -35,32 +35,32 @@ Open Claude Code and run:
 
 Then run the guided setup:
 ```
-/stp:welcome             # checks plugins, picks profile, shows you around
+/stp:setup welcome        # pick profile + pace, detect stack, show you around
 ```
 
 Or jump straight in:
 ```
-/stp:new-project         # start from scratch
-/stp:onboard-existing    # onboard an existing codebase
+/stp:setup new            # start a new project from scratch
+/stp:setup onboard        # onboard an existing codebase (read-only)
 ```
 
-### What `/stp:welcome` does
+### What `/stp:setup welcome` does
 
-First-time setup in 5 steps — takes about 2 minutes:
+First-run onboarding in about two minutes:
 
-1. **System check** — verifies Node, Python, STP version
-2. **Plugin audit** — tests Context7, Tavily, Context Mode live and shows install commands for anything missing
-3. **Profile selection** — pick how STP splits work between Opus and Sonnet (balanced, intended, budget, or sonnet-main)
-4. **Quick tour** — command categories and the typical workflow
-5. **Smart next step** — detects if you have existing code or a fresh directory and suggests the right command
+1. **Detect stack** — sniffs the repo, writes `.stp/state/stack.json` (web / node / python / go / rust / csharp / java / cpp / game / cheat-pentest / embedded / mod / data-ml / generic)
+2. **Pick model profile** — 6 options (balanced, opus-cto, sonnet-turbo, opus-budget, sonnet-cheap, pro-plan)
+3. **Pick pace** — 4 options (deep, batched, fast, autonomous) — this is the curiosity dial
+4. **Regenerate agents** — `hooks/scripts/regenerate-agents.sh` substitutes profile models into `agents/*.md`
+5. **Chain into next step** — `new` (fresh repo), `onboard` (existing code), or exit
 
 ### Update
 
 ```
-/plugin install stp@stp
+/stp:setup upgrade
 ```
 
-Re-running the install command pulls the latest version from the marketplace.
+Pulls the latest version, regenerates agents, refreshes hook manifests, and runs `migrate-v1.sh` for anyone coming from pre-v1.
 
 ### Uninstall
 
@@ -68,19 +68,19 @@ Re-running the install command pulls the latest version from the marketplace.
 /plugin uninstall stp@stp
 ```
 
-Removes the plugin. Your project files (`.stp/`, `CLAUDE.md`, etc.) are untouched.
+Removes the plugin. Project files (`.stp/`, `CLAUDE.md`) stay put.
 
 ---
 
 ## The Problem
 
-Most Claude Code harnesses were built by senior engineers for senior engineers. They expect you to already know the right stack, the security gotchas, the accessibility rules, and how to tell when something is actually ready to ship.
+Most Claude Code harnesses were built by senior web engineers for senior web engineers. They assume Next.js, assume React, assume a cloud deploy, assume you already know the security gotchas. If you're building a game cheat, a C++ engine, a Rust service, an Arduino firmware, or a CRM — half the tool is dead weight and the other half is wrong.
 
-If you're a solo developer who doesn't know what you don't know, those tools just add ceremony. They don't fill the gap.
+If you're a solo developer who doesn't already know the right stack for your domain, you're stuck debugging the harness instead of shipping the thing.
 
 ## How STP Works
 
-You say what you want. STP picks the stack, walks you through the tradeoffs, points out the things you forgot to think about, and builds it. You handle product calls. Opus handles the rest.
+You say what you want. STP detects the stack, picks the right pace for the task, runs the right hooks for that stack, plans the architecture with Opus 4.7, builds the thing with Sonnet 4.6, runs an independent Critic over the result, and teaches you what it did along the way. You handle product calls. Claude handles the rest.
 
 ```mermaid
 flowchart LR
@@ -89,423 +89,277 @@ flowchart LR
     classDef verify fill:#0e1117,stroke:#10b981,stroke-width:2px,color:#10b981
     classDef learn fill:#0e1117,stroke:#f59e0b,stroke-width:2px,color:#f59e0b
 
-    WB([whiteboard]):::think
-    NP([new-project]):::think
-    PL([plan]):::think
-    WF([work-full]):::build
-    WQ([work-quick]):::build
-    DB([debug]):::build
-    RV([review]):::verify
+    S([setup]):::think
+    T([think]):::think
+    B([build]):::build
+    D([debug]):::build
+    R([review]):::verify
+    SS([session]):::verify
     DOCS[(ARCHITECTURE<br/>PRD<br/>AUDIT<br/>CHANGELOG<br/>CLAUDE.md)]:::learn
 
-    WB --> NP --> PL --> WF
-    WF --> RV
-    WF --> WQ
-    WQ --> RV
-    DB --> RV
-    WF -.spec delta.-> DOCS
-    WQ -.spec delta.-> DOCS
-    DB -.constraint + lesson.-> DOCS
-    DOCS -.read before next build.-> WF
-    DOCS -.read before next build.-> WQ
-    DOCS -.read before next build.-> DB
+    S --> T --> B
+    B --> R
+    D --> R
+    B -.spec delta.-> DOCS
+    D -.constraint + lesson.-> DOCS
+    DOCS -.read before next build.-> B
+    DOCS -.read before next build.-> D
+    SS -.handoff.-> B
+    SS -.handoff.-> D
 ```
 
-The dotted lines are the four feedback loops. Every build writes back into the docs, and every future build reads them before touching code. That's how a fix you ship today prevents the same bug class from coming back six months later.
+The dotted lines are the four feedback loops. Every build writes back into the docs; every future build reads them before touching code. A bug you fix today leaves behind a rule that prevents the same class from coming back six months later.
 
 ```
-YOU: "I want an app where freelancers track invoices"
+YOU: "I need a CS2 external cheat with ESP + aim assist, undetected by VAC"
 
 STP:
-├── Decides the entire stack (with alternatives + honest downsides)
-├── Asks PRODUCT questions only (one at a time, never technical)
-├── Surfaces what you didn't think of (auth, security, empty states...)
-├── Creates: .stp/docs/PRD.md, .stp/docs/PLAN.md, .stp/docs/ARCHITECTURE.md,
-│   .stp/docs/CONTEXT.md, .stp/docs/CHANGELOG.md, .stp/docs/AUDIT.md, CLAUDE.md
-├── Visual whiteboard: live diagrams in your browser (localhost)
-├── Impact analysis: checks what existing features each new feature touches
-├── Structured specs: Given/When/Then + RFC 2119 (SHALL/MUST/SHOULD) — every scenario
-│   maps to an executable test
-├── Spec-first TDD: acceptance criteria → executable specs → behavioral tests → build
-├── 10 enforcement gates: unchecked items, plan missing, tests exist, no secrets,
-│   placeholder scanning, hollow test detection, type/compile errors, test failures,
-│   schema drift detection, scope reduction detection
-├── 6-layer verification stack (each layer catches what the others miss):
-│   1. Executable specs (BDD from PRD acceptance criteria)
-│   2. Deterministic analysis (hollow test detection, ghost coverage, placeholder scanning)
-│   3. Mutation challenge (flip operators — do tests actually catch it?)
-│   4. Property-based tests (invariants for all inputs: round-trip, idempotency)
-│   5. Cross-family AI review (Critic + Claim Verification Gate + non-Claude models)
-│   6. Production verification (canary deploys, metric monitoring)
-├── Auto-Critic at every milestone (Double-Check Protocol, 2-iteration minimum,
-│   Claim Verification Gate — traces execution paths before reporting behavioral bugs)
-└── STP remembers: each build writes a Spec Delta into CHANGELOG, then propagates
-    it back into ARCHITECTURE and PRD. Old bugs end up as System Constraints and
-    Project Conventions that the next build has to obey.
+├── Detects stack → cheat-pentest (C++ / pattern-scan / overlay)
+├── Picks pace → batched (default — 4 questions per call, not one-at-a-time)
+├── Picks model profile → balanced (Opus plans, Sonnet executes)
+├── Asks DESIGN questions only (detection model, overlay mode, legit vs rage)
+├── Researches memory layouts + current VAC heuristics via Context7 + Tavily
+├── Generates plan with Opus 4.7 @ xhigh effort → .stp/docs/PLAN.md
+├── Independent Critic reviews plan (INVERSION: "report every issue found")
+├── Spawns Sonnet 4.6 executor agents in worktree isolation
+├── TDD: acceptance criteria → executable specs → behavioral tests → implementation
+├── 19 enforcement hooks — stack-aware (UI gate skipped for cheat stack,
+│   C++ type check replaces tsc, etc.)
+├── 6-layer verification stack (deterministic + AI + mutation + property)
+└── Auto-writes a Spec Delta into CHANGELOG → propagates to ARCHITECTURE + PRD
+    → becomes a System Constraint the next feature has to obey
 ```
 
-## Architecture
+## What's in v1.0
 
-```
-stp/
-├── bin/                # npm CLI (deprecated — prints plugin install instructions)
-│   ├── cli.js              # CLI entry point — install/uninstall/version/help
-│   ├── install.js           # Install + upgrade logic with SHA manifest
-│   └── uninstall.js         # Clean removal + statusline deregistration
-├── skills/             # 18 slash commands (skills/*/SKILL.md)
-│   ├── welcome/            # /stp:welcome — First-time guided setup
-│   ├── whiteboard/         # /stp:whiteboard — Explore ideas + research (design brief output)
-│   ├── new-project/        # /stp:new-project — Start a new project
-│   ├── plan/               # /stp:plan — Design the architecture
-│   ├── work-adaptive/      # /stp:work-adaptive — Impact scan → auto-routes to quick or full
-│   ├── work-full/          # /stp:work-full — Full cycle (6 phase files loaded on demand)
-│   ├── work-quick/         # /stp:work-quick — Quick build (4 step files loaded on demand)
-│   ├── research/           # /stp:research — "I need to think first" (no code)
-│   ├── review/             # /stp:review — "Grade my work" (7 criteria + 6-layer verification)
-│   ├── autopilot/          # /stp:autopilot — "Build overnight" (AI decides)
-│   ├── debug/              # /stp:debug — Systematic debugging (root cause + full doc cycle)
-│   ├── codebase-mapping/   # /stp:codebase-mapping — Export self-contained HTML codebase map
-│   ├── progress/           # /stp:progress — Check project status
-│   ├── continue/           # /stp:continue — Resume where you left off
-│   ├── pause/              # /stp:pause — Save progress, take a break
-│   ├── onboard-existing/   # /stp:onboard-existing — Read-only exploration of existing project
-│   ├── upgrade/            # /stp:upgrade — Update STP (auto-detects npm/git/marketplace)
-│   └── set-profile-model/  # /stp:set-profile-model — Switch between 4 model profiles
-├── agents/             # 5 sub-agents (Sonnet by default; profile-aware)
-│   ├── executor.md     # Builder — TDD in isolated worktrees
-│   ├── qa.md           # QA tester — tests running app against PRD
-│   ├── critic.md       # Reviewer — 7 criteria + System Constraint compliance
-│   ├── researcher.md   # Research isolator — Context7/Tavily/Web, returns ≤30 line summary
-│   └── explorer.md     # Codebase explorer — Glob/Grep, returns ≤30 line file:line map
-├── hooks/              # 16 scripts (19 gates across 5 hook events)
-│   ├── hooks.json
-│   └── scripts/
-│       ├── stop-verify.sh       # Quality gates (19 enforcement checks, 3-attempt safety valve)
-│       ├── post-edit-check.sh   # Type check after edits (stack-aware)
-│       ├── anti-slop-scan.sh    # AI slop pattern detection (7 patterns)
-│       ├── ui-gate.sh           # Blocks UI files until design system approved
-│       ├── whiteboard-gate.sh   # Enforces canonical whiteboard filename
-│       ├── context-budget-warn.sh # Warns on context window pressure
-│       ├── pre-compact-save.sh  # State save before compaction
-│       ├── session-restore.sh   # State restore on session start
-│       ├── migrate-layout.sh    # Auto-migrate old flat layout → organized
-│       ├── setup-references.sh  # Copy reference files into project
-│       ├── start-whiteboard.sh  # Launch whiteboard server
-│       ├── check-upgrade.sh     # Check npm/git for newer STP version
-│       ├── stp-auto.sh          # Autonomous loop (overnight mode)
-│       ├── stp-statusline.js    # Node.js statusline (primary)
-│       └── stp-statusline.sh    # Bash statusline (fallback)
-├── references/         # Universal production standards (33 files)
-│   ├── security/       # OWASP, env handling, auth, validation, API, AI code vulns
-│   ├── accessibility/  # WCAG AA, keyboard, screen reader, contrast
-│   ├── performance/    # Web Vitals, bundles, queries, images
-│   ├── production/     # Errors, loading, empty states, edge cases, SEO, legal
-│   ├── shared/         # Reusable check blocks (companion plugins, section markers)
-│   ├── profiles.md     # 4 model profiles with cost/quality tradeoffs
-│   └── cli-output-format.md  # ANSI color system — cyan banners, severity colors
-├── whiteboard/         # Visual whiteboard (live diagrams in browser)
-│   ├── index.html      # Dark-theme dashboard with Mermaid rendering
-│   └── serve.py        # Lightweight Python server (zero dependencies)
-└── templates/          # 18 stack templates + extensibility guide
-    ├── nextjs-supabase.md
-    ├── python-fastapi.md
-    ├── rust-axum.md
-    ├── csharp-aspnet.md
-    ├── ... (18 total)
-    └── TEMPLATE-GUIDE.md
+- **6 skills, not 18 commands.** Every STP entry point is now a skill with subcommands and flags. `/stp:setup welcome|new|onboard|model|pace|upgrade`, `/stp:think [--plan|--research|--whiteboard]`, `/stp:build [--full|--quick|--auto]`, `/stp:debug`, `/stp:review`, `/stp:session pause|continue|progress`.
+- **6 model profiles.** New: `sonnet-turbo` (Sonnet 4.6 @ xhigh, ~25% the cost of opus-cto for most work) and `pro-plan` (20-message budget, no sub-agents, deterministic-verification-only — built for Pro subscribers). Existing: `balanced` (default), `opus-cto`, `opus-budget`, `sonnet-cheap`.
+- **14 supported stacks.** Web, Node, Python, Go, Rust, C#, Java, C++, Game, Cheat/Pentest, Embedded, Mod, Data/ML, Generic. Hooks know the stack — UI gate is skipped on non-UI stacks, type checks use the stack's compiler, test runners follow the stack's conventions.
+- **4 pace modes.** `deep` = one question per decision, section-by-section validation (the old curiosity feel). `batched` (default) = up to 4 questions per AskUserQuestion call. `fast` = single plan, single approval. `autonomous` = zero questions after initial spec.
+- **Opus 4.7 idioms, everywhere.** Every sub-agent spawn prompt now carries the `<use_parallel_tool_calls>` XML block, the context-limit line ("don't stop early due to token budget"), and — for the Critic — the INVERSION framing ("report every issue you find; downstream ranks severity, your job is recall not precision").
+- **Statusline nudges.** The Node.js statusline now watches context usage and appends live nudges: 40–70% → `→ /compact if tool-heavy`, 70–90% → `→ /stp:session pause`, 90%+ → blinking `⚠ /stp:session pause NOW`.
+
+## Skills
+
+| Skill | Subcommands / flags | Purpose |
+|-------|---------------------|---------|
+| `/stp:setup` | `welcome` (default), `new`, `onboard`, `model`, `pace`, `upgrade` | Lifecycle — first-run, new project, onboard existing, switch profile, switch pace, upgrade plugin |
+| `/stp:think` | default (brainstorming), `--plan`, `--research`, `--whiteboard` | Think before you build. No code written. Output is a design brief. |
+| `/stp:build` | default (auto-route), `--full`, `--quick`, `--auto` | Build, fix, refactor. TDD mandatory. Hooks fire regardless of pace. |
+| `/stp:debug` | (no subcommands) | Root cause + fix + defense-in-depth. Scientific method. Auto-gathers Sentry / git / architecture before asking anything. |
+| `/stp:review` | optional focus area | Separate Critic grades against PRD + 7 criteria + 6-layer verification stack |
+| `/stp:session` | `pause`, `continue`, `progress` | Session lifecycle — save state, resume, status dashboard |
+
+**Auto-routing.** `/stp:build` without a flag runs an impact scan first (file count, model/migration detection, auth-touch detection). Small → `--quick`. Big → `--full`. Auth / payments / security always forces `--full`.
+
+## Model Profiles
+
+Six profiles. Pick one at `/stp:setup welcome`, switch anytime with `/stp:setup model`.
+
+| Profile | Main | Sub-agents | When to use | Relative cost |
+|---------|------|------------|-------------|---------------|
+| **balanced** (default) | Opus 4.7 @ xhigh | Sonnet 4.6 (executor, QA, critic, researcher, explorer) | Most projects. Opus plans, Sonnet builds. | 1.0× |
+| **opus-cto** | Opus 4.7 @ max, 1M context | Inline (main handles research + exploration) | Research-heavy, single-session architecture sprints | ~1.6× |
+| **sonnet-turbo** | Sonnet 4.6 @ xhigh | Sonnet 4.6 | Fast iteration, cost-sensitive, no-Opus Pro accounts | ~0.25× |
+| **opus-budget** | Opus 4.7 @ xhigh | Sonnet 4.6 (executor, researcher, explorer) + Haiku→Sonnet escalation (critic, QA) | Cost-optimized but Opus-planned | ~0.6× |
+| **sonnet-cheap** | Sonnet 4.6 @ high (200K) | Sonnet 4.6 + Haiku→Sonnet escalation (critic, QA) | Solo dev on Pro plan, tight budget | ~0.2× |
+| **pro-plan** | Sonnet 4.6 @ high | Inline only — NO sub-agents. Deterministic verification only. | Pro subscribers with 20-message/5h limits. Limits /stp:build --quick + debug + session to 30 msgs/feature, 80 msgs/5h. | ~0.15× |
+
+Profile assignments aren't hardcoded — every skill resolves them at runtime via `node ${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs resolve-all`. Switching profiles regenerates `agents/*.md` from templates.
+
+## Pace Modes
+
+The pace dial controls how much STP asks you before acting. Set once at `/stp:setup welcome`, switch anytime with `/stp:setup pace`.
+
+| Pace | Behavior | When to use |
+|------|----------|-------------|
+| **deep** | One question per decision. 200–300 word design sections. AskUserQuestion after each section. Maximum curiosity. | Greenfield architecture, new domains, anything you want to learn as you go |
+| **batched** (default) | Up to 4 questions per AskUserQuestion call. Section-by-section validation between calls. | Most work. Enough checkpoints to course-correct, not so many you get fatigue. |
+| **fast** | Full plan in one message, single AskUserQuestion for approval, then build through. | Well-scoped features, confident in the plan |
+| **autonomous** | Zero questions after initial spec confirmation. | Overnight runs, CI automation, you-trust-the-AI-today |
+
+**Auto-escalation.** Auth / payments / security auto-floors at `batched` regardless of setting. Novel architecture (new service, new data store) auto-escalates to `deep` on first pass. Deleting >50 lines or touching >5 files auto-floors at `batched`.
+
+## Stack-Aware Everything
+
+`/stp:setup welcome` runs `hooks/scripts/detect-stack.sh`, which writes `.stp/state/stack.json`:
+
+```json
+{
+  "stack": "rust",
+  "ui": false,
+  "typecheck_cmd": "cargo check",
+  "test_cmd": "cargo test",
+  "build_cmd": "cargo build --release",
+  "entrypoints": ["src/main.rs"],
+  "detected_at": "2026-04-17T10:00:00Z"
+}
 ```
 
-### What STP Creates in Your Project
+From that point:
 
-```
-your-project/
-├── CLAUDE.md                # Standards + patterns (Claude auto-reads from root)
-├── VERSION                  # Current version (e.g., 0.1.3)
-├── design-system/           # UI/UX design system (created for frontend projects)
-│   ├── MASTER.md            # Global design rules (style, colors, fonts, layout)
-│   └── pages/               # Page-specific overrides
-└── .stp/
-    ├── docs/                # Project documents
-    │   ├── ARCHITECTURE.md  # Full codebase map (models, routes, deps)
-    │   ├── AUDIT.md         # Production health (Sentry, deploy, billing)
-    │   ├── PRD.md           # Requirements + acceptance criteria
-    │   ├── PLAN.md          # Architecture blueprint + feature waves
-    │   ├── CONTEXT.md       # Concise AI reference (<150 lines)
-    │   └── CHANGELOG.md     # Versioned history
-    ├── state/               # Runtime state (survives /clear + compaction)
-    │   ├── current-feature.md  # Active feature checklist
-    │   ├── handoff.md       # Pause context for next session
-    │   └── state.json       # Auto-save before compaction
-    └── references/          # Production standards (read before coding)
-        ├── security/        # OWASP, auth, secrets, API security
-        ├── accessibility/   # WCAG AA, keyboard, screen reader
-        ├── performance/     # Web Vitals, bundles, queries
-        └── production/      # Errors, deploy, monitoring, edge cases
-```
-
-Existing projects using the old flat layout (docs at root, state files in `.stp/`) are auto-migrated on first session start after upgrade.
-
-## Required Companion Plugins & MCP Servers
-
-STP checks for these during setup (`/stp:new-project`, `/stp:onboard-existing`) and upgrade (`/stp:upgrade`). Install them for full capability:
-
-### Plugins (per project)
-| Plugin | Purpose | Install |
-|--------|---------|---------|
-| **[ui-ux-pro-max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill)** (v2.5+) | Design intelligence — 67 styles, 161 palettes, 57 font pairings. Generates `design-system/MASTER.md` that all build commands read before writing frontend code. | `npm i -g uipro-cli && uipro init --ai claude` |
-
-### MCP Servers (global — install once)
-| MCP Server | Purpose | Install |
-|------------|---------|---------|
-| **[Context7](https://github.com/upstash/context7)** | Live documentation — query current API docs, verify patterns against latest library versions. Prevents building on stale training data. | `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest` |
-| **[Tavily](https://github.com/tavily-ai/tavily-mcp)** | Deep web research — best practices, industry standards, security advisories, competitive analysis. | `claude mcp add tavily -- npx -y tavily-mcp@latest` + set `TAVILY_API_KEY` |
-| **[Context Mode](https://github.com/mksglu/context-mode)** | Context window protection — runs commands in sandbox, prevents context flooding, enables longer sessions before compaction. | `/plugin marketplace add mksglu/context-mode` then `/plugin install context-mode@context-mode` |
-
-When any STP command detects UI/UX work, it:
-1. Generates a design system via ui-ux-pro-max
-2. Renders a live preview in the whiteboard (color swatches, font samples, layout wireframe)
-3. Asks you to approve before any frontend code is written
-4. Persists to `design-system/MASTER.md` — the executor agents follow it exactly
+- **Hooks skip UI-specific gates on non-UI stacks.** `ui-gate.sh` and `anti-slop-scan.sh` check `stack.ui` and exit early if false — C++ daemons, Rust libs, CLI tools don't get blocked by frontend rules.
+- **Type check uses the stack's compiler.** `stop-verify.sh` reads `stack.typecheck_cmd` and runs `cargo check`, `tsc`, `mypy`, `cmake --build`, `dotnet build`, `go vet` — whatever's right.
+- **Test runner uses the stack's convention.** Same pattern with `stack.test_cmd` — `cargo test`, `pytest`, `vitest`, `ctest`, `dotnet test`, `go test ./...`.
+- **Statusline shows the stack** (dim, only non-generic).
 
 ## Supported Stacks
 
-| Stack | Template | Use Case |
-|-------|----------|----------|
-| Next.js + Supabase + Clerk | nextjs-supabase.md | SaaS webapps, dashboards |
-| Next.js + MDX | nextjs-marketing.md | Landing pages, blogs |
-| Python + FastAPI | python-fastapi.md | REST APIs, microservices |
-| Python + Django | python-django.md | Full-stack web, admin-heavy |
-| Python + Flask | python-flask.md | Lightweight APIs |
-| Rust + Axum | rust-axum.md | High-performance APIs |
-| Rust + Actix | rust-actix.md | Web services |
-| Go + Chi | go-chi.md | Go REST APIs |
-| Go + Gin | go-gin.md | Go web apps |
-| C# + ASP.NET Core | csharp-aspnet.md | Enterprise APIs |
-| C# + Blazor | csharp-blazor.md | .NET interactive web |
-| Java + Spring Boot | java-spring.md | Enterprise Java |
-| React Native + Expo | react-native-expo.md | Mobile apps |
-| Electron + Vite | electron-vite.md | Desktop apps |
-| SvelteKit | svelte-kit.md | Fast web apps |
-| Vue + Nuxt | vue-nuxt.md | Vue ecosystem |
-| PHP + Laravel | php-laravel.md | PHP web apps |
-| Ruby + Rails | ruby-rails.md | Full-stack web |
+| Stack | File | Detection | UI? | Typical use |
+|-------|------|-----------|-----|-------------|
+| Web | `references/stacks/web.md` | `next.config.*`, `vite.config.*`, `package.json` with React/Vue/Svelte | ✓ | SaaS, dashboards, marketing sites |
+| Node | `references/stacks/node.md` | `package.json` no frontend framework | — | CLIs, REST APIs, scripts |
+| Python | `references/stacks/python.md` | `pyproject.toml`, `requirements.txt`, `setup.py` | — | APIs (FastAPI/Django/Flask), scripts, data tools |
+| Go | `references/stacks/go.md` | `go.mod` | — | Services, CLIs, microservices |
+| Rust | `references/stacks/rust.md` | `Cargo.toml` | — | Services, CLIs, game engines, systems |
+| C# | `references/stacks/csharp.md` | `*.csproj`, `*.sln` | conditional | ASP.NET, Blazor, WinForms, Unity tools |
+| Java | `references/stacks/java.md` | `pom.xml`, `build.gradle` | conditional | Spring Boot, Android tooling |
+| C++ | `references/stacks/cpp.md` | `CMakeLists.txt`, `*.vcxproj` | — | Engines, daemons, performance-critical code |
+| Game | `references/stacks/game.md` | Unity / Unreal / Godot signals | ✓ | Game clients, mods with in-game UI |
+| Cheat / Pentest | `references/stacks/cheat-pentest.md` | Pattern-scan / hooking / memory-read signals | — | Private-server cheats, red-team tools, research |
+| Embedded | `references/stacks/embedded.md` | PlatformIO / ESP-IDF / Arduino / STM32 | — | Firmware, microcontrollers, IoT |
+| Mod | `references/stacks/mod.md` | Minecraft Fabric/Forge, Skyrim/Bethesda, Source/GMod signals | — | Game mods, plugin development |
+| Data / ML | `references/stacks/data-ml.md` | `*.ipynb`, `requirements.txt` with pandas/torch/sklearn | — | Notebooks, training pipelines, inference servers |
+| Generic | `references/stacks/generic.md` | Fallback when nothing else matches | ? | Anything else |
 
-**Add your own:** Follow `templates/TEMPLATE-GUIDE.md` — one markdown file, no code changes needed.
+Each stack file documents the toolchain, typical project layout, test runner conventions, and the type-check / build commands STP should use. Missing your stack? Drop a file into `references/stacks/`, extend `detect-stack.sh`, and you're done — no code changes needed in the core.
+
+## Opus 4.7 Idioms (MANDATORY)
+
+Every STP skill reads `references/opus-4.7-idioms.md` before spawning any agent, and every spawn prompt carries these idioms:
+
+1. **`<use_parallel_tool_calls>`** — explicit XML block telling the sub-agent to batch independent tool calls (Glob + Grep + git + test run all in one round-trip). Opus 4.7 runs fewer parallel calls by default; this re-enables it.
+2. **Context-limit prompt** — "don't stop early due to token budget." Opus 4.7 is more literal about rule-following and will sometimes self-truncate. This line disables the self-truncation.
+3. **Critic INVERSION** — "report every issue you find, including low-severity and uncertain findings. Downstream ranks severity. Your job is recall, not precision." This is how you get a Critic that actually finds things.
+4. **Tool-trigger normalization** — skills that list triggering conditions use a single normalized phrasing so Opus 4.7's literal matching reliably fires.
+5. **Explicit scope boundaries** — every rule carries its applicability (which skill, which phase) so Opus 4.7 doesn't over-apply it.
+
+## Required Companion Plugins & MCP Servers
+
+STP checks for these during `/stp:setup` and `/stp:setup upgrade`. Install them for full capability.
+
+### Plugins (per project)
+
+| Plugin | Purpose | Install |
+|--------|---------|---------|
+| **[ui-ux-pro-max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill)** (v2.5+) | Design intelligence — 67 styles, 161 palettes, 57 font pairings. Generates `design-system/MASTER.md` that all build commands read before writing frontend code. Only loaded when stack.ui = true. | `npm i -g uipro-cli && uipro init --ai claude` |
+
+### MCP Servers (global — install once)
+
+| MCP Server | Purpose | Install |
+|------------|---------|---------|
+| **[Context7](https://github.com/upstash/context7)** | Live documentation — query current API docs, verify patterns against latest library versions. Prevents building on stale training data. | `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest` |
+| **[Tavily](https://github.com/tavily-ai/tavily-mcp)** | Deep web research — best practices, security advisories, competitive analysis. | `claude mcp add tavily -- npx -y tavily-mcp@latest` + set `TAVILY_API_KEY` |
+| **[Context Mode](https://github.com/mksglu/context-mode)** | Context protection — sandboxed command runs, longer sessions before compaction. | `/plugin marketplace add mksglu/context-mode` → `/plugin install context-mode@context-mode` |
 
 ## Usage
 
-### 0. Whiteboard (optional — use anytime)
+### 0. Think first
 ```
-/stp:whiteboard I have an idea for a fitness tracking app
-/stp:whiteboard should we use WebSockets or SSE for real-time?
-/stp:whiteboard this payment feature is complex, what's the best approach?
+/stp:think I have an idea for a fitness tracking app
+/stp:think should we use WebSockets or SSE for real-time?
+/stp:think --plan                    # formal architecture planning
+/stp:think --research server actions # focused doc research
+/stp:think --whiteboard              # live mermaid diagrams in browser
 ```
-A space for thinking out loud. Research approaches, compare options, weigh tradeoffs against industry practice. Nothing gets built. The decisions you make get saved to disk, so they survive `/clear` and the next command can pick them up. Use it before `/stp:new-project` to shape a vague idea, before `/stp:work-quick` for any non-trivial decision, or on its own when you just need a sounding board.
+A space for thinking out loud. No code written. Outputs land at `.stp/state/design-brief.md` and the next `/stp:build` picks them up automatically.
 
-### 1. Start a new project
+### 1. Start a project
 ```
-/stp:new-project an app where freelancers track invoices and expenses
+/stp:setup new an app where freelancers track invoices and expenses
+/stp:setup onboard            # existing codebase — read-only exploration
 ```
-Opus asks product questions (one at a time), proposes the full stack with alternatives and honest downsides, surfaces what you'd miss. Creates **.stp/docs/PRD.md** (with acceptance criteria), **.stp/docs/CONTEXT.md** (codebase map), **.stp/docs/CHANGELOG.md**, **VERSION**, CI pipeline, and scaffolds the foundation.
 
-### 2. Plan the architecture
+### 2. Build
 ```
-/stp:plan
+/stp:build add Stripe payments                      # auto-routes (quick or full)
+/stp:build --full add real-time notifications       # force full 9-phase cycle
+/stp:build --quick fix 5 critical Sentry errors     # force quick path
+/stp:build --auto add payment processing overnight  # autonomous, no questions
 ```
-Researches the domain, designs system architecture, data models, API routes, auth model, error strategy, Feature Touchpoint Map (where each feature appears across the app). Visual whiteboard renders diagrams live. Critic verifies the plan. Writes **.stp/docs/PLAN.md**. No code — just the verified blueprint.
 
-### 3. Develop (full cycle — idea to delivery)
-```
-/stp:work-full update stripe payments and the entire pricing plan
-/stp:work-full add real-time notifications with WebSockets
-/stp:work-full rebuild the auth system with role-based access
-```
-Use this when the work is non-trivial. STP asks product questions to pin down requirements, installs whatever extra tools the work needs (Stripe MCP, CLIs), researches the space using Context7 and Tavily, lays out a few possible approaches, gets your sign-off on a plan, then builds it test-first. If you want it to make the decisions for you, run `/stp:autopilot add payment processing` instead — same flow, the AI just picks the recommended option at every step.
+`--quick`: TDD → milestone evaluation → full doc cycle. ≤3 files, no new models.
+`--full`: Understand → research → 13-sub-phase blueprint → TDD → QA → Critic. Auth/payments/security always routes here.
+`--auto`: Same as `--full` but the AI picks the recommended option at every decision point. Progress streams to `.stp/state/` so `/stp:session progress` works from any device.
 
-### 3b. Propose work (discuss before building)
+### 3. Debug
 ```
-/stp:research add payment processing
-/stp:research refactor the auth system
-/stp:research should we migrate to server actions?
-```
-Full investigation before committing to code. Researches the domain, explores 2-3 approaches with tradeoffs, maps how it fits YOUR codebase (from ARCHITECTURE.md), surfaces risks and what you didn't think of. Saves the plan — `/stp:work-quick` picks it up when you're ready. No code written.
-
-### 4. Build / Fix / Refactor (TDD)
-```
-/stp:work-quick add Stripe payments
-/stp:work-quick fix the 5 critical Sentry errors from AUDIT.md
-/stp:work-quick refactor auth middleware to use centralized pattern
-/stp:work-quick update invoice PDF export to use new template
-```
-Handles all work types from one command. Before writing any code it reads four things: ARCHITECTURE.md (so it knows what the change might break), the System Constraints section of PRD.md (rules from past bugs that can't be broken), the Project Conventions section of CLAUDE.md, and the Patterns & Lessons section of AUDIT.md (so it doesn't reintroduce a bug class you've already fixed). Then it writes the tests, builds the implementation, and runs `/simplify` over the result.
-
-Once the code is in, STP runs the full doc cycle: bumps VERSION, adds a CHANGELOG entry with a spec delta, propagates that delta into ARCHITECTURE and PRD, refreshes CONTEXT.md, verifies README claims still match the code, captures any new conventions in CLAUDE.md, and updates AUDIT.md if a bug got fixed along the way. At milestone boundaries it spawns the Critic and runs integration tests. You learn the codebase as you go because STP explains what it's doing.
-
-### 4. Review quality
-```
-/stp:review
-```
-A separate Sonnet Critic grades your app against PRD + PLAN + 7 quality criteria with file:line evidence and business impact. Runs the full 6-layer verification stack: executable spec checks, hollow test detection, mutation challenge, **System Constraint compliance** (verifies new code obeys every SHALL/MUST in PRD.md), Claim Verification Gate (traces execution paths before reporting behavioral bugs — eliminates false positives from grep patterns), and the Double-Check Protocol (2-iteration minimum). Refreshes AUDIT.md with current Sentry/Vercel/Stripe data if MCP services are connected.
-
-### 5. Debug (root cause + full doc cycle)
-```
-/stp:debug the dashboard shows wrong totals after invoice deletion
+/stp:debug dashboard shows wrong totals after invoice deletion
 /stp:debug Sentry: TypeError on /api/checkout
-/stp:debug login redirects to /404 for some users
-```
-Iron Law: no fix without a root cause. Phase 0 auto-gathers everything STP can find without bothering you — the AUDIT.md bug history (which often resolves a known pattern in seconds), the ARCHITECTURE.md dependency map, the System Constraints in PRD.md (the bug might have been *caused* by violating one), error logs, git blame, MCP services. From that material STP traces the defect → infection → failure chain back to its origin. It then looks for pattern siblings (the same bug class hiding somewhere else) and fixes those too, and adds a defense layer so the same failure can't come back through a different code path.
-
-Once the fix is in, STP treats it like any other release. It bumps the patch version, writes a CHANGELOG entry with a spec delta, propagates the delta into ARCHITECTURE.md and PRD.md System Constraints (the rule the bug exposed becomes a SHALL/MUST the codebase can never violate again), extracts a generalizable lesson into AUDIT.md's Patterns & Lessons section, adds a Project Convention to CLAUDE.md if the rule belongs there, updates CONTEXT.md and README.md, marks the bug fixed in PLAN.md, and commits. Next session, every build command reads those updates as input. The bug doesn't come back because the rule that prevents it now lives in the docs the next build reads.
-
-If three different hypotheses fail in a row, the problem is probably structural, not a single bug. STP stops trying patches and escalates to a design discussion.
-
-### 6. Run overnight
-```
-/stp:autopilot add payment processing with Stripe and webhooks
-```
-Same flow as `/stp:work-full`, except the AI picks the recommended option at every decision point instead of asking you. It spawns executors in waves, runs QA, runs the Critic, updates the docs, and commits each feature on its own. You can run it before bed and check the result in the morning. Progress streams to `.stp/state/` so `/stp:progress` works from any device.
-
-### 7. Check progress
-```
-/stp:progress
-```
-Shows project version, milestone progress (done/total), active feature status, recent activity, uncommitted work, and the exact next command to run. Read-only — doesn't modify anything.
-
-### 8. Resume work
-```
-/stp:continue
-```
-Reads all state files (handoff, feature checklist, plan) and immediately picks up where you left off. No questions — just starts working on the next task. Use after `/clear`, compaction, or starting a new session.
-
-### The full flow
-```
-First time only (one-time setup):
-  /stp:welcome           → Guided setup: system check, plugin audit, profile selection
-  /stp:new-project       → New project: PRD.md, PLAN.md, CONTEXT.md, CHANGELOG.md, VERSION, CLAUDE.md
-  /stp:onboard-existing  → Existing project: read-only exploration → architecture map → observation report
-
-Every feature (whiteboard first, then build):
-  /stp:whiteboard        → Start here. Shape ideas, research approaches, explore tradeoffs
-  /stp:plan              → .stp/docs/PLAN.md (architecture blueprint — verified by Critic)
-  /stp:research          → Investigate approaches → impact analysis → saved plan (no code)
-  /stp:work-adaptive     → Impact scan → auto-routes to quick or full based on scope
-  /stp:work-full         → Full cycle: understand → research → blueprint → TDD → QA → Critic → doc cycle
-  /stp:work-quick        → Quick build: TDD → milestone auto-eval → full doc cycle
-  /stp:review            → Separate AI grades against PRD + PLAN + 7 criteria
-  /stp:debug             → Root-cause debugging → fix → full doc cycle + lessons extracted
-
-Session + utility:
-  /stp:progress          → Check what's done, in progress, and next
-  /stp:continue          → Resume exactly where you left off
-  /stp:pause             → Save state → /clear → resume next session
-  /stp:autopilot         → Overnight autonomous: same as work-full but AI decides every option
-  /stp:codebase-mapping  → Export self-contained HTML map
-  /stp:upgrade           → Update STP (auto-detects npm/git/marketplace)
-  /stp:set-profile-model → Switch profile: balanced | intended | budget | sonnet-main
+/stp:debug tests failing after merge
 ```
 
-### Working on an existing project
+Iron Law: no fix without a root cause. Phase 0 auto-gathers everything STP can find without bothering you — AUDIT.md bug history, ARCHITECTURE.md dependencies, System Constraints, error logs, git blame, MCP services. Traces defect → infection → failure back to origin. Looks for pattern siblings (same bug class hiding elsewhere). Adds a defense layer so the same failure can't come back through a different code path. Writes a Spec Delta → lands a new System Constraint in PRD.md → the next build has to obey it.
 
+### 4. Review
 ```
-Day 1 — Read-only exploration:
-  /stp:onboard-existing              → READ-ONLY. Maps the entire codebase, writes
-                                        ARCHITECTURE.md, CONTEXT.md, reverse-engineered PRD.md,
-                                        and PLAN.md as a numbered OBSERVATION REPORT
-                                        (not a remediation plan). DETECTS MCP services
-                                        without connecting or installing anything.
-                                        Never edits source code, configs, deps, or tests.
-                                        The codebase is exactly as you left it.
-
-Day 1 — You decide what to do next:
-  /stp:plan                          → Design a remediation plan from the observations
-                                        (this is where milestones + checkboxes get created)
-  /stp:debug [OBS-007]               → Investigate a specific observation from onboarding
-  /stp:work-full [feature]           → Build something using the new architecture map
-  /stp:whiteboard                    → Think through tradeoffs before committing to a direction
-
-Day 1+:
-  /stp:progress                      → See what's planned, what's next
-  /stp:work-quick fix critical Sentry errors → Reads ARCHITECTURE.md, PRD.md System Constraints,
-                                                CLAUDE.md Project Conventions, and AUDIT.md
-                                                Patterns & Lessons — knows what could break AND
-                                                what past bugs to not repeat
-  /stp:work-quick add new feature          → Impact analysis against full codebase map
-  /stp:work-quick refactor auth module     → Dependency map shows what depends on it
-  /stp:debug [bug]                         → Root cause analysis → fix → full doc cycle
-                                               (VERSION bump + CHANGELOG + delta merge-back +
-                                                AUDIT lesson + README/CONTEXT/PLAN updates)
-  /stp:review                        → Refreshes AUDIT.md with latest Sentry/Vercel data
-
-Session breaks:
-  /stp:pause                         → Saves context + failed approaches
-  (next session)
-  /stp:continue                      → Reads handoff, preserves lessons to CHANGELOG, resumes
-
-Everything persisted — the learning system:
-  .stp/docs/ARCHITECTURE.md          → Full codebase map (updated per feature via delta merge-back)
-  .stp/docs/AUDIT.md                 → Production health + Bug Fixes + Patterns & Lessons
-  .stp/docs/PRD.md  ## System Constraints → RFC 2119 SHALL/MUST rules from past features/bugs
-  CLAUDE.md  ## Project Conventions  → Living rules earned from decisions, bugs, Critic findings
-  .stp/docs/CHANGELOG.md             → Full history + decisions + spec deltas
+/stp:review                        # full 6-layer verification
+/stp:review security only          # focused
+/stp:review just check accessibility
 ```
 
-## Quality Enforcement (19 Hook Gates — Cannot Be Bypassed)
+A separate Critic grades against PRD + PLAN + 7 criteria with file:line evidence. Runs executable spec checks, hollow test detection, mutation challenge, System Constraint compliance, Claim Verification Gate (traces execution paths before reporting behavioral bugs), Double-Check Protocol (2-iteration minimum). Refreshes AUDIT.md with current Sentry / Vercel / Stripe data if MCP services are connected.
+
+### 5. Session lifecycle
+```
+/stp:session progress              # dashboard — what's done, next, warnings
+/stp:session pause                 # save handoff, WIP-commit, exit
+/stp:session continue              # resume exactly where you left off
+```
+
+The statusline watches context usage and nudges you before you hit autocompact:
+
+- 0–40% used → silent
+- 40–70% → cyan hint `→ /compact if tool-heavy`
+- 70–90% → yellow warning `→ /stp:session pause`
+- 90%+ → blinking red `⚠ /stp:session pause NOW`
+
+## Quality Enforcement (19 Hook Gates)
+
+All gates are stack-aware — UI-specific gates skip on non-UI stacks, type-check and test commands follow `stack.json`.
 
 | Event | Gate | What It Catches | Enforcement |
 |---|------|---------------|-------------|
-| PreToolUse | UI gate | New UI files before design system approved | BLOCK |
-| PreToolUse | Whiteboard gate | Forbidden legacy filenames + auto-starts server | BLOCK |
-| PostToolUse | Post-edit type check | Type/compile errors after edits (stack-aware) | Feedback (stderr) |
-| PostToolUse | Anti-slop scan | 7 AI-slop patterns (duplicate logic, generic names, etc.) | WARN at 1, BLOCK at 2+ |
+| PreToolUse | UI gate | New UI files before design system approved (skipped if stack.ui=false) | BLOCK |
+| PreToolUse | Whiteboard gate | Forbidden legacy filenames + auto-starts whiteboard server | BLOCK |
+| PostToolUse | Post-edit type check | Errors after edits — uses `stack.typecheck_cmd` | Feedback (stderr) |
+| PostToolUse | Anti-slop scan | 7 AI-slop patterns — generic names, duplicate logic, etc. (skipped if stack.ui=false) | WARN at 1, BLOCK at 2+ |
 | Stop | Unchecked items | Stopping with work remaining | BLOCK |
 | Stop | PLAN.md missing | Building features without a plan | WARN |
 | Stop | Tests must exist | Source files without any test files | BLOCK |
-| Stop | No hardcoded secrets | Stripe keys, AWS keys, passwords in source | BLOCK |
+| Stop | No hardcoded secrets | Stripe keys, AWS keys, passwords | BLOCK |
 | Stop | Placeholder/mock patterns | TODO, FIXME, lorem ipsum, mock data | WARN |
 | Stop | Hollow test detection | Tautological asserts, assertion-free tests | WARN |
-| Stop | Type/compile errors | Code with errors | BLOCK (3-retry) |
-| Stop | Tests must pass | Failing tests | BLOCK (3-retry) |
+| Stop | Type/compile errors | Uses `stack.typecheck_cmd` | BLOCK (3-retry) |
+| Stop | Tests must pass | Uses `stack.test_cmd` | BLOCK (3-retry) |
 | Stop | Schema drift | ORM changes without migrations (Prisma, TypeORM, Django, Rails, Drizzle) | BLOCK (3-retry) |
-| Stop | Scope reduction | PLAN.md covers <70% of PRD.md SHALL/MUST requirements | WARN |
+| Stop | Scope reduction | PLAN.md covers <70% of PRD.md SHALL/MUST | WARN |
 | Stop | Spec delta missing | CHANGELOG missing spec delta block | WARN |
 | Stop | Critic required | No critic-report newer than feature | BLOCK |
-| Stop | QA required | UI features without qa-report | BLOCK |
-| PreCompact | Emergency state save | Saves state.json before context compaction | Auto |
-| SessionStart | Session restore | Wipes ui-gate, migrates layout, restores context | Auto |
+| Stop | QA required | UI features without qa-report (skipped if stack.ui=false) | BLOCK |
+| PreCompact | Emergency state save | Saves state.json before compaction | Auto |
+| SessionStart | Session restore + v1 migration | Wipes ui-gate, migrates legacy layout+profile names, re-detects stack if >24h stale, restores context | Auto |
 
 3-attempt safety valve on technical BLOCKs (tests, types, schema) prevents session bricking. Workflow BLOCKs (unchecked, Critic, QA) never count toward the limit.
 
-### Deterministic Checks the Critic Runs (Layer 1–4 of the verification stack)
+## Documents Generated
 
-| # | Check | Catches | Blocking |
-|---|-------|---------|----------|
-| 1 | Executable specs | Missing tests for SHALL/MUST scenarios (Given/When/Then from PRD.md) | Yes — FAIL |
-| 2 | System Constraint compliance | New code violates a previously-recorded constraint (past bug class reintroduced) | Yes — FAIL |
-| 3 | Test quality (hollow test scan) | Tautological asserts, mock-only tests, tests that verify mock interactions instead of behavior | Yes — FAIL |
-| 4 | Mutation challenge | Tests that look good but don't actually catch bugs (flip operators, remove guards — do tests fail?) | Warn if kill rate < threshold |
-| 5 | Claim Verification Gate | Critic reporting behavioral bugs from grep patterns without tracing execution paths | Internal — downgrades unverified findings to NOTE |
-| 6 | Spec delta merge-back | Constraints from CHANGELOG spec deltas not reflected in PRD.md / ARCHITECTURE.md | Yes — FAIL |
-
-## Documents Generated (and who keeps them current)
-
-Every command that ships code writes to the same set of docs. That's intentional: the things STP writes here are the things later commands read. Nothing rots, nothing sits unused, and the project memory survives between sessions because it lives on disk instead of in conversation context.
+Every command that ships code writes to the same set of docs. That's intentional — what STP writes is what later commands read. Nothing rots, nothing sits unused, and project memory survives between sessions because it lives on disk instead of in conversation context.
 
 | Document | Created By | Updated By | Read By | Purpose |
 |----------|-----------|------------|---------|---------|
-| `.stp/docs/ARCHITECTURE.md` | new-project, onboard-existing | work-quick, work-full, debug (delta merge-back + milestone refresh) | work-quick, work-full, debug, research, codebase-mapping, autopilot | Full codebase map — models, routes, components, integrations, Feature Dependency Map |
-| `.stp/docs/CONTEXT.md` | new-project, onboard-existing | work-quick, work-full, debug | work-quick, work-full, debug, continue, progress | Concise AI reference (<150 lines) — snapshot of what exists NOW |
-| `.stp/docs/PRD.md` | new-project, onboard-existing (reverse-engineered) | plan, work-quick, work-full, debug | all build commands, Critic, review, progress | Requirements + structured Given/When/Then specs (RFC 2119 SHALL/MUST/SHOULD) |
-| `.stp/docs/PRD.md` → `## System Constraints` | plan | work-quick, work-full, debug (delta merge-back) | **work-quick, work-full, debug (pre-build enforcement gate), Critic (compliance check)** | RFC 2119 SHALL/MUST rules earned from past features and bug fixes — never violated again |
-| `.stp/docs/PLAN.md` | plan, onboard-existing (as observation report) | work-quick, work-full, debug (mark `[x]`) | work-quick, work-full, debug, progress, continue, Critic, work-adaptive | Architecture blueprint + feature waves + status |
-| `.stp/docs/CHANGELOG.md` | new-project, onboard-existing | work-quick, work-full, debug (per feature/fix with spec delta) | progress, continue, Critic (reads spec deltas) | Versioned history with Added/Changed/Constraints introduced/Dependencies created |
-| `.stp/docs/AUDIT.md` | onboard-existing, review | work-quick, work-full, debug, review | work-quick, work-full, debug, research, autopilot | Production health + `## Bug Fixes` + `## Patterns & Lessons` |
-| `.stp/docs/AUDIT.md` → `## Patterns & Lessons` | debug (extracted from every bug) | debug | work-quick, work-full, research, debug (fast-path lookup) | Generalizable bug-prevention rules — "server actions don't inherit auth context" |
-| `CLAUDE.md` → `## Project Conventions` | onboard-existing (detected from code) | work-quick, work-full, debug, review | work-quick, work-full, debug, Critic | Living rules grown from decisions, bugs, Critic findings |
-| `README.md` | (yours — STP doesn't own it) | work-quick, work-full, debug | end users (humans) | MANDATORY update after every feature/fix — README must always reflect shipped reality |
-| `design-system/MASTER.md` | ui-ux-pro-max integration | design review | work-quick, work-full executors | Style, palettes, fonts, layout rules — executors follow it exactly |
-| `VERSION` | new-project, onboard-existing | work-quick, work-full, debug (patch bump), milestone boundaries (minor bump) | progress, continue, statusline, commit messages | Current semver version |
-
-The reason every build command writes to the same docs isn't redundancy. The docs form a feedback loop. A bug fix lands a constraint in PRD.md. The next feature build reads that constraint before writing any code. The Critic checks the resulting code against it. The bug class is gone, and you didn't have to remember anything.
+| `.stp/docs/ARCHITECTURE.md` | `setup new`, `setup onboard` | `build`, `debug` (delta merge-back) | all build commands, Critic | Full codebase map — models, routes, components, integrations |
+| `.stp/docs/CONTEXT.md` | `setup new`, `setup onboard` | `build`, `debug` | `build`, `debug`, `session continue`, `session progress` | Concise AI reference (<150 lines) — snapshot of NOW |
+| `.stp/docs/PRD.md` | `setup new`, `setup onboard` (reverse-engineered) | `think --plan`, `build`, `debug` | all build commands, Critic, review | Requirements + Given/When/Then specs (RFC 2119 SHALL/MUST/SHOULD) |
+| `.stp/docs/PRD.md` → `## System Constraints` | `think --plan` | `build`, `debug` (delta merge-back) | **Pre-build enforcement gate, Critic compliance check** | RFC 2119 rules earned from past features and bug fixes — never violated again |
+| `.stp/docs/PLAN.md` | `think --plan`, `setup onboard` | `build`, `debug` (mark `[x]`) | `build`, `debug`, `session progress`, Critic | Architecture blueprint + feature waves + status |
+| `.stp/docs/CHANGELOG.md` | `setup new`, `setup onboard` | `build`, `debug` (spec delta per feature/fix) | `session progress`, `session continue`, Critic | Versioned history with Added/Changed/Constraints/Dependencies |
+| `.stp/docs/AUDIT.md` | `setup onboard`, `review` | `build`, `debug`, `review` | `build`, `debug`, `think --research` | Production health + Bug Fixes + Patterns & Lessons |
+| `.stp/docs/AUDIT.md` → `## Patterns & Lessons` | `debug` (extracted from every bug) | `debug` | `build`, `debug`, `think --research` | Generalizable bug-prevention rules — "server actions don't inherit auth context" |
+| `CLAUDE.md` → `## Project Conventions` | `setup onboard` | `build`, `debug`, `review` | `build`, `debug`, Critic | Living rules earned from decisions, bugs, Critic findings |
+| `README.md` | (yours) | `build`, `debug` | end users | MANDATORY update after every feature/fix |
+| `design-system/MASTER.md` | ui-ux-pro-max integration (only if stack.ui=true) | design review | `build` executors | Style, palettes, fonts, layout |
+| `VERSION` | `setup new`, `setup onboard` | `build`, `debug` (patch bump), milestone (minor) | `session progress`, statusline, commit messages | Current semver |
 
 ## How STP Learns
 
@@ -513,18 +367,18 @@ Most coding agents build whatever you ask for and then forget about it. STP reco
 
 ### Loop 1: Spec Deltas
 
-Each build (whether it's `work-quick`, `work-full`, or a `debug` fix) writes a Spec Delta into CHANGELOG.md. The format is the same every time:
+Every build (`--quick`, `--full`, `--auto`, or a `debug` fix) writes a Spec Delta into CHANGELOG.md:
 
 - **Added:** new models, routes, integrations, patterns
 - **Changed:** assumptions this work invalidated
 - **Constraints introduced:** rules the codebase now has to follow (RFC 2119 SHALL/MUST)
 - **Dependencies created:** what now relies on this work
 
-The delta doesn't stop at the changelog. After the entry is written, the build command propagates it: new models go into ARCHITECTURE.md, constraints go into PRD.md's System Constraints section, and any new SHALL/MUST rule shows up in PRD.md as a Given/When/Then scenario. The Critic checks the merge actually happened during review.
+After the entry lands, the build propagates the delta — new models go into ARCHITECTURE.md, constraints go into PRD.md's System Constraints section as Given/When/Then scenarios. The Critic checks the merge actually happened during review.
 
 ### Loop 2: System Constraints
 
-When `/stp:debug` fixes a bug, the root cause usually points at a rule the codebase should have been following all along. STP writes that rule into PRD.md's `## System Constraints` section using RFC 2119 keywords:
+When `/stp:debug` fixes a bug, the root cause usually points at a rule the codebase should have been following all along. STP writes that rule into PRD.md's `## System Constraints` using RFC 2119:
 
 ```
 SHALL: All multi-tenant queries are scoped by organizationId
@@ -532,11 +386,11 @@ SHALL: Uploads validate MIME type server-side, not just extension
 MUST NOT: Server actions inherit middleware auth context — always pass orgId explicitly
 ```
 
-Every build command reads this section before touching code. It's not advisory. If the new code doesn't satisfy a constraint, the Critic flags it as CRITICAL during review. Bugs you've already fixed stay fixed.
+Every build reads this section before touching code. Not advisory. If the new code doesn't satisfy a constraint, the Critic flags it as CRITICAL. Bugs you've already fixed stay fixed.
 
 ### Loop 3: Patterns & Lessons
 
-`/stp:debug` also extracts the underlying pattern, not just the one-off fix:
+`/stp:debug` also extracts the underlying pattern, not the one-off fix:
 
 ```
 ### Server actions don't inherit middleware auth
@@ -546,11 +400,11 @@ Rule: Always pass organizationId explicitly in server actions
 Applies when: Writing any server action that queries org-specific data
 ```
 
-Lessons live in AUDIT.md's `## Patterns & Lessons` section. Build commands read them when gathering context, so what you learned the hard way last week ends up baked into next week's code. If AUDIT.md says "server actions need explicit orgId," the next server action you write gets it before anyone files a bug.
+Lessons live in AUDIT.md's `## Patterns & Lessons`. Build commands read them during context-gathering, so what you learned the hard way last week gets baked into next week's code.
 
 ### Loop 4: Project Conventions
 
-Sometimes a build, a bug, or a Critic finding reveals a rule worth keeping around. If it's non-obvious enough that the next person (or session) wouldn't figure it out on their own, STP appends it to `CLAUDE.md ## Project Conventions`:
+Rules that apply universally in this codebase (but are non-obvious enough that a fresh session wouldn't figure them out) land in `CLAUDE.md ## Project Conventions`:
 
 ```markdown
 - **All API routes use withOrgAuth() wrapper — never raw auth()**
@@ -559,40 +413,47 @@ Sometimes a build, a bug, or a Critic finding reveals a rule worth keeping aroun
   - Added: 2026-03-12 via /stp:debug
 ```
 
-Build commands read this section before doing anything. The Critic checks compliance afterwards. The upshot is that joining the project (or starting a fresh Claude session) doesn't reset the rulebook — every convention you've earned stays in force.
+Build commands read this section before doing anything. The Critic checks compliance afterwards. Joining the project (or starting a fresh session) doesn't reset the rulebook.
 
 ### What this looks like in practice
 
 | Without the loops | With them |
 |---|---|
-| A bug comes back three months later because nobody remembered the original fix | The constraint sits in PRD.md and the Critic blocks any code that violates it |
+| A bug comes back three months later because nobody remembered the fix | The constraint sits in PRD.md and the Critic blocks any code that violates it |
 | One developer figures something out and it lives only in their head | The rule lands in CLAUDE.md and every future build reads it |
 | Architecture docs drift further from reality each sprint | Each feature pushes its delta into ARCHITECTURE.md as part of the build cycle |
-| Tribal knowledge evaporates between sessions | All four loops live on disk, so `/clear` and compaction can't touch them |
+| Tribal knowledge evaporates between sessions | All four loops live on disk — `/clear` and compaction can't touch them |
 
-The point is that STP's docs aren't a write-only audit log. They're the input to every future build, which is why STP cares so much about keeping them current.
+STP's docs aren't a write-only audit log. They're the input to every future build.
 
 ## Design Principles
 
 1. **Opus is the CTO, you're the PM.** STP makes the technical calls and explains them. You make the product calls.
-2. **Always-on context beats on-demand.** Rules live in CLAUDE.md (loaded every session) instead of skills (loaded only when triggered). Vercel's evals measured 100% vs 53% adherence, which matches our experience.
-3. **Hooks enforce, prose suggests.** The quality gates that actually catch things are scripts, not paragraphs in a markdown file.
-4. **Docs feed builds.** Everything STP writes gets read by a later command. If a doc isn't being read by anything, it gets cut.
-5. **Old bugs stay fixed.** Every fix records a constraint. The Critic rejects new code that breaks it.
-6. **Build to delete.** Every piece of STP can be removed independently without breaking the rest.
-7. **Teach as you go.** STP explains what it's doing so you actually learn the codebase, not just inherit it.
+2. **Stack-aware beats stack-opinionated.** A Rust library shouldn't run frontend hooks. A C++ daemon doesn't need a design system. Every hook and every skill reads `.stp/state/stack.json`.
+3. **Pace-aware beats one-size-fits-all.** Deep curiosity for greenfield architecture; autonomous silence for overnight runs. Same tool, four personalities.
+4. **Always-on context beats on-demand.** Rules live in CLAUDE.md (loaded every session) instead of skills (loaded only when triggered). Vercel's evals measured 100% vs 53% adherence.
+5. **Hooks enforce, prose suggests.** The gates that actually catch things are scripts, not paragraphs.
+6. **Docs feed builds.** Everything STP writes gets read by a later command. If a doc isn't being read, it gets cut.
+7. **Old bugs stay fixed.** Every fix records a constraint. The Critic rejects new code that breaks it.
+8. **Build to delete.** Every piece of STP can be removed independently without breaking the rest.
+9. **Teach as you go.** STP explains what it's doing so you actually learn the codebase, not inherit it.
 
 ## Model Requirements
 
-- **Main session**: Claude Opus 4.6 (1M context)
-- **Critic / Autonomous**: Claude Sonnet 4.6 (200K context)
+- **Opus 4.7** — `balanced` (default), `opus-cto`, `opus-budget` profiles — for planning, architecture, Critic escalation, debug root-cause analysis
+- **Sonnet 4.6** — all profiles — for execution, research, code review, exploration
+- **Haiku 4.5** — `opus-budget`, `sonnet-cheap`, `pro-plan` profiles — for first-pass Critic and QA with escalation to Sonnet on ≥2 critical findings
+
+Full profile matrix: `node ${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs all-tables`.
 
 ## Research
 
+- [Anthropic: Opus 4.7 best practices](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/claude-opus-4.7-best-practices)
+- [Anthropic: Prompt engineering best practices](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview)
+- [Anthropic: Session management + 1M context](https://docs.claude.com/en/docs/build-with-claude/session-management)
 - [Anthropic: Harness design for long-running apps](https://www.anthropic.com/engineering/harness-design-long-running-apps)
 - [Vercel: AGENTS.md outperforms skills](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals)
 - [Phil Schmid: Build to Delete](https://www.philschmid.de/agent-harness-2026)
-- [Meta-Harness: Auto-evolved beats hand-engineered](https://arxiv.org/abs/2603.28052)
 
 ## License
 

@@ -38,12 +38,12 @@ FEATURE_FILE="$RUNTIME_DIR/current-feature.md"
 RETRY_FILE="$RUNTIME_DIR/.stop-retry-count"
 
 # ── Pause bypass: if handoff.md was JUST written, allow stop ─────
-# /stp:pause writes handoff.md before stopping. TDD red phase may have
+# /stp:session pause writes handoff.md before stopping. TDD red phase may have
 # intentionally failing tests. The handoff means the user CHOSE to pause.
 if [ -f "$RUNTIME_DIR/handoff.md" ]; then
   HANDOFF_AGE=$(( $(date +%s) - $(stat -c %Y "$RUNTIME_DIR/handoff.md" 2>/dev/null || echo "0") ))
   if [ "$HANDOFF_AGE" -lt 30 ]; then
-    # Handoff written in last 30 seconds = /stp:pause in progress, allow stop
+    # Handoff written in last 30 seconds = /stp:session pause in progress, allow stop
     exit 0
   fi
 fi
@@ -104,7 +104,7 @@ if [ -f "$FEATURE_FILE" ]; then
   if [ "$UNCHECKED" -gt 0 ]; then
     NEXT=$(grep -m1 '\[ \]' "$FEATURE_FILE" | sed 's/^[[:space:]]*- \[ \] //')
     echo "BLOCKED: $UNCHECKED items remain ($CHECKED done). Next: $NEXT" >&2
-    echo "Continue working. Run /stp:pause if you need to stop." >&2
+    echo "Continue working. Run /stp:session pause if you need to stop." >&2
     HAS_ERRORS=true
     # NOTE: does NOT increment retry counter — this is a workflow gate, not technical
   fi
@@ -112,7 +112,7 @@ fi
 
 # ── Gate 2: PLAN.md should exist if building features (warn only) ─
 if [ -f "$FEATURE_FILE" ] && [ ! -f "$DOCS_DIR/PLAN.md" ]; then
-  echo "WARNING: Building features without PLAN.md. Run /stp:plan for better results." >&2
+  echo "WARNING: Building features without PLAN.md. Run /stp:think --plan for better results." >&2
 fi
 
 # ── Gate 3: Tests must EXIST for new code ────────────────────────
@@ -453,7 +453,17 @@ fi
 # ══════════════════════════════════════════════════════════════════
 
 # ── Gate 7: Stack-aware type/compile check ───────────────────────
+# Prefer typecheck_cmd from stack.json (authoritative, set by detect-stack.sh).
+# Falls back to filesystem detection for backward-compat with pre-v1 projects.
 run_type_check() {
+  if [ -f ".stp/state/stack.json" ] && command -v jq >/dev/null 2>&1; then
+    STACK_TYPECHECK=$(jq -r '.typecheck_cmd // ""' .stp/state/stack.json 2>/dev/null)
+    if [ -n "$STACK_TYPECHECK" ] && [ "$STACK_TYPECHECK" != "null" ]; then
+      eval "$STACK_TYPECHECK" 2>&1 | grep -iE "error|fail" | head -10
+      return
+    fi
+  fi
+
   if [ -f "tsconfig.json" ]; then
     npx tsc --noEmit --pretty false 2>&1 | grep "error TS" | head -10
   elif [ -f "pyproject.toml" ] || [ -f "setup.py" ] || [ -f "setup.cfg" ]; then
@@ -491,6 +501,15 @@ fi
 # ── Gate 8: Test failures (skip if type check already failed) ────
 if [ -z "$TYPE_ERRORS" ]; then
   run_tests() {
+    # Prefer test_cmd from stack.json (authoritative).
+    if [ -f ".stp/state/stack.json" ] && command -v jq >/dev/null 2>&1; then
+      STACK_TEST=$(jq -r '.test_cmd // ""' .stp/state/stack.json 2>/dev/null)
+      if [ -n "$STACK_TEST" ] && [ "$STACK_TEST" != "null" ]; then
+        eval "$STACK_TEST" 2>&1
+        return $?
+      fi
+    fi
+
     if [ -f "package.json" ] && grep -q '"test"' package.json 2>/dev/null; then
       if ! grep -q '"test".*"echo.*no test' package.json 2>/dev/null; then
         npm test --silent 2>&1
