@@ -65,10 +65,28 @@ Reference: `${CLAUDE_PLUGIN_ROOT}/references/pace-picker.md` explains pace seman
    - `fast`: single plan presented for approval
    - `autonomous`: ask the minimum, default the rest
 5. Write `.stp/docs/PRD.md` with RFC 2119 keywords (SHALL/MUST/SHOULD/MAY) + Given/When/Then scenarios.
-6. Write `.stp/docs/PLAN.md` — architecture blueprint (9 phases if `batched`/`deep`, compressed if `fast`).
+6. Write `.stp/docs/PLAN.md` **outline only** — milestone list + feature waves + dependency order. NOT the full architecture blueprint — that's `/stp:think --plan`'s job (9 phases, Critic-verified). This stub gives `/stp:think --plan` somewhere to start.
 7. Auto-escalate to at least `batched` pace if PRD mentions auth, payments, models, or migrations (pace-picker rule).
-8. Spawn `stp-critic` (model from profile) to verify PRD ↔ PLAN coverage. Non-negotiable — the Critic's job is recall, it reports every gap.
-9. Commit: `feat: PRD + PLAN via /stp:setup new`.
+8. Spawn `stp-critic` (model from profile) to verify PRD covers the product scope the user described. Non-negotiable — the Critic's job is recall, it reports every gap. (PLAN is a stub at this point, not graded here.)
+9. Commit: `feat: PRD + PLAN outline via /stp:setup new`.
+10. **Print completion box** (cyan ╔═╗):
+    ```
+    ╔══════════════════════════════════════════════════════════════╗
+    ║  ✓ NEW PROJECT BOOTSTRAPPED                                  ║
+    ╠══════════════════════════════════════════════════════════════╣
+    ║  Written + committed:                                        ║
+    ║    .stp/docs/PRD.md       (requirements, RFC 2119, G/W/T)    ║
+    ║    .stp/docs/PLAN.md      (milestone + wave outline)         ║
+    ║    .stp/docs/CHANGELOG.md (versioned history)                ║
+    ║    VERSION                (0.1.0)                            ║
+    ║                                                              ║
+    ║  ► Next: /clear, then /stp:think --plan                      ║
+    ║         Fresh context reads PRD.md from disk, writes the     ║
+    ║         formal 9-phase architecture, Critic-verified.        ║
+    ║         Only after that does /stp:build have what it needs.  ║
+    ╚══════════════════════════════════════════════════════════════╝
+    ```
+    **Do NOT skip the `/clear` step.** `/stp:think --plan` reads fresh from disk; a fat conversation context hurts its Opus 4.7 planning.
 
 ---
 
