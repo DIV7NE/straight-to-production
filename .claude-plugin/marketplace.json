@@ -7,8 +7,8 @@
   "plugins": [
     {
       "name": "stp",
-      "description": "Your CTO in a plugin. Production-quality app builder for solo developers.",
-      "version": "0.5.11",
+      "description": "Your CTO in a plugin. 6 skills, 14 stacks, stack-aware, pace-aware. Universal across web / CRM / C++ / C# / Rust / game cheats / embedded / mods. Opus 4.7 plans, Sonnet 4.6 executes.",
+      "version": "1.0.0",
       "source": "./",
       "author": {
         "name": "visionch"
