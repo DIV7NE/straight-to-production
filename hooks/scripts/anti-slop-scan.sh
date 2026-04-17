@@ -34,6 +34,12 @@ if [ ! -d ".stp" ]; then exit 0; fi
 # Env escape hatch
 if [ "${STP_BYPASS_SLOP_SCAN:-}" = "1" ]; then exit 0; fi
 
+# Stack-awareness: skip if stack has no UI (CLI tools, daemons, cheats, libraries)
+if [ -f ".stp/state/stack.json" ] && command -v jq >/dev/null 2>&1; then
+  STACK_UI=$(jq -r '.ui // "false"' .stp/state/stack.json 2>/dev/null)
+  if [ "$STACK_UI" = "false" ]; then exit 0; fi
+fi
+
 # Read stdin JSON
 if [ -t 0 ]; then exit 0; fi
 INPUT=$(cat)

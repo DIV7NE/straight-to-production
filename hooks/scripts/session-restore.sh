@@ -10,7 +10,7 @@ elif [ -d ".pilot" ]; then
   echo "[STP] Found legacy .pilot/ directory. Consider renaming to .stp/ for consistency." >&2
 else
   if [ -f "CLAUDE.md" ]; then
-    echo "[STP] CLAUDE.md found but no .stp/ directory. Run /stp:onboard-existing to add standards." >&2
+    echo "[STP] CLAUDE.md found but no .stp/ directory. Run /stp:setup onboard to add standards." >&2
   fi
   exit 0
 fi
@@ -34,26 +34,26 @@ if [ -f "$PROFILE_FILE" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/references/model-profil
       export "$line"
     done <<< "$PROFILE_RESOLVED"
 
-    if [ -n "$STP_PROFILE" ] && [ "$STP_PROFILE" != "intended-profile" ]; then
+    if [ -n "$STP_PROFILE" ] && [ "$STP_PROFILE" != "balanced" ] && [ "$STP_PROFILE" != "balanced-profile" ]; then
       echo "[STP] Profile: $STP_PROFILE" >&2
       echo "  Executor: $STP_MODEL_EXECUTOR  ·  QA: $STP_MODEL_QA  ·  Critic: $STP_MODEL_CRITIC" >&2
       echo "  Researcher: $STP_MODEL_RESEARCHER  ·  Explorer: $STP_MODEL_EXPLORER" >&2
       echo "  Discipline: /clear=$STP_CLEAR_DISCIPLINE  ·  ctx-mode=$STP_CONTEXT_MODE_LEVEL  ·  researcher-mand=$STP_RESEARCHER_MANDATORY" >&2
-      echo "  Switch: /stp:set-profile-model" >&2
+      echo "  Switch: /stp:setup model" >&2
       echo "" >&2
     fi
   fi
 fi
 
-# Priority 1: Handoff note (intentional pause via /stp:pause)
+# Priority 1: Handoff note (intentional pause via /stp:session pause)
 if [ -f "$HANDOFF_FILE" ]; then
-  echo "[STP] Handoff note found. Run /stp:continue to resume, or read .stp/state/handoff.md:" >&2
+  echo "[STP] Handoff note found. Run /stp:session continue to resume, or read .stp/state/handoff.md:" >&2
   echo "" >&2
   grep "^## " "$HANDOFF_FILE" | while read -r line; do
     echo "  $line" >&2
   done
   echo "" >&2
-  echo "Run /stp:continue to pick up where you left off." >&2
+  echo "Run /stp:session continue to pick up where you left off." >&2
   exit 0
 fi
 
@@ -121,7 +121,7 @@ fi
 if [ -f "$HANDOFF_FILE" ]; then
   echo "  4. .stp/state/handoff.md (detailed context from last session)" >&2
 fi
-echo "  Or just run /stp:continue to resume automatically." >&2
+echo "  Or just run /stp:session continue to resume automatically." >&2
 
 # ── Global CLAUDE.md STP version check ──────────────────────────
 GLOBAL_CLAUDE="$HOME/.claude/CLAUDE.md"
@@ -133,11 +133,11 @@ if [ -f "$GLOBAL_CLAUDE" ]; then
   if [ -z "$STP_VERSION_IN_GLOBAL" ]; then
     # No STP marker found — global CLAUDE.md exists but has no STP sections
     echo "" >&2
-    echo "[STP] Global CLAUDE.md has no STP sections. Run /stp:new-project or /stp:onboard-existing to set it up." >&2
+    echo "[STP] Global CLAUDE.md has no STP sections. Run /stp:setup new or /stp:setup onboard to set it up." >&2
   elif [ -n "$PLUGIN_VERSION" ] && [ "$STP_VERSION_IN_GLOBAL" != "$PLUGIN_VERSION" ]; then
     # STP marker found but version is outdated
     echo "" >&2
-    echo "[STP] Global CLAUDE.md has STP v$STP_VERSION_IN_GLOBAL but plugin is v$PLUGIN_VERSION. Run /stp:upgrade to update." >&2
+    echo "[STP] Global CLAUDE.md has STP v$STP_VERSION_IN_GLOBAL but plugin is v$PLUGIN_VERSION. Run /stp:setup upgrade to update." >&2
   fi
 fi
 

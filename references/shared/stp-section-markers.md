@@ -1,6 +1,6 @@
 # STP Section Markers (canonical list)
 
-When writing STP sections to ANY CLAUDE.md, wrap each in HTML comment markers so `/stp:upgrade` can find and refresh them without touching user content:
+When writing STP sections to ANY CLAUDE.md, wrap each in HTML comment markers so `/stp:setup upgrade` can find and refresh them without touching user content:
 
 ```
 <!-- STP v[VERSION] -->
@@ -22,4 +22,4 @@ When writing STP sections to ANY CLAUDE.md, wrap each in HTML comment markers so
 
 Read actual content for each section from the plugin's canonical CLAUDE.md at `${CLAUDE_PLUGIN_ROOT}/CLAUDE.md`.
 
-**User-owned sections** (`## Project Conventions`, `## Standards Index`, any custom sections) go OUTSIDE these markers — never touched by `/stp:upgrade`.
+**User-owned sections** (`## Project Conventions`, `## Standards Index`, any custom sections) go OUTSIDE these markers — never touched by `/stp:setup upgrade`.

@@ -9,12 +9,12 @@ ITERATION=0
 FEATURE_FILE=".stp/state/current-feature.md"
 
 if [ ! -f "CLAUDE.md" ]; then
-  echo "Error: No CLAUDE.md found. Run /stp:new-project first."
+  echo "Error: No CLAUDE.md found. Run /stp:setup new first."
   exit 1
 fi
 
 if [ ! -f "$FEATURE_FILE" ]; then
-  echo "Error: No .stp/state/current-feature.md found. Run /stp:work-quick first."
+  echo "Error: No .stp/state/current-feature.md found. Run /stp:build --quick first."
   exit 1
 fi
 

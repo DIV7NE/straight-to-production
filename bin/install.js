@@ -304,7 +304,7 @@ function run() {
       const pyVer = execFileSync('python3', ['--version'], { encoding: 'utf8', timeout: 3000 }).trim();
       console.log(c.green('  \u2713 ') + pyVer);
     } catch {
-      console.log(c.yellow('  \u26A0 ') + 'Python 3 not found ' + c.dim('(needed for /stp:whiteboard)'));
+      console.log(c.yellow('  \u26A0 ') + 'Python 3 not found ' + c.dim('(needed for /stp:think --whiteboard)'));
     }
 
     // ── MCP servers ────────────────────────────────────────────────────
@@ -326,9 +326,9 @@ function run() {
     console.log('');
     console.log('  Open Claude Code and run:');
     console.log('');
-    console.log(c.bold('    /stp:welcome           ') + c.dim('Guided setup \u2014 checks plugins, picks profile'));
-    console.log(c.bold('    /stp:new-project       ') + c.dim('Start building from scratch'));
-    console.log(c.bold('    /stp:onboard-existing  ') + c.dim('Onboard an existing codebase'));
+    console.log(c.bold('    /stp:setup welcome  ') + c.dim('Guided setup \u2014 pick profile, pick pace, detect stack'));
+    console.log(c.bold('    /stp:setup new      ') + c.dim('Start building from scratch'));
+    console.log(c.bold('    /stp:setup onboard  ') + c.dim('Onboard an existing codebase'));
   } else {
     console.log(c.cyan('  \u25BA Restart Claude Code to activate new hooks:'));
     console.log('    1. ' + c.bold('/exit') + '  (or Ctrl+D)');

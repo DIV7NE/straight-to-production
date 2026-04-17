@@ -7,7 +7,7 @@
 # consultation step has run and written .stp/state/ui-gate-passed.
 #
 # Why this exists: v0.3.1 post-mortem.
-# Step 1b of /stp:work-quick labeled the ui-ux-pro-max consultation MANDATORY
+# Step 1b of /stp:build --quick labeled the ui-ux-pro-max consultation MANDATORY
 # in markdown, but Claude routed around it and shipped an AI-slop landing page
 # (gradient headlines, eyebrow "beta" pills, 3 boxed benefit cards, template
 # copy). Markdown "MUST" is a suggestion. This hook is the enforcement.
@@ -34,6 +34,12 @@ if [ ! -d ".stp" ]; then exit 0; fi
 
 # Env-var escape hatch
 if [ "${STP_BYPASS_UI_GATE:-}" = "1" ]; then exit 0; fi
+
+# Stack-awareness: skip if stack has no UI component (CLI tools, daemons, cheats, libraries)
+if [ -f ".stp/state/stack.json" ] && command -v jq >/dev/null 2>&1; then
+  STACK_UI=$(jq -r '.ui // "false"' .stp/state/stack.json 2>/dev/null)
+  if [ "$STACK_UI" = "false" ]; then exit 0; fi
+fi
 
 # Read JSON from stdin (PreToolUse payload)
 if [ -t 0 ]; then exit 0; fi

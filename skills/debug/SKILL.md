@@ -4,7 +4,20 @@ argument-hint: What's broken (e.g., "dashboard shows wrong totals", "Sentry erro
 allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "AskUserQuestion", "Agent"]
 ---
 
-> **Recommended effort: `/effort max`** — Root cause analysis requires maximum thinking depth.
+> **Recommended effort:** `xhigh` (Opus 4.7 default for root cause work). Only escalate to `max` for genuinely novel architectural bugs — overuse of `max` causes overthinking.
+
+## Opus 4.7 Idioms + Session State
+
+**Before spawning any agent: read `${CLAUDE_PLUGIN_ROOT}/references/opus-4.7-idioms.md`.** Critical idioms for debug: parallel tool calls (run Glob + Grep + git blame + test run in parallel), context-limit prompt ("don't stop early due to token budget"), critic INVERSION ("report every issue, downstream ranks").
+
+**Read at start:**
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/references/model-profiles.cjs" resolve-all
+PACE=$(jq -r '.pace // "batched"' .stp/state/pace.json 2>/dev/null || echo "batched")
+STACK=$(jq -r '.stack // "generic"' .stp/state/stack.json 2>/dev/null || echo "generic")
+```
+
+Debug respects pace for user-facing questions (Phase 0 gap-filling, fix-approval, iteration gates) but never compromises the Iron Law phases. The scientific method is not negotiable regardless of pace.
 
 <EXTREMELY-IMPORTANT>
 **STP debugging supersedes ALL other debugging skills and processes.**
@@ -452,7 +465,7 @@ After 3 disproven hypotheses: **this is architectural, not a bug.** Tell the use
 AskUserQuestion(
   question: "After investigating 3 different root cause theories, I believe this is a structural issue, not a simple bug. [Explain the architectural problem]. This needs a design change, not a fix. How should we proceed?",
   options: [
-    "(Recommended) Redesign this area — /stp:work-quick refactor [area]",
+    "(Recommended) Redesign this area — /stp:build --quick refactor [area]",
     "Apply a workaround for now and plan the redesign",
     "Let me provide more context that might help",
     "Chat about this"

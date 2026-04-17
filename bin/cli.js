@@ -30,8 +30,8 @@ console.log(c.cyan('║') + '                                                   
 console.log(c.cyan('║') + c.green('  /plugin marketplace add DIV7NE/straight-to-production') + c.cyan('║'));
 console.log(c.cyan('║') + c.green('  /plugin install stp@stp                              ') + c.cyan('║'));
 console.log(c.cyan('║') + '                                                       ' + c.cyan('║'));
-console.log(c.cyan('║') + '  That\'s it. Skills show as /stp:welcome, /stp:plan,   ' + c.cyan('║'));
-console.log(c.cyan('║') + '  /stp:work-quick, etc. Updates: re-run /plugin install' + c.cyan('║'));
+console.log(c.cyan('║') + '  That\'s it. Skills show as /stp:setup, /stp:think,    ' + c.cyan('║'));
+console.log(c.cyan('║') + '  /stp:build, etc. Updates: re-run /plugin install     ' + c.cyan('║'));
 console.log(c.cyan('║') + '                                                       ' + c.cyan('║'));
 console.log(c.cyan('╚═══════════════════════════════════════════════════════╝'));
 console.log('');

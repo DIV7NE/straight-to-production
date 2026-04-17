@@ -65,7 +65,7 @@
           },
           {
             "type": "prompt",
-            "prompt": "Context compaction is about to fire. Commit any uncommitted work now. State saved to .stp/state/state.json. After compaction, run /stp:continue to resume."
+            "prompt": "Context compaction is about to fire. Commit any uncommitted work now. State saved to .stp/state/state.json. After compaction, run /stp:session continue to resume."
           }
         ],
         "description": "Save state to disk before compaction destroys conversation context"
@@ -77,11 +77,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "rm -f .stp/state/ui-gate-passed 2>/dev/null; bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/migrate-layout.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-restore.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check-project-sync.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check-upgrade.sh\" &",
-            "timeout": 15
+            "command": "rm -f .stp/state/ui-gate-passed 2>/dev/null; bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/migrate-layout.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/migrate-v1.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/detect-stack.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-restore.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check-project-sync.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check-upgrade.sh\" &",
+            "timeout": 20
           }
         ],
-        "description": "Wipe UI gate marker + auto-migrate old layout + restore context from disk after /clear or compaction. Wiping the UI gate forces re-confirmation of the design direction on every fresh session."
+        "description": "v1 session bootstrap (all idempotent, <300ms combined): wipe UI gate marker, migrate pre-v1 layout, migrate legacy profile names (intended/balanced/budget/sonnet-main → opus-cto/balanced/opus-budget/sonnet-cheap), refresh stack detection (.stp/state/stack.json, skipped if <24h old), restore session context, upgrade check. Forces design re-confirmation on every fresh session."
       }
     ]
   },
