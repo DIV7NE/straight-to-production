@@ -36,9 +36,21 @@ STACK=$(jq -r '.stack // "generic"' .stp/state/stack.json 2>/dev/null || echo "g
 
    Proceed with whatever documents exist. The Critic adapts — it grades what it can.
 
-2. **Pre-Work Confirmation Gate** — announce: "I'll spawn the critic with INVERSION framing against the current state. Review is read-only until findings come back. Proceed?" AskUserQuestion: `(Recommended) Run review | Scope to [area] only | Cancel`.
+2. **Pre-Work Confirmation Gate** — announce: "I'll digest prior findings from CHANGELOG + AUDIT + the most recent Critic report, then spawn the Critic against current state. Read-only until findings come back. Proceed?" AskUserQuestion: `(Recommended) Run review | Scope to [area] only | Cancel`.
 
-3. Spawn the `stp-critic` agent with INVERSION framing + `<use_parallel_tool_calls>`:
+3. **Pre-spawn context digest** — BEFORE spawning the Critic, the main session digests post-build evidence so the Critic gets the delta, not the whole universe. Parallel reads (graceful-skip anything missing):
+
+    - `.stp/docs/CHANGELOG.md` — the most recent `## [v…]` block. Extract: version, feature summary, spec delta, files changed.
+    - `.stp/docs/AUDIT.md` — the most recent `## Review Refresh — …` and `## Critic Evaluation — …` entries.
+    - `.stp/state/critic-report-*.md` — glob, read the one with the newest mtime. This is prior Critic output.
+
+    Build a ≤10-line **"since last review"** summary that names: the feature shipped since last review, the files that changed, and the top 3 findings last Critic raised (if any). Cap each section at 40 lines when inlining into the prompt — the Critic's budget stays tight.
+
+    The digest goes into the Critic's spawn prompt under a `## Prior Context (do NOT re-flag unchanged items)` block. This prevents the Critic from re-reporting findings already on file.
+
+    If all three sources are missing (first review ever): skip silently — no digest block in the prompt.
+
+4. Spawn the `stp-critic` agent with INVERSION framing + `<use_parallel_tool_calls>`:
 
 ```
 <use_parallel_tool_calls>
@@ -55,6 +67,20 @@ CONTEXT LIMIT:
 Don't stop early due to token budget. If you run out of budget mid-review, report what you
 found + explicitly flag which criteria remain unchecked. Partial coverage with transparency
 beats pretending completeness.
+
+## Prior Context (do NOT re-flag unchanged items)
+[Insert the digest block here when present. If no digest was assembled, omit this section.]
+
+- Last shipped: [version + feature + file count]
+- Last review flagged: [top 3 findings from most recent critic-report, with file:line]
+- Since last review: [git log --oneline since last critic-report-*.md mtime]
+
+Focus your recall on what's NEW or what the prior pass missed. If a finding
+is identical to one already logged under "Last review flagged," reference it
+by its prior ID instead of re-enumerating the details. Genuinely new findings
+get full file:line + business impact treatment.
+
+## Task
 
 Evaluate this project against its requirements and technical plan.
 
@@ -83,14 +109,16 @@ Stack: [STACK from .stp/state/stack.json]
 Focus area: $ARGUMENTS (if provided, go deeper on this but still check everything)
 ```
 
-3. **Refresh .stp/docs/AUDIT.md** — pull fresh production data if MCP services are available:
+4.5. **Persist the Critic's output.** After the sub-agent returns, write the full output (verbatim, unabridged) to `.stp/state/critic-report-$(date -u +%Y%m%dT%H%M%SZ).md`. This is what the NEXT review's pre-spawn digest reads. Also append a summarized version to AUDIT.md (step 5 below).
+
+5. **Refresh .stp/docs/AUDIT.md** — pull fresh production data if MCP services are available:
    - Sentry: current unresolved issues (update severity counts, mark fixed issues)
    - Vercel: deployment status, recent build results
    - Stripe: subscription/product state
    - If AUDIT.md doesn't exist, create it. If MCP services aren't connected, skip silently.
    - Add a `## Review Refresh — [DATE]` entry with current findings.
 
-4. **Cross-Family Verification (Layer 5 — for security-critical, auth, payments, data integrity code)**
+6. **Cross-Family Verification (Layer 5 — for security-critical, auth, payments, data integrity code)**
 
    After the Critic returns, check if the reviewed code touches auth, payments, data integrity, or security-critical paths. If it does, run a cross-family review to decorrelate blind spots:
 
@@ -120,9 +148,9 @@ Focus area: $ARGUMENTS (if provided, go deeper on this but still check everythin
 
    **Deduplicate** findings by root cause before presenting. Cross-family findings get their own section in the report.
 
-5. **CRITICAL SECURITY — auto-fix, don't ask.** If the Critic (or cross-family review) finds hardcoded secrets, exposed API keys, or auth bypasses: fix them IMMEDIATELY without waiting for user approval. Say: "SECURITY: [issue] at [file:line]. Fixing now — this can't wait." Then fix and commit. This happens BEFORE the report so the user sees the fixed state, not the vulnerable state.
+7. **CRITICAL SECURITY — auto-fix, don't ask.** If the Critic (or cross-family review) finds hardcoded secrets, exposed API keys, or auth bypasses: fix them IMMEDIATELY without waiting for user approval. Say: "SECURITY: [issue] at [file:line]. Fixing now — this can't wait." Then fix and commit. This happens BEFORE the report so the user sees the fixed state, not the vulnerable state.
 
-6. When all reviews complete (Critic + cross-family + security fixes), present the report to the user. Append the Critic's summary to AUDIT.md under `## Critic Evaluation — [DATE]`. Translate any remaining technical jargon into business terms:
+8. When all reviews complete (Critic + cross-family + security fixes), present the report to the user. Append the Critic's summary to AUDIT.md under `## Critic Evaluation — [DATE]`. Translate any remaining technical jargon into business terms:
 
    Technical: "No rate limiting on POST /api/invoices"
    Business: "Someone could spam your invoice endpoint and rack up your database/hosting costs"
@@ -130,13 +158,13 @@ Focus area: $ARGUMENTS (if provided, go deeper on this but still check everythin
    Technical: "Missing aria-label on icon buttons"
    Business: "Users who rely on screen readers (visual impairments) can't tell what these buttons do"
 
-7. **Capture new conventions from Critic findings.** If the Critic found a pattern violation that should become a project rule, add it to CLAUDE.md's `## Project Conventions`:
+9. **Capture new conventions from Critic findings.** If the Critic found a pattern violation that should become a project rule, add it to CLAUDE.md's `## Project Conventions`:
    - "Critic found 3 API routes without rate limiting → Convention: All POST endpoints must use `withRateLimit()` middleware"
    - "Critic found inconsistent error response format → Convention: All API errors return `{ error: string, code: string }`"
    
    Not every finding becomes a convention — only patterns that apply project-wide.
 
-8. End with explicit next step:
+10. End with explicit next step:
 
 If FAIL/PARTIAL issues exist:
 
@@ -161,7 +189,7 @@ If everything PASSED:
            phase reads CHANGELOG/PLAN/CONTEXT fresh from disk)
 ```
 
-9. If the user says yes to fixes,, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.
+11. If the user says yes to fixes, work through them in severity order, committing each atomically. After all fixes, offer to re-run the Critic.
 
 ## Focus Areas
 

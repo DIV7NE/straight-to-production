@@ -109,6 +109,27 @@ Purpose: 3+ files, new models, auth/payments, or any safety-critical work.
 12. **Version bump** + docs refresh.
 13. Commit atomically: `test: ...`, `feat: ...`, `docs: spec delta`.
 
+### Pace interaction with `--full` (important)
+
+Pace controls how `--full` handles the gates at steps 5, 7, 8, 9, 10 — **not whether they fire**. Every gate runs in every pace. The differences:
+
+| Pace | Gate behavior |
+|------|---------------|
+| `deep` | Every per-section gate stops for user review. Blueprint split into 4–5 sections, each separately approved. Maximum interactivity. |
+| `batched` (default) | AskUserQuestion at blueprint approval (step 5) and critic review (step 10). Up to 4 questions per call. |
+| `fast` | Single blueprint approval at step 5. No further interactive gates until commit at step 13. |
+| **`autonomous`** | **Gates STILL fire — auto-decide with the `(Recommended)` option.** Every auto-decision is logged to `.stp/state/autopilot-log.md` with timestamp + option picked + reasoning. User reviews the log after the run. |
+
+**Autonomous ≠ unsafe.** It's "delegate tactical decisions, keep the safety net." The Critic still runs, QA still runs, test failures still block commit. What changes: the skill picks the recommended branch at every AskUserQuestion without pausing for input.
+
+**`--full` + `autonomous` is NOT the same as `--auto`.** `--auto` is overnight queue mode using Agent Teams (see below). `--full` + `autonomous` is single-feature delegated execution.
+
+If any of these happen in autonomous, the skill **stops and waits** anyway:
+- Critic reports ≥2 CRITICAL issues on the second pass (can't silently ship broken)
+- Stop hook blocks (tests fail, type errors, secrets detected, schema drift)
+- QA reports UI bug that tests didn't catch
+- Auto-escalation trigger fires mid-build (auth/payments discovered)
+
 ---
 
 ## Mode: `--auto`

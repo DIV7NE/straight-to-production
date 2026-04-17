@@ -1,8 +1,8 @@
-# STP — Straight To Production — Claude Code Plugin (v1.0)
+# STP — Straight To Production — Claude Code Plugin (v1.1)
 
 <!-- STP:stp-header:start -->
 ## What This Is
-Universal Claude Code plugin for production development. **6 skills** (setup, think, build, session, debug, review), **stack-aware** (web, Node, Python, Rust, C++, C#, Java, Go, game cheats, embedded, mods — 14 stacks detected automatically), **pace-aware** (deep / batched / fast / autonomous curiosity dial), **Opus 4.7 idioms** (parallel tool calls, context-limit, INVERSION critic framing).
+Universal Claude Code plugin for production development. **7 skills** (setup, think, build, session, debug, review, ship), **stack-aware** (web, Node, Python, Rust, C++, C#, Java, Go, game cheats, embedded, mods — 14 stacks detected automatically), **pace-aware** (deep / batched / fast / autonomous curiosity dial), **code-graph-aware** (Aider-style repo map via bundled tree-sitter grammars — offline, zero paid APIs), **Opus 4.7 idioms** (parallel tool calls, context-limit, INVERSION critic framing).
 
 Opus 4.7 plans + Sonnet 4.6 executes. Built on STP's production philosophy: no mocks, no placeholders, real tests. Read the installed version from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`.
 <!-- STP:stp-header:end -->
@@ -170,6 +170,9 @@ When user describes work WITHOUT specifying a skill, run **Impact Scan** silentl
 - `/stp:session pause` — save state to disk for next session.
 - `/stp:session continue` — resume from disk, synthesize <300 word summary, chain into next action.
 - `/stp:session progress` — read-only status dashboard.
+
+**Release:**
+- `/stp:ship [patch|minor|major]` — preflight → VERSION bump → CHANGELOG finalize → commit → tag → push → `gh release create` → opt-in publish (npm / cargo / PyPI) → opt-in deploy hook. Free at runtime (uses `gh` CLI free tier).
 <!-- STP:stp-commands:end -->
 
 <!-- STP:stp-plugins:start -->
@@ -288,6 +291,7 @@ All research sources in RESEARCH-SOURCES.md. Key: Anthropic Opus 4.7 best-practi
 - `/stp:build --auto` → **xhigh** (novel work expected overnight) / **max** only on genuine architectural novelty
 - `/stp:session pause`, `/stp:session progress`, `/stp:setup model`, `/stp:setup pace` → **low**
 - `/stp:setup upgrade` → **low**
+- `/stp:ship` → **high** (orchestrator; preflight + git + gh are deterministic — no deep reasoning)
 
 `max` is reserved for genuinely novel architectural work. Overuse causes overthinking.
 <!-- STP:stp-effort:end -->
