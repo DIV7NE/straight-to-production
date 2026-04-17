@@ -92,18 +92,231 @@ Reference: `${CLAUDE_PLUGIN_ROOT}/references/pace-picker.md` explains pace seman
 
 ## Subcommand: `onboard`
 
-**Purpose:** Analyze an existing codebase, build architecture map.
+**Purpose:** Analyze an existing codebase. Writes ARCHITECTURE.md + CONTEXT.md + AUDIT.md + reverse-engineered PRD.md + observation-report PLAN.md. Read-only — never edits source.
 
-1. Announce plan: "I'll map the repo, detect conventions, write ARCHITECTURE.md + CONTEXT.md. No code changes."
-2. Pre-Work Confirmation Gate.
-3. Run `detect-stack.sh` force-refresh (`rm -f .stp/state/stack.json && bash hooks/scripts/detect-stack.sh`).
-4. Spawn `stp-explorer` (model from profile, omit if `inline`) with scope: "Map the top-level structure — entry points, routes, models, tests, CI config. Return file:line references per category."
-5. Spawn `stp-researcher` in parallel if `STP_RESEARCHER_MANDATORY=true` with scope: "What's the current best-practice shape for a [STACK] project? What's the minimum viable AUDIT set?"
-6. Consolidate findings into:
-   - `.stp/docs/ARCHITECTURE.md` — file-system + dependency map
-   - `.stp/docs/CONTEXT.md` — <150 lines concise reference
-   - `.stp/docs/AUDIT.md` — known production health gaps (security, performance, tests, docs)
-7. Commit: `docs: onboarding via /stp:setup onboard`.
+**Flags:**
+- `--scope <path>` — restrict analysis to files under `<path>`. Subsequent `/stp:build` etc. still work project-wide; this just narrows the onboard pass.
+- `--refresh` — incremental re-onboard. Uses git log delta since last onboard marker. Preserves existing OBS-XXX IDs for unchanged observations.
+- `--scope <path> --refresh` — combined: delta within scope only.
+
+---
+
+### Flag parsing (step 0)
+
+```bash
+SCOPE=""
+REFRESH=false
+args="$ARGUMENTS"
+while [ -n "$args" ]; do
+  case "$args" in
+    --scope=*)      SCOPE="${args#--scope=}";  args="" ;;
+    --scope\ *)     SCOPE=$(echo "$args" | awk '{print $2}'); args="${args#--scope * }" ;;
+    --refresh*)     REFRESH=true;              args="${args#--refresh}" ;;
+    *)              args="${args# }" ;;
+  esac
+done
+```
+
+---
+
+### Steps (common to fresh + --refresh, divergence noted)
+
+1. **Announce plan** (pace-aware wording):
+   - Fresh onboard: "I'll map the repo, detect conventions, reverse-engineer PRD + observation-report PLAN. Read-only. No code changes."
+   - `--scope <path>`: "…scoped to `<path>`. Onboarding everything under that tree only."
+   - `--refresh`: "…incremental re-onboard — only files changed since [last-onboarded-at]. Preserving OBS IDs."
+
+2. **Pre-Work Confirmation Gate** — AskUserQuestion:
+   `Proceed (Recommended) | Adjust scope | Cancel`
+
+3. **Stack detect** — force-refresh the first time, use cached for `--refresh` within 24h:
+   ```bash
+   if [ "$REFRESH" = false ] || [ ! -f .stp/state/stack.json ]; then
+     rm -f .stp/state/stack.json
+     bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/detect-stack.sh"
+   fi
+   ```
+
+4. **Delta computation** (only if `--refresh`):
+   ```bash
+   CHANGED_FILES=$(bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/onboard-delta.sh" "$SCOPE")
+   if [ "$CHANGED_FILES" = "NO_CHANGES" ]; then
+     echo "No changes since last onboard. Nothing to refresh."
+     exit 0
+   fi
+   ```
+   For fresh onboard: `CHANGED_FILES=""` (Explorer reads everything in scope).
+
+5. **Spawn `stp-explorer`** (model from profile, omit if `inline`). Scope depends on flags:
+
+   **Fresh / no scope:** "Map the entire top-level structure — entry points, routes, models, tests, CI config. Build observations."
+
+   **`--scope <path>`:** "Map the structure under `<path>` only. Entry points, routes, models, tests, CI config within this scope. Build observations."
+
+   **`--refresh` with CHANGED_FILES:** "Re-analyze these specific files: [list]. Update observations for files that changed. Preserve OBS-XXX IDs for unchanged observations (read `.stp/docs/PLAN.md` first to know existing IDs, match by `(file, category, summary-hash)`)."
+
+   Explorer MUST return structured output alongside the prose map:
+
+   ```json
+   {
+     "observations": [
+       {
+         "id": "OBS-001",
+         "file": "src/api/invoices.ts:47",
+         "severity": "P0 | P1 | P2 | P3",
+         "category": "bug | tech-debt | missing-feature | security",
+         "summary": "…",
+         "suggested_remediation": "…"
+       }
+     ],
+     "inferences": [
+       {
+         "confidence": "HIGH | MEDIUM | LOW",
+         "kind": "behavior | constraint | user-story | acceptance-criterion | data-model | api-surface",
+         "text": "…",
+         "source": "tests/auth.test.ts:42 | comment at src/api.ts:80 | shape of src/billing.ts:110"
+       }
+     ]
+   }
+   ```
+
+   **Confidence rubric for inferences:**
+   - Behavior has an explicit test asserting it → **HIGH** → emit as `SHALL` / `MUST`
+   - Behavior is described in JSDoc / docstring / comment → **MEDIUM** → emit as `SHOULD`
+   - Pure code-shape inference (type name, field name, function signature) → **LOW** → emit as `MAY`, lives under `## Low-Confidence Inferences` section
+
+6. **Spawn `stp-researcher`** in parallel if `STP_RESEARCHER_MANDATORY=true`. Scope: "What's the current best-practice shape for a [STACK] project? What's the minimum viable AUDIT set for this stack?"
+
+7. **Consolidate outputs** — write/update:
+   - `.stp/docs/ARCHITECTURE.md` — file-system + dependency map. `--scope` entries get `(scoped: <path>)` tag. `--refresh` mode: diff-merge against existing file, don't rewrite whole.
+   - `.stp/docs/CONTEXT.md` — <150 lines concise reference. On `--refresh`, update only affected sections.
+   - `.stp/docs/AUDIT.md` — production health gaps. Append-only — prior AUDIT entries stay.
+   - `.stp/docs/PRD.md` — reverse-engineered (template below). `--refresh` mode: insert/update Given/When/Then scenarios for changed behaviors, preserve unchanged.
+   - `.stp/docs/PLAN.md` — observation report (template below). `--refresh` mode: preserve OBS-XXX IDs for unchanged, add new OBS-NNN for net-new findings.
+
+8. **Write the reverse-engineered PRD** to `.stp/docs/PRD.md`:
+
+   ```markdown
+   # Product Requirements Document (reverse-engineered)
+
+   > Source: `/stp:setup onboard` at [ISO timestamp]
+   > This PRD was inferred from an existing codebase. Sections marked
+   > LOW CONFIDENCE may not reflect original product intent — validate
+   > before using this doc to drive `/stp:build`.
+
+   ## Product Summary (inferred)
+   [one paragraph]
+
+   ## System Constraints (HIGH + MEDIUM confidence only)
+   - [S-001] The system SHALL […] — source: `tests/auth.test.ts:42` (test asserts this)
+   - [S-002] The system SHOULD […] — source: comment at `src/api.ts:80`
+
+   ## User Stories (inferred from routes/UI)
+   - As a [role], I can [action] via `[route/component:line]`
+
+   ## Acceptance Criteria (Given/When/Then, from existing tests)
+   ### AC-001 — [title]
+   Given […] When […] Then […]  — source test: `path:line`
+
+   ## Data Model (from schema/migrations)
+   [ORM model summary with file:line]
+
+   ## API Surface (from route files)
+   [HTTP verb + path + handler location]
+
+   ## Low-Confidence Inferences
+   <!-- Everything below is shape-inference only. Validate before relying on any of it. -->
+   - [S-003] The system MAY […] — inferred from shape of `src/billing.ts:110`, not validated
+   - (expand as needed)
+
+   ## Out of Scope
+   - (inferred; verify these haven't been descoped accidentally)
+   ```
+
+9. **Write the observation report PLAN** to `.stp/docs/PLAN.md`:
+
+   ```markdown
+   # Observation Report (reverse-engineered)
+
+   > Source: `/stp:setup onboard` at [ISO timestamp]
+   > PLAN.md from onboard is an OBSERVATION REPORT — not a forward plan.
+   > Run `/stp:think --plan` to write a formal forward plan from these
+   > observations.
+
+   ## OBS-001 — [short title]
+   - Location: `src/api/invoices.ts:47`
+   - Severity: P0
+   - Category: bug
+   - Observation: [what is]
+   - Suggested remediation: [what could be]
+
+   ## OBS-002 — […]
+   …
+   ```
+
+   Ordering: P0 first, then P1, P2, P3. Numbering monotonic (OBS-001, OBS-002, …). On `--refresh`, preserve existing IDs for observations whose `(file, category, summary-hash)` is unchanged; mint new IDs for genuinely new findings.
+
+10. **Validation prompt** — AskUserQuestion before committing:
+
+    ```
+    question: "I wrote PRD.md (reverse-engineered, [H] HIGH / [M] MEDIUM /
+              [L] LOW-confidence inferences) and PLAN.md ([N] observations,
+              [p0] P0 / [p1] P1). Review before committing?"
+    options:
+      - (Recommended) Accept as-is — commit and continue
+      - Edit specific items — I'll open .stp/docs/PRD.md for you first
+      - Discard and re-run onboard with different scope
+      - Cancel
+    ```
+
+    On `Edit specific items`: open PRD.md in the user's editor, wait for them to save+close, then re-prompt (`Accept | Edit again | Cancel`). Same for PLAN.md if they choose to edit that next.
+
+11. **Update trackers:**
+    - `.stp/state/onboard-marker.json`:
+      ```json
+      {
+        "version": 1,
+        "last_full_onboard_at": "ISO",
+        "last_refresh_at": "ISO"
+      }
+      ```
+    - `.stp/state/onboarded-scopes.json` (only if `--scope` was used):
+      ```json
+      {
+        "scopes": [
+          {
+            "path": "src/auth",
+            "last_onboarded_at": "ISO",
+            "observation_count": 12
+          }
+        ],
+        "last_full_onboard_at": "ISO"
+      }
+      ```
+
+12. **Commit:**
+    - Fresh: `docs: onboarding via /stp:setup onboard (PRD + PLAN + ARCH + CONTEXT + AUDIT)`
+    - `--scope`: `docs: scoped onboarding (scope=<path>) via /stp:setup onboard`
+    - `--refresh`: `docs: refresh onboarding ([N] files changed since [LAST]) via /stp:setup onboard --refresh`
+
+13. **Completion box:**
+    ```
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║  ✓ ONBOARDING COMPLETE                                        ║
+    ╠═══════════════════════════════════════════════════════════════╣
+    ║  Written + committed:                                         ║
+    ║    .stp/docs/ARCHITECTURE.md  (codebase map)                  ║
+    ║    .stp/docs/CONTEXT.md       (<150 line concise ref)         ║
+    ║    .stp/docs/AUDIT.md         (production health)             ║
+    ║    .stp/docs/PRD.md           (reverse-engineered)            ║
+    ║    .stp/docs/PLAN.md          (observation report, [N] items) ║
+    ║                                                               ║
+    ║  ► Next options:                                              ║
+    ║    /clear, then /stp:think --plan      (formal forward plan)  ║
+    ║    /clear, then /stp:debug OBS-007     (fix specific finding) ║
+    ║    /clear, then /stp:build --quick ... (spot fix, no plan)    ║
+    ╚═══════════════════════════════════════════════════════════════╝
+    ```
 
 ---
 
