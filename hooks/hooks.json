@@ -77,11 +77,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "rm -f .stp/state/ui-gate-passed 2>/dev/null; bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/migrate-layout.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/migrate-v1.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/detect-stack.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-restore.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check-project-sync.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check-upgrade.sh\" &",
-            "timeout": 20
+            "command": "rm -f .stp/state/ui-gate-passed 2>/dev/null; bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/migrate-layout.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/migrate-v1.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/detect-stack.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-restore.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check-project-sync.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check-upgrade.sh\" && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/code-graph-update.sh\" &",
+            "timeout": 25
           }
         ],
-        "description": "v1 session bootstrap (all idempotent, <300ms combined): wipe UI gate marker, migrate pre-v1 layout, migrate legacy profile names (intended/balanced/budget/sonnet-main → opus-cto/balanced/opus-budget/sonnet-cheap), refresh stack detection (.stp/state/stack.json, skipped if <24h old), restore session context, upgrade check. Forces design re-confirmation on every fresh session."
+        "description": "v1.1 session bootstrap (idempotent, <500ms combined except code-graph which runs backgrounded): wipe UI gate marker, migrate pre-v1 layout, migrate legacy profile names, refresh stack detection (skipped if <24h), restore session context, upgrade check, incremental code-graph rebuild (Aider-style repo map, skipped if no source changed since last run). All chained in background so Claude's session starts immediately."
       }
     ]
   },

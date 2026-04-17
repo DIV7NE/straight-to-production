@@ -53,10 +53,48 @@ The spawn prompt includes:
 - **Bash** — for `wc -l`, `git log` on specific files.
 
 **Default order:**
-1. **Glob first** — find candidate files matching the scope
-2. **Grep next** — narrow to files that actually mention the target symbols
-3. **Read last** — open only the files Grep flagged, and only the relevant sections via offset/limit
-4. **Synthesize** — build the map, return
+1. **Code-graph first** — read `.stp/state/code-graph.json` if it exists (see below)
+2. **Glob second** — find candidate files matching the scope (only if graph missed)
+3. **Grep third** — narrow to files that actually mention the target symbols
+4. **Read last** — open only the files Grep flagged, and only the relevant sections via offset/limit
+5. **Synthesize** — build the map, return
+
+## Code-Graph First (MANDATORY when present)
+
+STP builds an Aider-style repo map at `.stp/state/code-graph.json` on SessionStart. If the file exists, **read it before any Glob/Grep**. The graph answers most structural questions without touching raw source.
+
+Schema (relevant fields):
+```json
+{
+  "files": {
+    "src/api/invoices.ts": {
+      "lang": "typescript",
+      "centrality": 0.87,            // 0–1, higher = more connected
+      "imports": [{"from": "src/lib/db.ts", "symbols": ["prisma"]}],
+      "exports": [{"name": "createInvoice", "kind": "function", "line": 47}],
+      "symbols": [{"name": "calcTax", "kind": "function", "line": 88}]
+    }
+  },
+  "references": {
+    "prisma": [{"file": "src/api/invoices.ts", "line": 52}, ...]
+  }
+}
+```
+
+Questions the graph answers without Glob/Grep:
+- **"Where is symbol X used?"** → look up `graph.references.X[]`
+- **"What does file Y depend on?"** → read `graph.files['Y'].imports`
+- **"What are the most-connected files?"** → sort `graph.files` by `centrality` desc
+- **"What does file Y export?"** → `graph.files['Y'].exports`
+- **"Symbols defined in Y?"** → `graph.files['Y'].symbols`
+
+**Fall through to Glob/Grep ONLY when:**
+- Graph file missing: `.stp/state/code-graph.json` doesn't exist (pre-v1.1 project, or stack without parseable source).
+- Symbol not in `references`: dynamic string lookup, template-literal import, runtime reflection.
+- `.meta.truncated_files` lists the file you need: graph dropped its symbols due to the 500 KB budget.
+- Question is about behavior, not structure (e.g., "when is this function called in production" — graph shows call sites, but not runtime reachability).
+
+When the graph answers your question in one lookup, return the result. Do NOT "double-check" with a Grep — the graph is authoritative for structural questions.
 
 ## Process
 
