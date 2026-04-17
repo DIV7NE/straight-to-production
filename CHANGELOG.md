@@ -5,6 +5,115 @@ All notable changes to STP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] — 2026-04-17 — workflow polish + code-graph + /stp:ship
+
+### Summary
+
+v1.1 closes the 9 workflow frictions surfaced in post-v1.0 review, adds an Aider-style code-graph (tree-sitter-based repo map, runtime-free and offline-capable), and ships a new 7th skill `/stp:ship` for the release + tag + optional-publish ritual. Total: 7 fix commits + 1 feature commit + 1 release skill + this changelog entry.
+
+**Headline additions:**
+- **Code-graph** (`.stp/state/code-graph.json`) — incrementally rebuilt on SessionStart. `stp-explorer` reads it FIRST before Glob/Grep for all structural questions. Expected 60–80% fewer tool calls on mature codebases. 10 languages bundled as WASM (~17 MB): TS / TSX / JS / Python / Rust / Go / Java / C# / C++ / C.
+- **`/stp:ship`** — new skill. Preflight → VERSION bump → CHANGELOG finalize → commit → tag → push → `gh release create` → opt-in publish. No paid services (`gh` uses free tier). Publish steps are always AskUserQuestion, never automatic.
+- **Onboard finally writes PRD.md + PLAN.md** — v1.0 silently skipped these despite README claiming otherwise. Now writes a reverse-engineered PRD with HIGH/MEDIUM/LOW confidence rubric + observation-report PLAN with OBS-NNN numbering + `--scope` + `--refresh` flags + validation AskUserQuestion.
+
+**Runtime-free guarantee (hardened):** no paid APIs, no external services, no API keys, no cloud lookups at runtime. Code-graph grammars ship in `grammars/`, web-tree-sitter runtime ships in `vendor/`. Works fully offline after plugin install.
+
+### Added
+
+**Fix 2+3+4+5: `/stp:setup onboard` — full rewrite:**
+- Writes reverse-engineered PRD.md with `## Low-Confidence Inferences` section
+- Writes observation-report PLAN.md with OBS-NNN numbering (P0 first)
+- Confidence rubric: HIGH = test-asserted → SHALL, MEDIUM = docstring/comment → SHOULD, LOW = pure code-shape → MAY
+- New `--scope <path>` flag — restricts Explorer Glob to the subtree
+- New `--refresh` flag — incremental re-onboard via `hooks/scripts/onboard-delta.sh` (git log delta since last marker)
+- Scope tracker: `.stp/state/onboarded-scopes.json`
+- Marker: `.stp/state/onboard-marker.json` with `last_full_onboard_at` + `last_refresh_at`
+- Validation AskUserQuestion: Accept / Edit / Discard+rescope / Cancel
+- Observation IDs preserved across `--refresh` runs (diff by `file+category+summary-hash`)
+
+**Fix 10: Code-graph (`hooks/scripts/code-graph/`):**
+- `build.js` — orchestrator. Walks source files, parses via tree-sitter, extracts imports/exports/symbols, computes degree-based centrality, writes JSON + `.meta` sidecar with SHA-1 per file for incremental rebuild
+- `queries.js` — per-language tree-sitter query strings. TS/JS covers ES6 imports AND CommonJS `require()`. v0.20-ABI compatible
+- `code-graph-update.sh` — SessionStart bash wrapper. Skips cleanly if stack.json missing or no source newer than graph
+- Hard cap 500 KB JSON. Drops `symbols` for low-centrality files if over
+- Bundled grammars at `grammars/*.wasm` (10 languages) + web-tree-sitter runtime at `vendor/web-tree-sitter/` (v0.20.8)
+- Schema docs at `references/code-graph-schema.md`
+- Grammar README with licenses at `grammars/README.md`
+
+**Fix 11: `/stp:ship` skill (new 7th skill):**
+- `skills/ship/SKILL.md` — preflight + version + CHANGELOG + commit + tag + push + release + publish + deploy
+- 7 preflight gates: branch=main, zero uncommitted, in-sync with upstream, VERSION sane semver, CHANGELOG has `## [Unreleased]`, tests pass, `gh auth status` OK
+- Overrides allowed but logged into the GitHub release body under `## ⚠ Overrides used`
+- Stack-aware publish detection: `package.json` (if not private) / `Cargo.toml` / `pyproject.toml`
+- Optional deploy hook: looks for `.stp/deploy.sh` or `scripts/deploy.sh`
+- `--dry-run` mode for sanity-check before real ship
+
+**`stp-explorer` agent template — Code-Graph First rule:**
+- New MANDATORY section in `references/agents/explorer.md.template`
+- Explorer reads `.stp/state/code-graph.json` before any Glob/Grep
+- Documents the 4 cases when graph is insufficient: missing, symbol not indexed, truncated file, behavior-not-structure question
+
+### Changed
+
+**Fix 1: `/stp:setup new` completion box + PRD/PLAN split:**
+- New step 10 prints cyan ╔═╗ box recommending `/clear, then /stp:think --plan`
+- Step 6 rewritten — `setup new` now writes PLAN.md as a milestone outline only, not the full 9-phase architecture. The architecture is `/stp:think --plan`'s job. This fixes a silent double-write where both skills claimed ownership of PLAN.md
+- Step 8 Critic now grades PRD scope coverage, not PLAN (which is a stub at this point)
+
+**Fix 9: `/stp:build --full` — pace=autonomous documentation:**
+- New explicit table in `skills/build/SKILL.md` showing gate behavior per pace
+- `autonomous` gates STILL fire — they auto-decide with `(Recommended)` option, log every decision to `.stp/state/autopilot-log.md`
+- Explicit contrast between `--full` + `autonomous` (single-feature delegated) and `--auto` (overnight queue with Agent Teams)
+- Lists 4 conditions where autonomous halts anyway (critic critical on 2nd pass, stop hook block, QA UI bug, mid-build auto-escalation)
+
+**Fix 6: `/stp:review` — pre-spawn digest + persist output:**
+- New step 3 reads the most recent CHANGELOG entry, AUDIT.md's last Review Refresh + Critic Evaluation blocks, and the newest `.stp/state/critic-report-*.md`
+- Digest inserted into Critic's spawn prompt under `## Prior Context (do NOT re-flag unchanged items)` block
+- New step 4.5 persists every Critic run to `.stp/state/critic-report-<ISO>.md` — this is what the NEXT review's digest reads
+- Fixed pre-existing bug: two steps were both numbered "3"
+
+**Fix 7+8: `/stp:session` — summary + lazy-read:**
+- `pause` new step 3.5: writes `.stp/state/session-summary.md` (strict ≤50-line template)
+- Both `handoff.md` (deep) and `summary.md` (skim) coexist
+- `continue` rewritten with tier-1 / tier-2 lazy read
+- Tier-1 (always): summary.md + state.json + git status — ~50 lines
+- Tier-2 (on demand): handoff.md + PLAN + CHANGELOG + ARCHITECTURE — only when summary missing, stale (>48h), or user requests deep context
+- On mature projects, resume cost drops from 10–30 KB to ~2 KB
+
+**SessionStart hook chain:**
+- Appended `code-graph-update.sh` to the backgrounded chain
+- Timeout raised 20→25s to accommodate first-run graph build on large projects
+- Full chain: migrate-layout → migrate-v1 → detect-stack → session-restore → check-project-sync → check-upgrade → code-graph-update
+
+**CLAUDE.md:**
+- Header bumped to v1.1, skill count 6→7, added "code-graph-aware" adjective
+- New `**Release:**` block in Skills section with `/stp:ship`
+- Effort Levels added `/stp:ship → high`
+- All STP marker blocks preserved so `/stp:setup upgrade` sync still works
+
+### Constraints introduced (v1.1 System Constraints)
+
+- **SHALL:** `stp-explorer` reads `.stp/state/code-graph.json` before any Glob/Grep when the graph exists.
+- **SHALL:** `/stp:ship` preflight gates must all pass or be explicitly overridden by the user with the override logged into the release notes.
+- **SHALL:** Every `/stp:review` Critic spawn receives a `## Prior Context` digest block when prior review artifacts exist on disk.
+- **SHALL:** `/stp:session pause` writes both `handoff.md` (deep) and `session-summary.md` (skim). `continue` reads summary first, falls back to full context only when needed.
+- **MUST NOT:** Depend on paid APIs or cloud services for code-graph or release features at runtime. All such deps must be bundled in the plugin repo or use the user's existing free-tier tooling (e.g. `gh` CLI).
+- **MUST NOT:** Lazy-download tree-sitter grammars at runtime. The offline-capability contract is load-bearing.
+
+### Dependencies created
+
+- `hooks/scripts/code-graph-update.sh` depends on `hooks/scripts/code-graph/build.js` + `queries.js` + bundled grammars + vendored `web-tree-sitter`
+- `stp-explorer` agent depends on the code-graph JSON schema in `references/code-graph-schema.md`
+- `/stp:setup onboard --refresh` depends on `hooks/scripts/onboard-delta.sh` + the `.stp/state/onboard-marker.json` format
+- `/stp:ship` depends on `gh` CLI being installed and authed (free tier)
+- `/stp:ship` depends on `.stp/state/stack.json.test_cmd` for the test-pass preflight gate
+
+### Breaking changes
+
+None. v1.1 is strictly additive over v1.0 — no command renames, no profile renames, no hook behavior changes that affect existing projects.
+
+First-time post-upgrade SessionStart will build the code-graph in the background (~1–5 seconds on typical projects). Subsequent sessions reuse cached graph unless source changed.
+
 ## [1.0.0] — 2026-04-17 — v1: universal, stack-aware, pace-aware
 
 ### Summary

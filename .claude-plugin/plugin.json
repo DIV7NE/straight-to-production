@@ -1,7 +1,7 @@
 {
   "name": "stp",
-  "version": "1.0.0",
-  "description": "Your CTO in a plugin. 6 skills, stack-aware, pace-aware. Universal across web / CRM / C++ / C# / Rust / game cheats / embedded / mods. Opus 4.7 plans, Sonnet 4.6 executes. Built on STP's production philosophy: no mocks, no placeholders, real tests.",
+  "version": "1.1.0",
+  "description": "Your CTO in a plugin. 7 skills, stack-aware, pace-aware, code-graph-aware. Universal across web / CRM / C++ / C# / Rust / game cheats / embedded / mods. Opus 4.7 plans, Sonnet 4.6 executes. Aider-style repo map bundled — zero network, zero paid APIs. Built on STP's production philosophy: no mocks, no placeholders, real tests.",
   "author": {
     "name": "visionch"
   },
@@ -26,6 +26,10 @@
     "security",
     "accessibility",
     "evaluation",
-    "solo-dev"
+    "solo-dev",
+    "tree-sitter",
+    "code-graph",
+    "repo-map",
+    "aider"
   ]
 }
