@@ -38,7 +38,7 @@ PACE=$(jq -r '.pace // "batched"' .stp/state/pace.json 2>/dev/null || echo "batc
      - `Save handoff, don't commit WIP`
      - `Just save handoff (skip commit + discard nothing)`
      - `Cancel`
-3. **Write `.stp/state/handoff.md`** — template:
+3. **Write `.stp/state/handoff.md`** — the deep context. Template:
    ```markdown
    # Handoff — [timestamp]
 
@@ -64,6 +64,37 @@ PACE=$(jq -r '.pace // "batched"' .stp/state/pace.json 2>/dev/null || echo "batc
    ## Recommended resume command
    `/clear, then /stp:session continue`
    ```
+3.5. **Write `.stp/state/session-summary.md`** — the TL;DR. This is what `continue` reads FIRST so the resume cost is bounded by ~50 lines, not the full handoff + plan + architecture stack.
+
+   Strict template, hard ceiling ≤50 lines:
+
+   ```markdown
+   # Session Summary — [ISO timestamp]
+
+   ## What I was doing
+   [ONE sentence, imperative past — "Implementing PRD AC-007: invoice PDF export."]
+
+   ## What's done
+   - [checklist item completed this session]
+   - [another]
+
+   ## Open decisions
+   - [question deferred to next session]
+
+   ## Next action
+   [ONE sentence — "Write failing test for AC-007.c (empty line items edge case)."]
+
+   ## Context that might get lost
+   - [non-obvious insight]
+   - [gotcha discovered]
+   - (max 3 bullets — demand brevity)
+
+   ---
+   Full context: `.stp/state/handoff.md`
+   Resume: `/stp:session continue`
+   ```
+
+   Both files exist side-by-side. `handoff.md` is the full context for deep resumes. `summary.md` is the skimmable version for most resumes. `continue` reads `summary.md` first; only loads `handoff.md` when summary is missing or the user asks for deep context.
 4. **WIP commit** (if user chose to) — `git add <specific files> && git commit -m "wip: session paused — [brief]"`.
 5. **Write `.stp/state/state.json`** — machine-readable summary for SessionStart hook to reload:
    ```json
@@ -81,23 +112,42 @@ PACE=$(jq -r '.pace // "batched"' .stp/state/pace.json 2>/dev/null || echo "batc
 
 ## Subcommand: `continue`
 
-**Purpose:** resume from disk. Assumes fresh session (`/clear` before invocation is common but not required).
+**Purpose:** resume from disk. Assumes fresh session (`/clear` before invocation is common but not required). Uses **lazy read** — load the cheap skim first, only pay for deep context when needed.
 
-1. **Parallel reads** — load state:
-   - `.stp/state/handoff.md` — conversational resume point
-   - `.stp/state/state.json` — machine-readable resume
-   - `.stp/state/current-feature.md` (if exists) — active feature work
+1. **Tier-1 read (always)** — fast, ~50 lines total:
+   - `.stp/state/session-summary.md` — the TL;DR from the last `pause`
+   - `.stp/state/state.json` — machine-readable resume (paused-at, branch, open feature, next command)
+   - `git status --short` + `git log --oneline -5`
+
+   If `session-summary.md` exists and is ≤48 hours old: **go to step 2 with just this data.** Do NOT open handoff.md, PLAN.md, CHANGELOG.md, or ARCHITECTURE.md at this point. The summary has what you need for 90% of resumes.
+
+2. **Synthesis** — build a <200 word context summary from tier-1 reads only. Cover: what was active (from summary's "What I was doing"), next action (from summary's "Next action"), any uncommitted changes (from git status).
+
+3. **Pre-Work Confirmation Gate** — announce: "Resuming [feature from summary]. Next action: [summary's next action]. Proceeding?" AskUserQuestion:
+   - `(Recommended) Continue with next action`
+   - `Different task — let me describe`
+   - `Load deep context first (handoff + PLAN + ARCHITECTURE)`
+   - `Just show the summary, I'll decide`
+
+4. **Tier-2 read (on demand)** — triggered if any of these happen:
+   - User picked `Load deep context first`
+   - `session-summary.md` is missing or >48 hours old
+   - Summary says "See handoff for details" or similar escape hatch
+   - The chained target command (`/stp:build`, `/stp:think`) needs more than summary provides
+
+   Tier-2 parallel read:
+   - `.stp/state/handoff.md` — full conversational resume point
+   - `.stp/state/current-feature.md` (if exists) — active feature checklist
    - `.stp/state/design-brief.md` (if exists) — upstream design
    - `.stp/docs/CHANGELOG.md` (last 40 lines) — recent feature history
    - `.stp/docs/PLAN.md` (sections 1-3) — goal + constraints
-   - `git status --short` + `git log --oneline -5`
-2. **Synthesis** — build a <300 word context summary. Cover: what was active, where I left off, next action.
-3. **Pre-Work Confirmation Gate** — announce: "Resuming [feature]. Next action per handoff: [step 1]. Proceeding?" AskUserQuestion:
-   - `(Recommended) Continue with next action`
-   - `Different task — let me describe`
-   - `Just show the summary, I'll decide`
-4. **Chain into target command** — based on handoff.md's `Recommended resume command` or user's override. Typically: `/stp:build` (continue feature) or `/stp:think` (continue planning).
-5. Session-start hook (`session-restore.sh`) already runs on fresh session start — this command is the interactive complement.
+   - `.stp/docs/ARCHITECTURE.md` (if chained into `/stp:build`) — dependency map
+
+5. **Chain into target command** — based on summary's next action or `state.json.next_command`. Typically: `/stp:build` (continue feature) or `/stp:think` (continue planning).
+
+6. Session-start hook (`session-restore.sh`) runs on fresh session — this command is the interactive complement that synthesizes and chains.
+
+> **Why lazy-read:** on a mature project, the full read (PLAN + ARCHITECTURE + CHANGELOG + handoff) can be 10-30 KB of markdown — meaningful context cost on every resume. The summary is typically ~2 KB. Escalate to full only when the summary genuinely isn't enough.
 
 ---
 
